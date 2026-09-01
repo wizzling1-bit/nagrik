@@ -72,6 +72,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
   const [loading, setLoading] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
   const [selectedStoryModal, setSelectedStoryModal] = useState<any | null>(null);
+  const [selectedCreatorModal, setSelectedCreatorModal] = useState<any | null>(null);
 
   // Forms
   const [newCatName, setNewCatName] = useState('');
@@ -444,8 +445,8 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
               </div>
 
               <div className="px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 text-[10px] font-bold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                <span>Live Supabase Connected</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>All Systems Operational</span>
               </div>
             </div>
 
@@ -1013,8 +1014,48 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                         <td className="p-4 font-mono text-slate-300">38,666 Views</td>
                         <td className="p-4 font-mono font-bold text-emerald-400">$24.50</td>
                         <td className="p-4">
-                          <button className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-bold text-[11px]">
-                            View Portfolio
+                          <button
+                            onClick={() => setSelectedCreatorModal({
+                              id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+                              name: 'Rahul Kumar',
+                              email: 'creator1@naagrik.news',
+                              phone: '+91 98765 43210',
+                              location: 'Kankarbagh, Patna, Bihar',
+                              bio: 'Senior Hyperlocal Citizen Reporter covering public infrastructure, civic issues, and cultural events across Patna and Bihar.',
+                              status: 'VERIFIED',
+                              joinedAt: 'August 2026',
+                              availableBalance: 24.50,
+                              lifetimeEarnings: 58.00,
+                              totalPaid: 33.50,
+                              totalViews: 38666,
+                              payoutMethod: 'UPI (rahulkumar@okhdfcbank)',
+                              reports: [
+                                {
+                                  id: '1',
+                                  title: 'पटना कंकड़बाग में नए फ्लाइओवर का निर्माण कार्य शुरू, ट्रैफिक डायवर्जन जारी',
+                                  category: 'Local News',
+                                  views: 18450,
+                                  likes: 620,
+                                  date: '28 Aug 2026',
+                                  status: 'APPROVED',
+                                  thumbnail: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop&q=80'
+                                },
+                                {
+                                  id: '2',
+                                  title: 'गंगा रिवरफ्रंट पर उमड़ी भारी भीड़, शाम की भव्य आरती का सीधा दृश्य',
+                                  category: 'Culture',
+                                  views: 20216,
+                                  likes: 890,
+                                  date: '29 Aug 2026',
+                                  status: 'APPROVED',
+                                  thumbnail: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=600&auto=format&fit=crop&q=80'
+                                }
+                              ]
+                            })}
+                            className="px-3 py-1.5 bg-[#E36138] hover:bg-[#D24E25] rounded-xl text-white font-bold text-[11px] shadow-sm transition cursor-pointer flex items-center gap-1.5"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View Portfolio</span>
                           </button>
                         </td>
                       </tr>
@@ -1286,16 +1327,13 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
           </main>
 
           {/* Dedicated Admin Footer */}
-          <footer className="bg-slate-950 border-t border-slate-800 px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-mono">
-            <div>Naagrik Admin Suite v2.4 • Supabase PostgreSQL Active</div>
+          <footer className="bg-slate-950 border-t border-slate-800 px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
+            <div>© 2026 Naagrik Editorial & Operations Suite • Enterprise Edition</div>
             <div className="flex items-center gap-4">
               <span className="text-emerald-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Zero System Errors</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>System Health Normal</span>
               </span>
-              <a href={`${API_BASE.replace('/api/v1', '')}/docs`} target="_blank" rel="noreferrer" className="hover:text-slate-300 transition">
-                API Docs
-              </a>
             </div>
           </footer>
         </div>
@@ -1339,6 +1377,136 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                   className="flex-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2.5 rounded-xl transition"
                 >
                   Reject Story
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CREATOR PORTFOLIO MODAL */}
+      {selectedCreatorModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-3xl w-full p-6 shadow-2xl relative space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setSelectedCreatorModal(null)}
+              className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Reporter Header Info */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E36138] to-amber-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-orange-950">
+                {selectedCreatorModal.name.charAt(0)}
+              </div>
+
+              <div className="space-y-1 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-xl font-black text-white">{selectedCreatorModal.name}</h3>
+                  <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <UserCheck className="w-3 h-3" />
+                    <span>{selectedCreatorModal.status}</span>
+                  </span>
+                </div>
+                <div className="text-xs text-slate-400 font-medium">
+                  {selectedCreatorModal.email} • {selectedCreatorModal.phone} • {selectedCreatorModal.location}
+                </div>
+                <p className="text-xs text-slate-300 pt-1 leading-relaxed">{selectedCreatorModal.bio}</p>
+              </div>
+            </div>
+
+            {/* Financial & Monetization Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Available Balance</div>
+                <div className="text-xl font-black text-emerald-400 font-mono mt-0.5">
+                  ${selectedCreatorModal.availableBalance?.toFixed(2)}
+                </div>
+              </div>
+
+              <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Lifetime Earned</div>
+                <div className="text-xl font-black text-[#FB923C] font-mono mt-0.5">
+                  ${selectedCreatorModal.lifetimeEarnings?.toFixed(2)}
+                </div>
+              </div>
+
+              <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Total Paid Out</div>
+                <div className="text-xl font-black text-indigo-400 font-mono mt-0.5">
+                  ${selectedCreatorModal.totalPaid?.toFixed(2)}
+                </div>
+              </div>
+
+              <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Monetized Views</div>
+                <div className="text-xl font-black text-white font-mono mt-0.5">
+                  {selectedCreatorModal.totalViews?.toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            {/* Published Stories Portfolio Section */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center justify-between">
+                <span>Published Reports & Field Stories ({selectedCreatorModal.reports?.length || 0})</span>
+                <span className="text-[11px] text-slate-400 font-normal">Active Hyperlocal Feed</span>
+              </h4>
+
+              <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                {selectedCreatorModal.reports?.map((rep: any) => (
+                  <div
+                    key={rep.id}
+                    className="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-700 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={rep.thumbnail}
+                        alt=""
+                        className="w-12 h-12 rounded-xl object-cover shrink-0"
+                      />
+                      <div>
+                        <div className="font-bold text-white text-xs line-clamp-1">{rep.title}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+                          <span className="text-[#FB923C] font-semibold">{rep.category}</span>
+                          <span>•</span>
+                          <span>{rep.views?.toLocaleString()} views</span>
+                          <span>•</span>
+                          <span>{rep.date}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                      {rep.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-[11px] text-slate-400">
+                Payout Gateway: <span className="text-slate-200 font-mono font-bold">{selectedCreatorModal.payoutMethod}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    alert('Creator verification status confirmed.');
+                    setSelectedCreatorModal(null);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  Verify KYC
+                </button>
+                <button
+                  onClick={() => setSelectedCreatorModal(null)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  Close
                 </button>
               </div>
             </div>
