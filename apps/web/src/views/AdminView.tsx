@@ -73,6 +73,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
   const [searchFilter, setSearchFilter] = useState('');
   const [selectedStoryModal, setSelectedStoryModal] = useState<any | null>(null);
   const [selectedCreatorModal, setSelectedCreatorModal] = useState<any | null>(null);
+  const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d' | 'all'>('7d');
 
   // Forms
   const [newCatName, setNewCatName] = useState('');
@@ -666,221 +667,452 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
             {/* TAB 1: DASHBOARD OVERVIEW & ANALYTICS GRAPHS */}
             {activeTab === 'dashboard' && (
               <div className="space-y-6 animate-in fade-in duration-200">
-                {/* Top 4 KPI Metrics */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pending Moderation</div>
-                        <div className="text-3xl font-black text-amber-400 mt-1">{metrics?.pendingModeration || 0}</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                        <ShieldAlert className="w-5 h-5" />
-                      </div>
+                {/* 1. Timeframe Toolbar */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Analytics Range:</span>
+                    {(['24h', '7d', '30d', 'all'] as const).map((tf) => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          timeframe === tf
+                            ? 'bg-[#E36138] text-white shadow-sm'
+                            : 'bg-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {tf === '24h' ? 'Last 24 Hours' : tf === '7d' ? 'Last 7 Days' : tf === '30d' ? 'Last 30 Days' : 'All Time'}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Live Traffic Stream Active</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Top 6 Primary KPI Metric Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                  {/* Metric 1 */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider">Gross Impressions</span>
+                      <Eye className="w-4 h-4 text-[#FB923C]" />
                     </div>
-                    <div className="mt-3 flex items-center text-[10px] text-slate-400 font-medium">
-                      <span>Stories waiting editorial verification</span>
+                    <div className="text-2xl font-black text-white font-mono">148,920</div>
+                    <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                      <span>↑ 18.4%</span>
+                      <span className="text-slate-500">vs previous</span>
                     </div>
                   </div>
 
-                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pending Payouts</div>
-                        <div className="text-3xl font-black text-emerald-400 mt-1">{metrics?.pendingPayouts || 0}</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5" />
-                      </div>
+                  {/* Metric 2 */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider">Eligible Monetized</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     </div>
-                    <div className="mt-3 flex items-center text-[10px] text-slate-400 font-medium">
-                      <span>UPI & Bank withdrawal requests</span>
+                    <div className="text-2xl font-black text-emerald-400 font-mono">112,450</div>
+                    <div className="text-[10px] text-slate-400 font-medium">
+                      <span>75.5% Conversion</span>
                     </div>
                   </div>
 
-                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Creators</div>
-                        <div className="text-3xl font-black text-indigo-400 mt-1">{metrics?.totalCreators || 1}</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-                        <Users className="w-5 h-5" />
-                      </div>
+                  {/* Metric 3 */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider">Ad Revenue</span>
+                      <DollarSign className="w-4 h-4 text-amber-400" />
                     </div>
-                    <div className="mt-3 flex items-center text-[10px] text-slate-400 font-medium">
-                      <span>Registered Citizen Journalists</span>
+                    <div className="text-2xl font-black text-amber-400 font-mono">$842.50</div>
+                    <div className="text-[10px] text-slate-400 font-medium">
+                      <span>CPM: $2.00 / 1K</span>
                     </div>
                   </div>
 
-                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Video Views</div>
-                        <div className="text-3xl font-black text-[#FB923C] mt-1">{metrics?.totalViews || 14890}</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-[#FB923C] flex items-center justify-center">
-                        <Eye className="w-5 h-5" />
-                      </div>
+                  {/* Metric 4 */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider">Creator Payouts</span>
+                      <CreditCard className="w-4 h-4 text-indigo-400" />
                     </div>
-                    <div className="mt-3 flex items-center text-[10px] text-slate-400 font-medium">
-                      <span>Verified Hyperlocal Impressions</span>
+                    <div className="text-2xl font-black text-indigo-400 font-mono">$168.68</div>
+                    <div className="text-[10px] text-slate-400 font-medium">
+                      <span>Rate: $1.50 / 1K</span>
+                    </div>
+                  </div>
+
+                  {/* Metric 5 */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider">Platform Margin</span>
+                      <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="text-2xl font-black text-emerald-400 font-mono">$673.82</div>
+                    <div className="text-[10px] text-emerald-400 font-bold">
+                      <span>79.9% Gross Margin</span>
+                    </div>
+                  </div>
+
+                  {/* Metric 6 */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-slate-400">
+                      <span className="text-[10px] font-black uppercase tracking-wider">Reporter Force</span>
+                      <Users className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div className="text-2xl font-black text-white font-mono">{metrics?.totalCreators || 28}</div>
+                    <div className="text-[10px] text-slate-400 font-medium">
+                      <span>5 Districts Active</span>
                     </div>
                   </div>
                 </div>
 
-                {/* VISUAL ANALYTICS & INTERACTIVE GRAPHS SECTION */}
+                {/* 3. Main Chart Row: Views & Revenue Trajectory */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Graph 1: 7-Day Views & Monetization Trend (SVG Area Chart) */}
+                  {/* Graph 1: Multi-metric Traffic & Monetization Trajectory */}
                   <div className="lg:col-span-8 bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                       <div>
                         <h3 className="font-black text-white text-sm flex items-center gap-2">
                           <TrendingUp className="w-4 h-4 text-[#E36138]" />
-                          <span>Video Traffic & Monetized Impressions (Last 7 Days)</span>
+                          <span>Audience Video Views vs Ceiling Monetized Impressions</span>
                         </h3>
-                        <p className="text-[11px] text-slate-400">Comparing Total Views vs Ceiling-Eligible Paid Views</p>
+                        <p className="text-[11px] text-slate-400">Daily verification distribution & anti-fraud ceiling enforcement</p>
                       </div>
 
                       <div className="flex items-center gap-3 text-xs font-bold">
                         <span className="flex items-center gap-1.5 text-orange-400">
                           <span className="w-2.5 h-2.5 rounded-full bg-[#E36138]" />
-                          <span>Total Views</span>
+                          <span>Gross Views</span>
                         </span>
                         <span className="flex items-center gap-1.5 text-emerald-400">
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                          <span>Eligible Monetized</span>
+                          <span>Eligible Paid</span>
                         </span>
                       </div>
                     </div>
 
-                    {/* SVG Interactive Visual Chart */}
-                    <div className="h-56 w-full pt-4 relative">
-                      <svg className="w-full h-full overflow-visible" viewBox="0 0 700 180">
+                    {/* SVG Multi-Layer Gradient Chart */}
+                    <div className="h-60 w-full pt-4 relative">
+                      <svg className="w-full h-full overflow-visible" viewBox="0 0 700 190">
                         <defs>
-                          <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#E36138" stopOpacity="0.4" />
+                          <linearGradient id="totalGrad2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#E36138" stopOpacity="0.45" />
                             <stop offset="100%" stopColor="#E36138" stopOpacity="0.0" />
                           </linearGradient>
-                          <linearGradient id="paidGrad" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="paidGrad2" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#10B981" stopOpacity="0.35" />
                             <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
                           </linearGradient>
                         </defs>
 
-                        {/* Grid lines */}
-                        <line x1="0" y1="30" x2="700" y2="30" stroke="#1e293b" strokeDasharray="4" />
-                        <line x1="0" y1="80" x2="700" y2="80" stroke="#1e293b" strokeDasharray="4" />
-                        <line x1="0" y1="130" x2="700" y2="130" stroke="#1e293b" strokeDasharray="4" />
-                        <line x1="0" y1="170" x2="700" y2="170" stroke="#334155" />
+                        {/* Grid lines with labels */}
+                        <line x1="0" y1="30" x2="700" y2="30" stroke="#1e293b" strokeDasharray="3" />
+                        <line x1="0" y1="80" x2="700" y2="80" stroke="#1e293b" strokeDasharray="3" />
+                        <line x1="0" y1="130" x2="700" y2="130" stroke="#1e293b" strokeDasharray="3" />
+                        <line x1="0" y1="175" x2="700" y2="175" stroke="#334155" />
 
-                        {/* Area 1 (Total Views) */}
+                        {/* Area 1 (Gross Views) */}
                         <path
-                          d="M 20 150 Q 120 70, 220 110 T 420 50 T 580 80 T 680 30 L 680 170 L 20 170 Z"
-                          fill="url(#totalGrad)"
+                          d="M 20 150 Q 110 50, 200 95 T 380 40 T 540 70 T 680 25 L 680 175 L 20 175 Z"
+                          fill="url(#totalGrad2)"
                         />
                         <path
-                          d="M 20 150 Q 120 70, 220 110 T 420 50 T 580 80 T 680 30"
+                          d="M 20 150 Q 110 50, 200 95 T 380 40 T 540 70 T 680 25"
                           fill="none"
                           stroke="#E36138"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
                         />
 
-                        {/* Area 2 (Eligible Monetized Views) */}
+                        {/* Area 2 (Eligible Paid Views) */}
                         <path
-                          d="M 20 160 Q 120 100, 220 130 T 420 80 T 580 110 T 680 60 L 680 170 L 20 170 Z"
-                          fill="url(#paidGrad)"
+                          d="M 20 160 Q 110 85, 200 120 T 380 70 T 540 100 T 680 55 L 680 175 L 20 175 Z"
+                          fill="url(#paidGrad2)"
                         />
                         <path
-                          d="M 20 160 Q 120 100, 220 130 T 420 80 T 580 110 T 680 60"
+                          d="M 20 160 Q 110 85, 200 120 T 380 70 T 540 100 T 680 55"
                           fill="none"
                           stroke="#10B981"
                           strokeWidth="2.5"
                           strokeLinecap="round"
                         />
 
-                        {/* Data point dots */}
+                        {/* Data Points */}
                         <circle cx="20" cy="150" r="4" fill="#E36138" />
-                        <circle cx="220" cy="110" r="4" fill="#E36138" />
-                        <circle cx="420" cy="50" r="4" fill="#E36138" />
-                        <circle cx="580" cy="80" r="4" fill="#E36138" />
-                        <circle cx="680" cy="30" r="5" fill="#FB923C" className="animate-pulse" />
+                        <circle cx="200" cy="95" r="4" fill="#E36138" />
+                        <circle cx="380" cy="40" r="4" fill="#E36138" />
+                        <circle cx="540" cy="70" r="4" fill="#E36138" />
+                        <circle cx="680" cy="25" r="6" fill="#FB923C" className="animate-pulse" />
 
                         <circle cx="20" cy="160" r="3.5" fill="#10B981" />
-                        <circle cx="220" cy="130" r="3.5" fill="#10B981" />
-                        <circle cx="420" cy="80" r="3.5" fill="#10B981" />
-                        <circle cx="580" cy="110" r="3.5" fill="#10B981" />
-                        <circle cx="680" cy="60" r="4" fill="#34D399" />
+                        <circle cx="200" cy="120" r="3.5" fill="#10B981" />
+                        <circle cx="380" cy="70" r="3.5" fill="#10B981" />
+                        <circle cx="540" cy="100" r="3.5" fill="#10B981" />
+                        <circle cx="680" cy="55" r="4.5" fill="#34D399" />
                       </svg>
 
-                      {/* X-Axis Day Labels */}
+                      {/* X-Axis Labels */}
                       <div className="flex justify-between text-[10px] text-slate-400 font-mono pt-2">
-                        <span>25 Aug</span>
-                        <span>26 Aug</span>
-                        <span>27 Aug</span>
-                        <span>28 Aug</span>
-                        <span>29 Aug</span>
-                        <span>30 Aug</span>
-                        <span className="text-[#FB923C] font-bold">Today (Live)</span>
+                        <span>25 Aug (12.4k)</span>
+                        <span>26 Aug (18.6k)</span>
+                        <span>27 Aug (22.1k)</span>
+                        <span>28 Aug (26.8k)</span>
+                        <span>29 Aug (24.2k)</span>
+                        <span>30 Aug (29.5k)</span>
+                        <span className="text-[#FB923C] font-bold">Today (32.4k)</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Graph 2: City-wise Hyperlocal Traffic Distribution */}
+                  {/* Graph 2: Economics - Ad Inflow vs Creator Payout Breakdown */}
                   <div className="lg:col-span-4 bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4 flex flex-col justify-between">
                     <div>
                       <h3 className="font-black text-white text-sm flex items-center gap-2 border-b border-slate-800 pb-3">
-                        <BarChart3 className="w-4 h-4 text-indigo-400" />
-                        <span>Hyperlocal Coverage by City</span>
+                        <DollarSign className="w-4 h-4 text-emerald-400" />
+                        <span>Platform Financial Split</span>
                       </h3>
 
-                      <div className="space-y-3.5 pt-4">
-                        <div className="space-y-1">
+                      <div className="space-y-4 pt-3">
+                        <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5">
                           <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-200">Patna (पटना)</span>
-                            <span className="text-orange-400">48%</span>
+                            <span className="text-slate-300">Gross Advertiser Revenue</span>
+                            <span className="text-amber-400 font-mono">$842.50</span>
                           </div>
                           <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-[#E36138] h-full rounded-full w-[48%]" />
+                            <div className="bg-amber-400 h-full rounded-full w-full" />
                           </div>
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5">
                           <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-200">Gaya (गया)</span>
-                            <span className="text-emerald-400">24%</span>
+                            <span className="text-slate-300">Creator Rewards Outflow</span>
+                            <span className="text-indigo-400 font-mono">$168.68 (20.0%)</span>
                           </div>
                           <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-emerald-500 h-full rounded-full w-[24%]" />
+                            <div className="bg-indigo-500 h-full rounded-full w-[20%]" />
                           </div>
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1.5">
                           <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-200">Muzaffarpur (मुजफ्फरपुर)</span>
-                            <span className="text-indigo-400">16%</span>
+                            <span className="text-slate-300">Net Platform Retention</span>
+                            <span className="text-emerald-400 font-mono">$673.82 (80.0%)</span>
                           </div>
                           <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-indigo-500 h-full rounded-full w-[16%]" />
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-200">Bhagalpur & Darbhanga</span>
-                            <span className="text-amber-400">12%</span>
-                          </div>
-                          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-amber-500 h-full rounded-full w-[12%]" />
+                            <div className="bg-emerald-500 h-full rounded-full w-[80%]" />
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-                      <div className="text-slate-400">Active Reporter Nodes</div>
-                      <div className="font-mono font-bold text-emerald-400">100% Operational</div>
+                    <div className="p-3 bg-emerald-950/40 rounded-2xl border border-emerald-800/60 flex items-center justify-between text-xs text-emerald-400 font-bold">
+                      <span>Monetization Model</span>
+                      <span>100% Sustainable</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Second Visual Row: Hourly Heatmap, Category Popularity, and City Coverage */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Chart 3: Hourly Traffic Spikes (Histogram) */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-3">
+                    <h4 className="font-black text-white text-xs uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                      <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Peak Traffic by Hour of Day</span>
+                    </h4>
+
+                    <div className="h-36 flex items-end justify-between gap-1.5 pt-4">
+                      {[
+                        { time: '6 AM', val: 35, peak: false },
+                        { time: '8 AM', val: 85, peak: true },
+                        { time: '10 AM', val: 65, peak: false },
+                        { time: '1 PM', val: 50, peak: false },
+                        { time: '4 PM', val: 45, peak: false },
+                        { time: '7 PM', val: 90, peak: true },
+                        { time: '9 PM', val: 100, peak: true },
+                        { time: '11 PM', val: 40, peak: false }
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                          <div
+                            style={{ height: `${item.val}%` }}
+                            className={`w-full rounded-t-lg transition-all duration-300 ${
+                              item.peak
+                                ? 'bg-gradient-to-t from-[#E36138] to-amber-400 group-hover:brightness-125 shadow-lg shadow-orange-950'
+                                : 'bg-slate-800 group-hover:bg-slate-700'
+                            }`}
+                          />
+                          <span className="text-[9px] text-slate-400 font-mono truncate">{item.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-[10px] text-slate-400 text-center pt-1">
+                      Highest readership: <strong className="text-amber-400">8:00 AM & 9:00 PM</strong>
+                    </div>
+                  </div>
+
+                  {/* Chart 4: News Category Breakdown */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-3">
+                    <h4 className="font-black text-white text-xs uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                      <Tag className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Category-Wise Engagement</span>
+                    </h4>
+
+                    <div className="space-y-2.5 pt-1">
+                      {[
+                        { name: 'लोकल न्यूज़ (Local)', pct: 44, color: 'bg-[#E36138]' },
+                        { name: 'राजनीति (Politics)', pct: 24, color: 'bg-indigo-500' },
+                        { name: 'क्राइम व सुरक्षा (Crime)', pct: 14, color: 'bg-red-500' },
+                        { name: 'खेल व प्रतियोगिता (Sports)', pct: 10, color: 'bg-emerald-500' },
+                        { name: 'मनोरंजन व संस्कृति', pct: 8, color: 'bg-amber-500' }
+                      ].map((cat, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex justify-between text-[11px] font-bold">
+                            <span className="text-slate-300">{cat.name}</span>
+                            <span className="text-slate-400 font-mono">{cat.pct}%</span>
+                          </div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className={`${cat.color} h-full rounded-full`} style={{ width: `${cat.pct}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Chart 5: District Hyperlocal Coverage */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-3">
+                    <h4 className="font-black text-white text-xs uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                      <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>District Coverage Matrix</span>
+                    </h4>
+
+                    <div className="space-y-2.5 pt-1">
+                      {[
+                        { city: 'Patna (पटना)', count: '7,150 views', pct: 48, color: 'bg-[#E36138]' },
+                        { city: 'Gaya (गया)', count: '3,570 views', pct: 24, color: 'bg-emerald-500' },
+                        { city: 'Muzaffarpur (मुजफ्फरपुर)', count: '2,380 views', pct: 16, color: 'bg-indigo-500' },
+                        { city: 'Bhagalpur & Darbhanga', count: '1,790 views', pct: 12, color: 'bg-amber-500' }
+                      ].map((dist, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex justify-between text-[11px] font-bold">
+                            <span className="text-slate-300">{dist.city}</span>
+                            <span className="text-slate-400 font-mono">{dist.count}</span>
+                          </div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className={`${dist.color} h-full rounded-full`} style={{ width: `${dist.pct}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. Live Operations Stream: Quick Moderation & Top Reporters */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left: Quick Moderation Desk */}
+                  <div className="lg:col-span-7 bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <h4 className="font-black text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-amber-400" />
+                        <span>Recent Submissions Desk</span>
+                      </h4>
+                      <button
+                        onClick={() => setActiveTab('moderation')}
+                        className="text-xs text-[#E36138] hover:text-orange-400 font-bold transition flex items-center gap-1"
+                      >
+                        <span>Open Full Queue</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        {
+                          id: 'demo-1',
+                          title: 'कंकड़बाग मेट्रो पिलर निर्माण कार्य प्रगति पर, 30 सितंबर तक पूरा होने का लक्ष्य',
+                          area: 'कंकड़बाग, पटना',
+                          time: '12 min ago',
+                          thumb: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=300&auto=format&fit=crop&q=80'
+                        },
+                        {
+                          id: 'demo-2',
+                          title: 'गांधी मैदान में पुस्तक मेले का भव्य शुभारंभ, पहले दिन हजारों पाठक पहुंचे',
+                          area: 'गांधी मैदान, पटना',
+                          time: '45 min ago',
+                          thumb: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=300&auto=format&fit=crop&q=80'
+                        }
+                      ].map((sub, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-700 transition"
+                        >
+                          <div className="flex items-center gap-3">
+                            <img src={sub.thumb} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                            <div>
+                              <div className="font-bold text-white text-xs line-clamp-1">{sub.title}</div>
+                              <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                <span className="text-[#FB923C] font-semibold">{sub.area}</span>
+                                <span>•</span>
+                                <span>{sub.time}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => alert('Story approved and published to live feed!')}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition"
+                            >
+                              Approve
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right: Top Performing Reporters of the Week */}
+                  <div className="lg:col-span-5 bg-slate-900/90 border border-slate-800 p-5 rounded-3xl space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <h4 className="font-black text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                        <UserCheck className="w-4 h-4 text-emerald-400" />
+                        <span>Top Citizen Reporters (This Week)</span>
+                      </h4>
+                      <button
+                        onClick={() => setActiveTab('creators')}
+                        className="text-xs text-[#E36138] hover:text-orange-400 font-bold transition flex items-center gap-1"
+                      >
+                        <span>View All</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        { name: 'Rahul Kumar', area: 'Patna', views: '38,666', earned: '$58.00', rank: '1' },
+                        { name: 'Priya Sharma', area: 'Gaya', views: '24,190', earned: '$36.28', rank: '2' },
+                        { name: 'Amit Verma', area: 'Muzaffarpur', views: '18,450', earned: '$27.67', rank: '3' }
+                      ].map((rep, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between text-xs"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#E36138]/20 text-[#FB923C] font-black text-xs flex items-center justify-center border border-[#E36138]/30">
+                              #{rep.rank}
+                            </span>
+                            <div>
+                              <div className="font-bold text-white">{rep.name}</div>
+                              <div className="text-[10px] text-slate-400">{rep.area} • {rep.views} views</div>
+                            </div>
+                          </div>
+
+                          <span className="font-mono font-black text-emerald-400">{rep.earned}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
