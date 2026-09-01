@@ -410,15 +410,19 @@ export const LocationsDb = {
     };
 
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('locations').upsert([{
+      const { data: existing } = await supabase.from('locations').select('*').eq('city', doc.city).eq('area', doc.area).maybeSingle();
+      if (existing) {
+        return normalizeDoc(existing);
+      }
+      const { data, error } = await supabase.from('locations').insert([{
         country: doc.country,
         state: doc.state,
         city: doc.city,
         area: doc.area,
         coordinates: doc.coordinates
-      }], { onConflict: 'city,area' }).select().single();
-      if (error) throw error;
-      return normalizeDoc(data);
+      }]).select().maybeSingle();
+      if (error && error.code !== '23505') throw error;
+      return normalizeDoc(data || doc);
     }
 
     const existingIdx = memoryStore.locations.findIndex(l => l.city === loc.city && l.area === loc.area);

@@ -9,8 +9,8 @@ import {
 import { UserRole } from '@naagrik/shared-types';
 
 export const seedDatabase = async () => {
+  // 1. Categories
   try {
-    // Categories
     const defaultCategories = [
       { name: 'Local', slug: 'local', displayOrder: 1 },
       { name: 'Politics', slug: 'politics', displayOrder: 2 },
@@ -23,28 +23,40 @@ export const seedDatabase = async () => {
     for (const cat of defaultCategories) {
       await CategoriesDb.upsert(cat);
     }
+  } catch (err: any) {
+    console.warn('[Seeder] Categories seeding note:', err.message);
+  }
 
-    // Default System Settings
+  // 2. Default System Settings
+  try {
     await SystemSettingsDb.upsert({
       minPayoutAmount: 10.00,
       earningRatePer1000Views: 1.50,
       maxCountedViewsPerVideo: 3,
       adFeedFrequency: 4
     });
+  } catch (err: any) {
+    console.warn('[Seeder] Settings seeding note:', err.message);
+  }
 
-    // Default Locations
-    const defaultLocations = [
-      { country: 'India', state: 'Bihar', city: 'Patna', area: 'Kankarbagh' },
-      { country: 'India', state: 'Bihar', city: 'Patna', area: 'Boring Road' },
-      { country: 'India', state: 'Bihar', city: 'Patna', area: 'Patna Sahib' },
-      { country: 'India', state: 'Bihar', city: 'Gaya', area: 'Bodhgaya' }
-    ];
+  // 3. Default Locations
+  const defaultLocations = [
+    { country: 'India', state: 'Bihar', city: 'Patna', area: 'Kankarbagh' },
+    { country: 'India', state: 'Bihar', city: 'Patna', area: 'Boring Road' },
+    { country: 'India', state: 'Bihar', city: 'Patna', area: 'Patna Sahib' },
+    { country: 'India', state: 'Bihar', city: 'Gaya', area: 'Bodhgaya' }
+  ];
 
+  try {
     for (const loc of defaultLocations) {
       await LocationsDb.upsert(loc);
     }
+  } catch (err: any) {
+    console.warn('[Seeder] Locations seeding note:', err.message);
+  }
 
-    // Default Admin User
+  // 4. Default Admin User
+  try {
     const adminEmail = 'admin@naagrik.news';
     const existingAdmin = await UsersDb.findByEmail(adminEmail);
     if (!existingAdmin) {
@@ -58,8 +70,12 @@ export const seedDatabase = async () => {
       });
       console.log('[Seeder] Default Admin seeded: admin@naagrik.news / AdminPass123!');
     }
+  } catch (err: any) {
+    console.warn('[Seeder] Admin seeding error:', err.message);
+  }
 
-    // Default Creator User
+  // 5. Default Creator User
+  try {
     const creatorEmail = 'creator1@naagrik.news';
     const existingCreator = await UsersDb.findByEmail(creatorEmail);
     if (!existingCreator) {
@@ -82,7 +98,7 @@ export const seedDatabase = async () => {
       });
       console.log('[Seeder] Default Creator seeded: creator1@naagrik.news / CreatorPass123!');
     }
-  } catch (err) {
-    console.error('[Seeder] Error during initial seed:', err);
+  } catch (err: any) {
+    console.warn('[Seeder] Creator seeding error:', err.message);
   }
 };
