@@ -77,16 +77,23 @@ export const createApp = (): Express => {
   app.use('/api/v1/creator', creatorRoutes);
   app.use('/api/v1/admin', adminRoutes);
 
-  // Health check & Documentation Index
-  app.get('/health', (req: Request, res: Response) => {
+  // Health check & API Index Endpoints
+  const healthHandler = (req: Request, res: Response) => {
     res.json({
+      success: true,
       status: 'ok',
       service: 'Naagrik Backend API',
       database: 'Supabase PostgreSQL',
-      docsUrl: 'http://localhost:5000/docs',
+      version: '1.0.0',
+      docsUrl: '/docs',
       timestamp: new Date()
     });
-  });
+  };
+
+  app.get('/health', healthHandler);
+  app.get('/api', healthHandler);
+  app.get('/api/v1', healthHandler);
+  app.get('/api/v1/health', healthHandler);
 
   app.get('/', (req: Request, res: Response) => {
     res.redirect('/docs');
