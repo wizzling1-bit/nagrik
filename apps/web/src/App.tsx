@@ -26,6 +26,18 @@ export function App() {
 
   const currentPath = location.pathname;
 
+  // Dedicated full-screen layout for Admin Console
+  if (currentPath.startsWith('/admin')) {
+    return (
+      <ProtectedRoute
+        allowedRoles={['ADMIN']}
+        fallback={<AdminView onBackToHome={() => navigate('/')} />}
+      >
+        <AdminView onBackToHome={() => navigate('/')} />
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col selection:bg-[#FED7AA] selection:text-[#74260E]">
       {/* 1. TOP BREAKING NEWS TICKER */}
@@ -50,7 +62,7 @@ export function App() {
                 </span>
                 <button
                   onClick={logout}
-                  className="hover:text-red-400 text-slate-400 transition flex items-center gap-0.5"
+                  className="hover:text-red-400 text-slate-400 transition flex items-center gap-0.5 cursor-pointer"
                   title="लॉगआउट करें"
                 >
                   <LogOut className="w-3 h-3" />
@@ -122,7 +134,7 @@ export function App() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl bg-slate-100 text-slate-700 md:hidden"
+            className="p-2 rounded-xl bg-slate-100 text-slate-700 md:hidden cursor-pointer"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -182,19 +194,6 @@ export function App() {
                 fallback={<CreatorView onBackToHome={() => navigate('/')} />}
               >
                 <CreatorView onBackToHome={() => navigate('/')} />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Role Protected: Admin Route (ADMIN role ONLY) */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute
-                allowedRoles={['ADMIN']}
-                fallback={<AdminView onBackToHome={() => navigate('/')} />}
-              >
-                <AdminView onBackToHome={() => navigate('/')} />
               </ProtectedRoute>
             }
           />
