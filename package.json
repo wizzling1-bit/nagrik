@@ -15,7 +15,7 @@
     "build": "npm run build:backend && npm run build:frontend",
     "build:frontend": "npm run build --workspace=apps/web",
     "build:backend": "npm run build --workspace=apps/api",
-    "start:backend": "npm run start --workspace=apps/api",
+    "start:backend": "node apps/api/dist/index.js",
     "test:api": "npm run test --workspace=apps/api"
   },
   "devDependencies": {
