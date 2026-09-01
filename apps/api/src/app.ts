@@ -95,6 +95,22 @@ export const createApp = (): Express => {
   app.get('/api/v1', healthHandler);
   app.get('/api/v1/health', healthHandler);
 
+  // Manual Seeder Trigger Endpoint
+  app.get('/api/v1/seed', async (req: Request, res: Response) => {
+    try {
+      const { seedDatabase } = await import('./utils/seeder');
+      await seedDatabase();
+      res.json({
+        success: true,
+        message: 'Database seeded successfully with default Admin and Creator accounts.',
+        admin: 'admin@naagrik.news / AdminPass123!',
+        creator: 'creator1@naagrik.news / CreatorPass123!'
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   app.get('/', (req: Request, res: Response) => {
     res.redirect('/docs');
   });

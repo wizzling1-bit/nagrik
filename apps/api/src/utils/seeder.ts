@@ -3,6 +3,7 @@ import {
   CategoriesDb,
   LocationsDb,
   UsersDb,
+  CreatorsDb,
   SystemSettingsDb
 } from '../db/supabaseClient';
 import { UserRole } from '@naagrik/shared-types';
@@ -56,6 +57,30 @@ export const seedDatabase = async () => {
         location: defaultLocations[0]
       });
       console.log('[Seeder] Default Admin seeded: admin@naagrik.news / AdminPass123!');
+    }
+
+    // Default Creator User
+    const creatorEmail = 'creator1@naagrik.news';
+    const existingCreator = await UsersDb.findByEmail(creatorEmail);
+    if (!existingCreator) {
+      const passwordHash = await bcrypt.hash('CreatorPass123!', 10);
+      const newCreatorUser = await UsersDb.create({
+        name: 'Rahul Kumar (Reporter)',
+        email: creatorEmail,
+        passwordHash,
+        role: UserRole.CREATOR,
+        location: defaultLocations[0]
+      });
+      await CreatorsDb.create({
+        userId: newCreatorUser.id,
+        bio: 'Senior Hyperlocal Citizen Reporter for Patna & Bihar.',
+        verificationStatus: 'VERIFIED',
+        availableBalance: 24.50,
+        lifetimeEarnings: 58.00,
+        totalEligibleViews: 38666,
+        totalPaid: 33.50
+      });
+      console.log('[Seeder] Default Creator seeded: creator1@naagrik.news / CreatorPass123!');
     }
   } catch (err) {
     console.error('[Seeder] Error during initial seed:', err);
