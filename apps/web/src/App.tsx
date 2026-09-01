@@ -38,6 +38,18 @@ export function App() {
     );
   }
 
+  // Dedicated full-screen layout for Creator Studio
+  if (currentPath.startsWith('/creator')) {
+    return (
+      <ProtectedRoute
+        allowedRoles={['CREATOR', 'ADMIN']}
+        fallback={<CreatorView onBackToHome={() => navigate('/')} />}
+      >
+        <CreatorView onBackToHome={() => navigate('/')} />
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col selection:bg-[#FED7AA] selection:text-[#74260E]">
       {/* 1. TOP BREAKING NEWS TICKER */}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 112">
+  <defs>
+    <linearGradient id="nagrik_grad" x1="5" y1="4" x2="95" y2="88" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#E36138" />
+      <stop offset="100%" stopColor="#D24E25" />
+    </linearGradient>
+  </defs>
+  <rect x="5" y="4" width="90" height="84" rx="28" fill="url(#nagrik_grad)" />
+  <path d="M50 104 L41 87 L59 87 Z" fill="#D9562B" />
+  <path d="M66 28 C70 32 72 38 72 45 C72 52 70 57 66 61" stroke="#FEE7DE" stroke-width="4" stroke-linecap="round" fill="none" />
+  <path d="M74 21 C81 27 84 36 84 45 C84 54 81 63 74 69" stroke="#FEE7DE" stroke-width="4" stroke-linecap="round" fill="none" />
+  <path d="M27 30 L27 68 M27 30 L64 68 M64 30 L64 68" stroke="#FFF6F2" stroke-width="11.5" stroke-linecap="square" stroke-linejoin="miter" fill="none" />
+  <rect x="33" y="107" width="9" height="4.5" rx="2.25" fill="#F58220" />
+  <rect x="45.5" y="107" width="9" height="4.5" rx="2.25" fill="#CBD5E1" />
+  <rect x="58" y="107" width="9" height="4.5" rx="2.25" fill="#388E3C" />
+</svg>
