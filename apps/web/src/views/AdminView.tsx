@@ -88,6 +88,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
   const [adFrequency, setAdFrequency] = useState(4);
   const [rejectionReason, setRejectionReason] = useState('');
   const [payoutTxRef, setPayoutTxRef] = useState('UPI-REF-2026-9876');
+  const [auditFilterTab, setAuditFilterTab] = useState<'ALL' | 'PAYOUT' | 'CONTENT' | 'CREATOR' | 'ADS' | 'SETTINGS' | 'SECURITY'>('ALL');
 
   // Auth Handler
   const handleAuth = async (e: React.FormEvent) => {
@@ -427,13 +428,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col antialiased selection:bg-[#E36138] selection:text-white">
-      <div className="flex-1 flex overflow-hidden">
-        {/* ========================================================== */}
-        {/* 1. DEDICATED ENTERPRISE ADMIN SIDEBAR                      */}
-        {/* ========================================================== */}
-        <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex">
-          <div className="p-5 space-y-6">
+    <div className="h-screen w-screen bg-[#090D16] text-slate-100 flex overflow-hidden antialiased selection:bg-[#E36138] selection:text-white">
+      {/* ========================================================== */}
+      {/* 1. DEDICATED ENTERPRISE ADMIN SIDEBAR                      */}
+      {/* ========================================================== */}
+      <aside className="w-64 h-screen bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex sticky top-0 z-30">
+        <div className="p-5 space-y-6 overflow-y-auto flex-1">
             {/* Admin Brand Badge */}
             <div className="space-y-2">
               <div className="flex items-center gap-2.5">
@@ -1645,20 +1645,48 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                     <p className="text-xs text-slate-400">Tamper-evident record of administrative and financial transactions</p>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 text-slate-300 font-mono">
-                      Total Events: <strong>6</strong>
-                    </span>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    {[
+                      { key: 'ALL', label: 'All Logs', count: 6 },
+                      { key: 'PAYOUT', label: 'Payouts', count: 1 },
+                      { key: 'CONTENT', label: 'Moderation', count: 1 },
+                      { key: 'CREATOR', label: 'KYC & Authors', count: 1 },
+                      { key: 'ADS', label: 'Campaigns', count: 1 },
+                      { key: 'SETTINGS', label: 'System Rules', count: 1 },
+                      { key: 'SECURITY', label: 'Security & Logins', count: 1 }
+                    ].map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setAuditFilterTab(tab.key as any)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                          auditFilterTab === tab.key
+                            ? 'bg-[#E36138] text-white shadow-sm'
+                            : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                        }`}
+                      >
+                        <span>{tab.label}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                            auditFilterTab === tab.key
+                              ? 'bg-black/40 text-white'
+                              : 'bg-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {tab.count}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Audit Event Stream */}
+                {/* Audit Event Stream with Active Tab Filtering */}
                 <div className="space-y-3">
                   {(auditLogs.length > 0
                     ? auditLogs
                     : [
                         {
                           id: 'evt-1',
+                          category: 'PAYOUT',
                           action: 'PAYOUT_PROCESSED',
                           badgeColor: 'bg-emerald-950 text-emerald-400 border-emerald-800',
                           actor: 'admin@naagrik.news',
@@ -1669,6 +1697,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                         },
                         {
                           id: 'evt-2',
+                          category: 'CONTENT',
                           action: 'CONTENT_APPROVED',
                           badgeColor: 'bg-blue-950 text-blue-400 border-blue-800',
                           actor: 'admin@naagrik.news',
@@ -1679,6 +1708,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                         },
                         {
                           id: 'evt-3',
+                          category: 'CREATOR',
                           action: 'CREATOR_VERIFIED',
                           badgeColor: 'bg-indigo-950 text-indigo-400 border-indigo-800',
                           actor: 'admin@naagrik.news',
@@ -1689,6 +1719,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                         },
                         {
                           id: 'evt-4',
+                          category: 'ADS',
                           action: 'AD_CAMPAIGN_LAUNCHED',
                           badgeColor: 'bg-amber-950 text-amber-400 border-amber-800',
                           actor: 'admin@naagrik.news',
@@ -1699,6 +1730,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                         },
                         {
                           id: 'evt-5',
+                          category: 'SETTINGS',
                           action: 'SETTINGS_UPDATED',
                           badgeColor: 'bg-orange-950 text-orange-400 border-orange-800',
                           actor: 'admin@naagrik.news',
@@ -1709,6 +1741,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                         },
                         {
                           id: 'evt-6',
+                          category: 'SECURITY',
                           action: 'SECURITY_LOGIN',
                           badgeColor: 'bg-purple-950 text-purple-400 border-purple-800',
                           actor: 'admin@naagrik.news',
@@ -1718,42 +1751,47 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           ip: '103.24.12.89'
                         }
                       ]
-                  ).map((log: any, idx: number) => (
-                    <div
-                      key={log.id || idx}
-                      className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-slate-700 transition"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
-                          #{idx + 1}
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
-                                log.badgeColor || 'bg-slate-800 text-slate-300 border-slate-700'
-                              }`}
-                            >
-                              {log.action}
-                            </span>
-                            <span className="font-bold text-white text-xs">{log.title}</span>
+                  )
+                    .filter((log: any) => {
+                      if (auditFilterTab === 'ALL') return true;
+                      return log.category === auditFilterTab || log.action?.includes(auditFilterTab);
+                    })
+                    .map((log: any, idx: number) => (
+                      <div
+                        key={log.id || idx}
+                        className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-slate-700 transition"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                            #{idx + 1}
                           </div>
 
-                          <p className="text-xs text-slate-400 leading-relaxed">{log.description}</p>
-                          <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2 pt-0.5">
-                            <span>Actor: {log.actor}</span>
-                            <span>•</span>
-                            <span>IP: {log.ip || '103.24.12.89'}</span>
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                                  log.badgeColor || 'bg-slate-800 text-slate-300 border-slate-700'
+                                }`}
+                              >
+                                {log.action}
+                              </span>
+                              <span className="font-bold text-white text-xs">{log.title}</span>
+                            </div>
+
+                            <p className="text-xs text-slate-400 leading-relaxed">{log.description}</p>
+                            <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2 pt-0.5">
+                              <span>Actor: {log.actor}</span>
+                              <span>•</span>
+                              <span>IP: {log.ip || '103.24.12.89'}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="text-[11px] font-mono text-slate-400 shrink-0 self-end sm:self-center">
-                        {log.time || new Date(log.created_at || Date.now()).toLocaleTimeString()}
+                        <div className="text-[11px] font-mono text-slate-400 shrink-0 self-end sm:self-center">
+                          {log.time || new Date(log.created_at || Date.now()).toLocaleTimeString()}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -1770,10 +1808,9 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
             </div>
           </footer>
         </div>
-      </div>
 
-      {/* STORY DETAIL MODAL */}
-      {selectedStoryModal && (
+        {/* STORY DETAIL MODAL */}
+        {selectedStoryModal && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <button
