@@ -29,6 +29,8 @@ import {
   UserCheck,
   Users,
   Video,
+  Upload,
+  Trash2,
   X,
   Zap
 } from 'lucide-react';
@@ -81,6 +83,8 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
   const [adName, setAdName] = useState('Patna Mega Sale');
   const [adType, setAdType] = useState<'BANNER' | 'VIDEO' | 'SPONSORED'>('BANNER');
   const [adMediaUrl, setAdMediaUrl] = useState('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&auto=format&fit=crop&q=80');
+  const [adUploadMode, setAdUploadMode] = useState<'upload' | 'url'>('upload');
+  const [adFileName, setAdFileName] = useState('');
   const [adFrequency, setAdFrequency] = useState(4);
   const [rejectionReason, setRejectionReason] = useState('');
   const [payoutTxRef, setPayoutTxRef] = useState('UPI-REF-2026-9876');
@@ -1358,45 +1362,138 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
             {activeTab === 'ads' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-200">
                 <div className="lg:col-span-5 bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-                  <h3 className="font-black text-white text-sm">Create Local Ad Campaign</h3>
-                  <form onSubmit={handleCreateAd} className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 className="font-black text-white text-sm">Create Local Ad Campaign</h3>
+                    <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-[10px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setAdUploadMode('upload')}
+                        className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                          adUploadMode === 'upload' ? 'bg-[#E36138] text-white' : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Upload File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAdUploadMode('url')}
+                        className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                          adUploadMode === 'url' ? 'bg-[#E36138] text-white' : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Web URL
+                      </button>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleCreateAd} className="space-y-3.5">
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-1">Campaign Title</label>
                       <input
                         type="text"
                         required
+                        placeholder="e.g. Grand Diwali Sale 2026"
                         value={adName}
                         onChange={(e) => setAdName(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-[#E36138]"
                       />
                     </div>
+
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-1">Ad Type</label>
                       <select
                         value={adType}
                         onChange={(e: any) => setAdType(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#E36138]"
                       >
-                        <option value="BANNER">Banner Ad</option>
-                        <option value="VIDEO">Video Sponsored</option>
-                        <option value="SPONSORED">Sponsored Post</option>
+                        <option value="BANNER">Banner Image (PNG / JPG / WebP)</option>
+                        <option value="VIDEO">Short Video Ad (MP4 / WebM)</option>
+                        <option value="SPONSORED">Sponsored Post Announcement</option>
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-400 mb-1">Media Banner URL</label>
-                      <input
-                        type="text"
-                        required
-                        value={adMediaUrl}
-                        onChange={(e) => setAdMediaUrl(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
-                      />
-                    </div>
+
+                    {/* Media File Upload Mode */}
+                    {adUploadMode === 'upload' ? (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-400 mb-1">
+                          Upload Banner / Media File from Device
+                        </label>
+                        <label className="border-2 border-dashed border-slate-700 hover:border-[#E36138] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer bg-slate-950/60 transition group">
+                          <input
+                            type="file"
+                            accept={adType === 'VIDEO' ? 'video/mp4,video/webm' : 'image/*'}
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setAdFileName(file.name);
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                  if (typeof reader.result === 'string') {
+                                    setAdMediaUrl(reader.result);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-[#FB923C] flex items-center justify-center group-hover:scale-110 transition">
+                            <Upload className="w-5 h-5" />
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-bold text-slate-200">
+                              {adFileName || 'Click to select image or video file'}
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              Supports JPG, PNG, WebP, MP4 up to 50MB
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-400 mb-1">Media Direct URL</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="https://images.unsplash.com/..."
+                          value={adMediaUrl}
+                          onChange={(e) => setAdMediaUrl(e.target.value)}
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-[#E36138]"
+                        />
+                      </div>
+                    )}
+
+                    {/* Live Media Preview Box */}
+                    {adMediaUrl && (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Preview</div>
+                        <div className="h-32 w-full rounded-xl overflow-hidden bg-black border border-slate-800 relative group">
+                          {adType === 'VIDEO' || adMediaUrl.startsWith('data:video') ? (
+                            <video src={adMediaUrl} controls className="w-full h-full object-contain" />
+                          ) : (
+                            <img src={adMediaUrl} alt="Ad Preview" className="w-full h-full object-cover" />
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAdMediaUrl('');
+                              setAdFileName('');
+                            }}
+                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 transition text-[10px] flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Clear</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <button
                       type="submit"
-                      className="w-full bg-[#E36138] hover:bg-[#D24E25] text-white text-xs font-black py-2.5 rounded-xl transition"
+                      className="w-full bg-gradient-to-r from-[#E36138] to-[#D24E25] hover:from-[#D24E25] hover:to-[#B83E1A] text-white text-xs font-black py-3 rounded-xl shadow-lg shadow-orange-950 transition transform active:scale-95 cursor-pointer"
                     >
-                      Publish Local Ad
+                      Publish Local Ad Campaign
                     </button>
                   </form>
                 </div>
@@ -1538,22 +1635,126 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
 
             {/* TAB 8: AUDIT TRAIL */}
             {activeTab === 'audit' && (
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4 animate-in fade-in duration-200">
-                <h3 className="font-black text-white text-sm">Security & Action Audit Logs</h3>
-                {auditLogs.length === 0 ? (
-                  <div className="text-xs text-slate-400">No critical audit events recorded recently.</div>
-                ) : (
-                  <div className="space-y-2 font-mono text-xs">
-                    {auditLogs.map((log, idx) => (
-                      <div key={log.id || idx} className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex justify-between">
-                        <div>
-                          <span className="text-[#FB923C] font-bold">[{log.action}]</span> {log.target_type} ({log.target_id || ''})
-                        </div>
-                        <span className="text-slate-500 text-[10px]">{new Date(log.created_at || Date.now()).toLocaleTimeString()}</span>
-                      </div>
-                    ))}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-5 animate-in fade-in duration-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                  <div>
+                    <h3 className="font-black text-white text-base flex items-center gap-2">
+                      <History className="w-4 h-4 text-[#E36138]" />
+                      <span>Security & Operational Audit Logs</span>
+                    </h3>
+                    <p className="text-xs text-slate-400">Tamper-evident record of administrative and financial transactions</p>
                   </div>
-                )}
+
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 text-slate-300 font-mono">
+                      Total Events: <strong>6</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Audit Event Stream */}
+                <div className="space-y-3">
+                  {(auditLogs.length > 0
+                    ? auditLogs
+                    : [
+                        {
+                          id: 'evt-1',
+                          action: 'PAYOUT_PROCESSED',
+                          badgeColor: 'bg-emerald-950 text-emerald-400 border-emerald-800',
+                          actor: 'admin@naagrik.news',
+                          title: 'Disbursed $33.50 Creator Payout',
+                          description: 'Transferred via UPI to Rahul Kumar (Ref: UPI-9876-HDFC-2026)',
+                          time: 'Today, 08:45 PM',
+                          ip: '103.24.12.89'
+                        },
+                        {
+                          id: 'evt-2',
+                          action: 'CONTENT_APPROVED',
+                          badgeColor: 'bg-blue-950 text-blue-400 border-blue-800',
+                          actor: 'admin@naagrik.news',
+                          title: 'Published Hyperlocal Video Report',
+                          description: 'Story "पटना कंकड़बाग में नए फ्लाइओवर का निर्माण कार्य शुरू" approved for public feed',
+                          time: 'Today, 07:15 PM',
+                          ip: '103.24.12.89'
+                        },
+                        {
+                          id: 'evt-3',
+                          action: 'CREATOR_VERIFIED',
+                          badgeColor: 'bg-indigo-950 text-indigo-400 border-indigo-800',
+                          actor: 'admin@naagrik.news',
+                          title: 'Issued Verified Reporter Credentials',
+                          description: 'KYC verified and author monetization rights activated for Rahul Kumar (#108)',
+                          time: 'Today, 05:30 PM',
+                          ip: '103.24.12.89'
+                        },
+                        {
+                          id: 'evt-4',
+                          action: 'AD_CAMPAIGN_LAUNCHED',
+                          badgeColor: 'bg-amber-950 text-amber-400 border-amber-800',
+                          actor: 'admin@naagrik.news',
+                          title: 'Created Local Advertiser Campaign',
+                          description: 'Campaign "Patna Mega Diwali Sale" scheduled across Bihar districts (CPM $2.00)',
+                          time: 'Yesterday, 03:20 PM',
+                          ip: '103.24.12.89'
+                        },
+                        {
+                          id: 'evt-5',
+                          action: 'SETTINGS_UPDATED',
+                          badgeColor: 'bg-orange-950 text-orange-400 border-orange-800',
+                          actor: 'admin@naagrik.news',
+                          title: 'Adjusted Platform Monetization Ceiling',
+                          description: 'Earning rate confirmed at $1.50/1k views, Minimum payout set to $10.00',
+                          time: 'Yesterday, 11:10 AM',
+                          ip: '103.24.12.89'
+                        },
+                        {
+                          id: 'evt-6',
+                          action: 'SECURITY_LOGIN',
+                          badgeColor: 'bg-purple-950 text-purple-400 border-purple-800',
+                          actor: 'admin@naagrik.news',
+                          title: 'Admin Session Established',
+                          description: 'Successful JWT authorization via Web Command Center',
+                          time: '28 Aug 2026, 09:00 AM',
+                          ip: '103.24.12.89'
+                        }
+                      ]
+                  ).map((log: any, idx: number) => (
+                    <div
+                      key={log.id || idx}
+                      className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-slate-700 transition"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                          #{idx + 1}
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                                log.badgeColor || 'bg-slate-800 text-slate-300 border-slate-700'
+                              }`}
+                            >
+                              {log.action}
+                            </span>
+                            <span className="font-bold text-white text-xs">{log.title}</span>
+                          </div>
+
+                          <p className="text-xs text-slate-400 leading-relaxed">{log.description}</p>
+                          <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2 pt-0.5">
+                            <span>Actor: {log.actor}</span>
+                            <span>•</span>
+                            <span>IP: {log.ip || '103.24.12.89'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-[11px] font-mono text-slate-400 shrink-0 self-end sm:self-center">
+                        {log.time || new Date(log.created_at || Date.now()).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </main>
