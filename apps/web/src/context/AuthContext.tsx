@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Fallback if legacy token exists
     const legacyRole = localStorage.getItem('admin_token') ? 'ADMIN' : localStorage.getItem('creator_token') ? 'CREATOR' : null;
     if (legacyRole) {
-      return { email: 'user@naagrik.news', role: legacyRole as any };
+      return { email: 'user@nagrik.news', role: legacyRole as any };
     }
     return null;
   });

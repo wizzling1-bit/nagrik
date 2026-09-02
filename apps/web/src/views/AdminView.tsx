@@ -51,7 +51,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
   >('dashboard');
 
   // Auth State
-  const [authEmail, setAuthEmail] = useState('admin@naagrik.news');
+  const [authEmail, setAuthEmail] = useState('admin@nagrik.news');
   const [authPassword, setAuthPassword] = useState('AdminPass123!');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -440,7 +440,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                 <NagrikLogo size="sm" variant="icon" />
                 <div>
                   <div className="font-black text-sm text-white tracking-wide flex items-center gap-1.5">
-                    <span>NAAGRIK</span>
+                    <span>NAGRIK</span>
                     <span className="bg-[#E36138] text-[9px] font-black text-white px-1.5 py-0.2 rounded tracking-wider uppercase">
                       ADMIN
                     </span>
@@ -591,7 +591,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
               </div>
               <div className="overflow-hidden">
                 <div className="text-xs font-bold text-white truncate">Chief Admin</div>
-                <div className="text-[10px] text-slate-400 truncate">admin@naagrik.news</div>
+                <div className="text-[10px] text-slate-400 truncate">admin@nagrik.news</div>
               </div>
             </div>
 
@@ -630,7 +630,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                 <h1 className="text-base font-black text-white capitalize tracking-tight flex items-center gap-2">
                   <span>{activeTab === 'dashboard' ? 'Operational Overview & Traffic' : activeTab.replace('-', ' ')}</span>
                 </h1>
-                <div className="text-[10px] text-slate-400 font-medium">Naagrik Enterprise Operations Management</div>
+                <div className="text-[10px] text-slate-400 font-medium">Nagrik Enterprise Operations Management</div>
               </div>
             </div>
 
@@ -1241,7 +1241,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           <UserCheck className="w-4 h-4 text-emerald-400" />
                           <span>Rahul Kumar</span>
                         </td>
-                        <td className="p-4 text-slate-300 font-mono">creator1@naagrik.news</td>
+                        <td className="p-4 text-slate-300 font-mono">creator1@nagrik.news</td>
                         <td className="p-4">
                           <span className="bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800 text-[10px] font-bold">
                             VERIFIED
@@ -1254,7 +1254,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                             onClick={() => setSelectedCreatorModal({
                               id: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
                               name: 'Rahul Kumar',
-                              email: 'creator1@naagrik.news',
+                              email: 'creator1@nagrik.news',
                               phone: '+91 98765 43210',
                               location: 'Kankarbagh, Patna, Bihar',
                               bio: 'Senior Hyperlocal Citizen Reporter covering public infrastructure, civic issues, and cultural events across Patna and Bihar.',
@@ -1689,7 +1689,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           category: 'PAYOUT',
                           action: 'PAYOUT_PROCESSED',
                           badgeColor: 'bg-emerald-950 text-emerald-400 border-emerald-800',
-                          actor: 'admin@naagrik.news',
+                          actor: 'admin@nagrik.news',
                           title: 'Disbursed $33.50 Creator Payout',
                           description: 'Transferred via UPI to Rahul Kumar (Ref: UPI-9876-HDFC-2026)',
                           time: 'Today, 08:45 PM',
@@ -1700,7 +1700,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           category: 'CONTENT',
                           action: 'CONTENT_APPROVED',
                           badgeColor: 'bg-blue-950 text-blue-400 border-blue-800',
-                          actor: 'admin@naagrik.news',
+                          actor: 'admin@nagrik.news',
                           title: 'Published Hyperlocal Video Report',
                           description: 'Story "पटना कंकड़बाग में नए फ्लाइओवर का निर्माण कार्य शुरू" approved for public feed',
                           time: 'Today, 07:15 PM',
@@ -1711,7 +1711,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           category: 'CREATOR',
                           action: 'CREATOR_VERIFIED',
                           badgeColor: 'bg-indigo-950 text-indigo-400 border-indigo-800',
-                          actor: 'admin@naagrik.news',
+                          actor: 'admin@nagrik.news',
                           title: 'Issued Verified Reporter Credentials',
                           description: 'KYC verified and author monetization rights activated for Rahul Kumar (#108)',
                           time: 'Today, 05:30 PM',
@@ -1722,7 +1722,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           category: 'ADS',
                           action: 'AD_CAMPAIGN_LAUNCHED',
                           badgeColor: 'bg-amber-950 text-amber-400 border-amber-800',
-                          actor: 'admin@naagrik.news',
+                          actor: 'admin@nagrik.news',
                           title: 'Created Local Advertiser Campaign',
                           description: 'Campaign "Patna Mega Diwali Sale" scheduled across Bihar districts (CPM $2.00)',
                           time: 'Yesterday, 03:20 PM',
@@ -1733,7 +1733,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           category: 'SETTINGS',
                           action: 'SETTINGS_UPDATED',
                           badgeColor: 'bg-orange-950 text-orange-400 border-orange-800',
-                          actor: 'admin@naagrik.news',
+                          actor: 'admin@nagrik.news',
                           title: 'Adjusted Platform Monetization Ceiling',
                           description: 'Earning rate confirmed at $1.50/1k views, Minimum payout set to $10.00',
                           time: 'Yesterday, 11:10 AM',
@@ -1744,7 +1744,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
                           category: 'SECURITY',
                           action: 'SECURITY_LOGIN',
                           badgeColor: 'bg-purple-950 text-purple-400 border-purple-800',
-                          actor: 'admin@naagrik.news',
+                          actor: 'admin@nagrik.news',
                           title: 'Admin Session Established',
                           description: 'Successful JWT authorization via Web Command Center',
                           time: '28 Aug 2026, 09:00 AM',
@@ -1799,7 +1799,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
 
           {/* Dedicated Admin Footer */}
           <footer className="bg-slate-950 border-t border-slate-800 px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
-            <div>© 2026 Naagrik Editorial & Operations Suite • Enterprise Edition</div>
+            <div>© 2026 Nagrik Editorial & Operations Suite • Enterprise Edition</div>
             <div className="flex items-center gap-4">
               <span className="text-emerald-400 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />

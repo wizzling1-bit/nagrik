@@ -13,6 +13,7 @@ import contentRoutes from './routes/content.routes';
 import viewRoutes from './routes/view.routes';
 import creatorRoutes from './routes/creator.routes';
 import adminRoutes from './routes/admin.routes';
+import contactRoutes from './routes/contact.routes';
 
 export const createApp = (): Express => {
   const app = express();
@@ -76,6 +77,7 @@ export const createApp = (): Express => {
   app.use('/api/v1/views', viewRoutes);
   app.use('/api/v1/creator', creatorRoutes);
   app.use('/api/v1/admin', adminRoutes);
+  app.use('/api/v1/contact', contactRoutes);
 
   // Health check & API Index Endpoints
   const healthHandler = (req: Request, res: Response) => {

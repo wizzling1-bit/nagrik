@@ -9,7 +9,10 @@ import {
   Smartphone,
   Sparkles,
   UserCheck,
-  LogOut
+  LogOut,
+  Play,
+  Share2,
+  Globe2
 } from 'lucide-react';
 import { NagrikLogo } from './components/NagrikLogo';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -17,6 +20,8 @@ import { useAuth } from './context/AuthContext';
 import { HomeView } from './views/HomeView';
 import { CreatorView } from './views/CreatorView';
 import { AdminView } from './views/AdminView';
+import { ContactView } from './views/ContactView';
+import { TermsView } from './views/TermsView';
 
 export function App() {
   const navigate = useNavigate();
@@ -51,144 +56,173 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col selection:bg-[#FED7AA] selection:text-[#74260E]">
-      {/* 1. TOP BREAKING NEWS TICKER */}
-      <div className="bg-slate-950 text-white text-xs border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-2 overflow-hidden w-full sm:w-auto">
-            <span className="bg-[#E36138] text-white font-extrabold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0 animate-pulse">
-              <Radio className="w-3 h-3" />
-              <span>ताज़ा खबर</span>
-            </span>
-            <span className="text-slate-300 text-xs truncate font-medium">
-              पटना, मुजफ्फरपुर और गया में नागरिक रिपोर्टर नेटवर्क का विस्तार • स्थानीय खबरों पर सीधे पैसे कमाएं
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0 text-[11px] font-bold text-slate-300">
-            {isAuthenticated && user ? (
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800">
-                  <UserCheck className="w-3 h-3" />
-                  <span>{user.email} ({role})</span>
-                </span>
-                <button
-                  onClick={logout}
-                  className="hover:text-red-400 text-slate-400 transition flex items-center gap-0.5 cursor-pointer"
-                  title="लॉगआउट करें"
-                >
-                  <LogOut className="w-3 h-3" />
-                  <span>साइन आउट</span>
-                </button>
-              </div>
-            ) : (
-              <span className="flex items-center gap-1 text-[#FED7AA]">
-                <Sparkles className="w-3 h-3 text-[#FB923C]" />
-                <span>सत्य, निष्पक्ष व स्वतंत्र स्थानीय पत्रकारिता</span>
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 2. MAIN NAVBAR */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          {/* Brand Logo */}
+    <div className="min-h-screen bg-[#FFFDFB] text-slate-900 flex flex-col selection:bg-orange-100 selection:text-orange-900 antialiased font-sans">
+      {/* FLOATING GLASS NAVBAR (Sleek 1-Line Layout in Brand Orange) */}
+      <header className="sticky top-0 z-40 px-4 sm:px-6 py-4">
+        <div className="max-w-6xl mx-auto bg-white/95 backdrop-blur-md border border-orange-100/90 rounded-full px-5 py-2.5 shadow-md shadow-orange-950/5 flex items-center justify-between gap-3 sm:gap-6">
+          {/* Brand Logo (Single Line) */}
           <Link
             to="/"
-            className="flex items-center gap-3 text-left shrink-0 cursor-pointer hover:opacity-95 transition"
+            className="flex items-center gap-2 text-left shrink-0 cursor-pointer hover:opacity-95 transition"
           >
-            <NagrikLogo size="md" variant="horizontal" />
+            <NagrikLogo size="sm" variant="horizontal" hideSubtitle={true} theme="light" />
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-2">
+          {/* Navigation Links (Strict Single-Line No-Wrap) */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs font-semibold text-slate-600 whitespace-nowrap">
             <Link
               to="/"
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full transition cursor-pointer ${
                 currentPath === '/'
-                  ? 'bg-slate-100 text-[#E36138]'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'text-[#E36138] font-bold bg-orange-50/60'
+                  : 'hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <Home className="w-3.5 h-3.5" />
-              <span>मुख्य पृष्ठ (Home)</span>
-            </Link>
-
-            <Link
-              to="/creator"
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer ${
-                currentPath === '/creator'
-                  ? 'bg-[#E36138] text-white shadow-sm'
-                  : 'bg-orange-50 text-[#E36138] hover:bg-orange-100 border border-orange-200'
-              }`}
-            >
-              <FileEdit className="w-3.5 h-3.5" />
-              <span>नागरिक रिपोर्टर बनें (कमाई करें)</span>
+              Home
             </Link>
 
             <a
-              href="/#app-download"
-              onClick={(e) => {
-                if (currentPath !== '/') {
-                  e.preventDefault();
-                  navigate('/#app-download');
-                }
-              }}
-              className="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+              href="/#features"
+              className="px-3 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-50 transition"
             >
-              <Smartphone className="w-3.5 h-3.5 text-[#E36138]" />
-              <span>ऐप डाउनलोड करें</span>
+              Features
             </a>
+
+            <a
+              href="/#why-nagrik"
+              className="px-3 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              Why Nagrik?
+            </a>
+
+            <a
+              href="/#rates"
+              className="px-3 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              Publisher Rates
+            </a>
+
+            <a
+              href="/#payout-methods"
+              className="px-3 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              Payout Methods
+            </a>
+
+            <a
+              href="/#faq"
+              className="px-3 py-1.5 rounded-full hover:text-slate-900 hover:bg-slate-50 transition"
+            >
+              FAQ
+            </a>
+
+            <Link
+              to="/contact"
+              className={`px-3 py-1.5 rounded-full transition cursor-pointer ${
+                currentPath === '/contact'
+                  ? 'text-[#E36138] font-bold bg-orange-50/60'
+                  : 'hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              Contact Us
+            </Link>
           </nav>
+
+          {/* Action CTA (Direct Creator Studio — No Login/Signup needed) */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <Link
+              to="/creator"
+              className="px-4 py-2 rounded-full text-xs font-bold text-white bg-[#E36138] hover:bg-[#D24E25] shadow-xs hover:shadow-md transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            >
+              <FileEdit className="w-3.5 h-3.5" />
+              <span>Creator Studio</span>
+            </Link>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl bg-slate-100 text-slate-700 md:hidden cursor-pointer"
+            className="p-2 rounded-full bg-slate-100 text-slate-700 lg:hidden cursor-pointer shrink-0"
             aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4 text-slate-900" />}
           </button>
         </div>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 p-3 bg-white space-y-2">
+          <div className="lg:hidden mt-2 p-4 bg-white/98 backdrop-blur-xl border border-orange-100 rounded-3xl space-y-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150 max-w-md mx-auto">
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 text-left ${
-                currentPath === '/' ? 'bg-[#E36138] text-white' : 'bg-slate-50 text-slate-700'
-              }`}
+              className="w-full p-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 text-left bg-orange-50 text-[#E36138]"
             >
               <Home className="w-4 h-4" />
-              <span>मुख्य पृष्ठ (Home Feed)</span>
+              <span>Home Feed</span>
             </Link>
-            <Link
-              to="/creator"
+            <a
+              href="/#features"
               onClick={() => setMobileMenuOpen(false)}
-              className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 text-left ${
-                currentPath === '/creator' ? 'bg-[#E36138] text-white' : 'bg-slate-50 text-slate-700'
-              }`}
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
             >
-              <FileEdit className="w-4 h-4" />
-              <span>नागरिक रिपोर्टर बनें (Creator Studio)</span>
+              <span>Features & Tools</span>
+            </a>
+            <a
+              href="/#why-nagrik"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
+            >
+              <span>Why Nagrik?</span>
+            </a>
+            <a
+              href="/#rates"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
+            >
+              <span>Publisher Rates ($1.50 CPM)</span>
+            </a>
+            <a
+              href="/#payout-methods"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
+            >
+              <span>Payout Methods (UPI & Bank)</span>
+            </a>
+            <a
+              href="/#faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
+            >
+              <span>Frequently Asked Questions</span>
+            </a>
+            <Link
+              to="/contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
+            >
+              <span>Contact Us</span>
             </Link>
             <a
               href="/#app-download"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 text-left bg-slate-50 text-slate-700"
+              className="w-full p-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 text-left text-slate-700 hover:bg-slate-50"
             >
-              <Smartphone className="w-4 h-4 text-[#E36138]" />
-              <span>मोबाइल ऐप डाउनलोड करें</span>
+              <span>Download App</span>
             </a>
+            <div className="pt-2">
+              <Link
+                to="/creator"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-2.5 text-center rounded-xl text-xs font-bold bg-[#E36138] text-white block shadow-xs"
+              >
+                Open Creator Studio
+              </Link>
+            </div>
           </div>
         )}
       </header>
 
-      {/* 3. DYNAMIC PROTECTED ROUTE CONTAINER */}
+      {/* 3. DYNAMIC CONTENT CONTAINER */}
       <main className="flex-1">
         <Routes>
           {/* Public Home Route */}
@@ -197,7 +231,27 @@ export function App() {
             element={<HomeView onNavigate={(view) => navigate(view === 'home' ? '/' : `/${view}`)} />}
           />
 
-          {/* Role Protected: Creator Route (CREATOR & ADMIN roles allowed) */}
+          {/* Public Contact Us Route */}
+          <Route
+            path="/contact"
+            element={<ContactView />}
+          />
+
+          {/* Public Legal & Terms Routes */}
+          <Route
+            path="/terms"
+            element={<TermsView />}
+          />
+          <Route
+            path="/privacy"
+            element={<TermsView />}
+          />
+          <Route
+            path="/dmca"
+            element={<TermsView />}
+          />
+
+          {/* Role Protected: Creator Route */}
           <Route
             path="/creator"
             element={
@@ -215,61 +269,127 @@ export function App() {
         </Routes>
       </main>
 
-      {/* 4. FOOTER */}
-      <footer className="bg-slate-950 text-slate-400 text-xs py-10 border-t border-slate-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-3">
+      {/* 4. FOOTER (DiskWala Clean Light Theme in Brand Orange) */}
+      <footer className="bg-white text-slate-600 text-xs py-14 border-t border-slate-200 mt-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-4 md:col-span-1">
               <Link
                 to="/"
                 className="cursor-pointer text-left hover:opacity-90 transition block"
                 title="Go to Home Page"
               >
-                <NagrikLogo size="md" variant="horizontal" theme="dark" />
+                <NagrikLogo size="md" variant="horizontal" theme="light" />
               </Link>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                भारत का अग्रणी हाइपरलोकल डिजिटल समाचार और नागरिक पत्रकारिता मंच। अपने क्षेत्र की समस्याओं और सच्ची खबरों को सीधे दुनिया तक पहुंचाएं।
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Upload, share, and monetize your ground journalism content with unlimited cloud storage. Built for citizen reporters and local news consumers.
               </p>
+              <div className="flex items-center gap-3 text-slate-400">
+                <a href="#" className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:text-red-500 hover:border-red-200 transition">
+                  <Play className="w-3.5 h-3.5 fill-currentColor" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:text-sky-500 hover:border-sky-200 transition">
+                  <Share2 className="w-3.5 h-3.5" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:text-indigo-500 hover:border-indigo-200 transition">
+                  <Globe2 className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
 
             <div>
-              <h4 className="font-extrabold text-white text-xs uppercase tracking-wider mb-3">
-                मुख्य अनुभाग (Sections)
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3.5">
+                PLATFORM
               </h4>
-              <ul className="space-y-2 font-medium">
+              <ul className="space-y-2.5 font-medium text-slate-600">
                 <li>
-                  <Link to="/" className="hover:text-white transition">
-                    ताज़ा ख़बरें (Public Feed)
+                  <Link to="/creator" className="hover:text-[#E36138] transition">
+                    Dashboard
                   </Link>
                 </li>
                 <li>
-                  <Link to="/creator" className="hover:text-white transition">
-                    रिपोर्टर स्टूडियो व कमाई (Creator Studio)
-                  </Link>
+                  <a href="/#features" className="hover:text-[#E36138] transition">
+                    Download App
+                  </a>
                 </li>
                 <li>
-                  <a href="/#app-download" className="hover:text-white transition">
-                    मोबाइल ऐप (Android & iOS)
+                  <a href="/#rates" className="hover:text-[#E36138] transition">
+                    Publisher Rates
+                  </a>
+                </li>
+                <li>
+                  <a href="/#payout-methods" className="hover:text-[#E36138] transition">
+                    Payout Records
                   </a>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-extrabold text-white text-xs uppercase tracking-wider mb-3">
-                नागरिक रिपोर्टर प्रोत्साहन (Creator Rewards)
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3.5">
+                RESOURCES
               </h4>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                अपने वार्ड व शहर की सत्यापित वीडियो खबरें अपलोड करें और हर 1,000 व्यूज़ पर $1.50 तक की कमाई प्राप्त करें। $10.00 होते ही सीधा बैंक या UPI में भुगतान।
-              </p>
+              <ul className="space-y-2.5 font-medium text-slate-600">
+                <li>
+                  <a href="/#features" className="hover:text-[#E36138] transition">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="/#why-nagrik" className="hover:text-[#E36138] transition">
+                    Why Nagrik?
+                  </a>
+                </li>
+                <li>
+                  <a href="/#faq" className="hover:text-[#E36138] transition">
+                    FAQ
+                  </a>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-[#E36138] transition">
+                    Contact Us
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-3.5">
+                GET THE APP
+              </h4>
+              <div className="space-y-2">
+                <a href="#" className="block hover:opacity-90 transition">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                    alt="Get it on Google Play"
+                    className="h-10 w-auto"
+                  />
+                </a>
+                <a href="#" className="block hover:opacity-90 transition">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                    alt="Download on the App Store"
+                    className="h-10 w-auto"
+                  />
+                </a>
+              </div>
+              <div className="text-[11px] text-slate-400 pt-2 leading-tight">
+                <strong>NAGRIK NEWS LLC</strong><br />
+                Patna • Muzaffarpur • Gaya, Bihar, India
+              </div>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <div>© 2026 Naagrik News. सर्वाधिकार सुरक्षित।</div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>सत्यमेव जयते • जन-जन की आवाज़</span>
+          <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
+            <div>© 2026 NAGRIK LLC. All rights reserved.</div>
+            <div className="flex items-center gap-4">
+              <Link to="/terms?tab=privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
+              <span>•</span>
+              <Link to="/terms?tab=terms" className="hover:text-slate-900 transition">Terms of Service</Link>
+              <span>•</span>
+              <Link to="/terms?tab=creator" className="hover:text-slate-900 transition">Creator Agreement</Link>
+              <span>•</span>
+              <Link to="/terms?tab=dmca" className="hover:text-slate-900 transition">DMCA</Link>
             </div>
           </div>
         </div>
