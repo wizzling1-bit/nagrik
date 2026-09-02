@@ -445,7 +445,7 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
   const [playlists, setPlaylists] = useState<any[]>([
     {
       id: 'pl-1',
-      title: 'Patna Civic & Infrastructure Audit 2026',
+      title: `Patna Civic & Infrastructure Audit ${new Date().getFullYear()}`,
       description: 'Comprehensive ground investigation of drainage, flyovers, and road quality in Patna.',
       episodesCount: 4,
       totalViews: '14,200',
@@ -1000,7 +1000,7 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
                 <a href="/contact" className="hover:text-slate-600 transition">Support</a>
               </div>
               <div className="text-[11px]">
-                Nagrik © 2026
+                Nagrik © {new Date().getFullYear()}
               </div>
             </div>
           </div>
@@ -2615,7 +2615,7 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
 
         {/* Dedicated Creator Footer */}
         <footer className="bg-white border-t border-slate-200/80 px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-medium shadow-xs">
-          <div>© 2026 Nagrik Studio • Hyperlocal Citizen Journalism Network</div>
+          <div>© {new Date().getFullYear()} Nagrik Studio • Hyperlocal Citizen Journalism Network</div>
           <div className="flex items-center gap-4">
             <span className="text-emerald-700 font-bold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />

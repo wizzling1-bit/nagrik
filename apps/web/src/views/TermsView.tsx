@@ -45,7 +45,7 @@ export const TermsView: React.FC = () => {
             Terms & <span className="text-[#E36138]">Policies</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
-            Last Updated: September 2026 • Effective for all Citizen Reporters, Publishers, and App Users.
+            Last Updated: September {new Date().getFullYear()} • Effective for all Citizen Reporters, Publishers, and App Users.
           </p>
         </div>
 

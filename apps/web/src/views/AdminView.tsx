@@ -1799,7 +1799,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToHome }) => {
 
           {/* Dedicated Admin Footer */}
           <footer className="bg-slate-950 border-t border-slate-800 px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500 font-medium">
-            <div>© 2026 Nagrik Editorial & Operations Suite • Enterprise Edition</div>
+            <div>© {new Date().getFullYear()} Nagrik Editorial & Operations Suite • Enterprise Edition</div>
             <div className="flex items-center gap-4">
               <span className="text-emerald-400 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />

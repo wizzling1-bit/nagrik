@@ -1,18 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate, Link } from 'react-router-dom';
 import {
   Home,
-  FileEdit,
-  Radio,
   Menu,
   X,
-  Smartphone,
-  Sparkles,
+  FileEdit,
   UserCheck,
-  LogOut,
-  Play,
-  Share2,
-  Globe2
+  LogOut
 } from 'lucide-react';
 import { NagrikLogo } from './components/NagrikLogo';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -30,6 +24,13 @@ export function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const currentPath = location.pathname;
+
+  // Automatically scroll to top on route or tab/search change
+  useEffect(() => {
+    if (!location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [location.pathname, location.search]);
 
   // Dedicated full-screen layout for Admin Console
   if (currentPath.startsWith('/admin')) {
@@ -284,17 +285,6 @@ export function App() {
               <p className="text-xs text-slate-500 leading-relaxed">
                 Upload, share, and monetize your ground journalism content with unlimited cloud storage. Built for citizen reporters and local news consumers.
               </p>
-              <div className="flex items-center gap-3 text-slate-400">
-                <a href="#" className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:text-red-500 hover:border-red-200 transition">
-                  <Play className="w-3.5 h-3.5 fill-currentColor" />
-                </a>
-                <a href="#" className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:text-sky-500 hover:border-sky-200 transition">
-                  <Share2 className="w-3.5 h-3.5" />
-                </a>
-                <a href="#" className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:text-indigo-500 hover:border-indigo-200 transition">
-                  <Globe2 className="w-3.5 h-3.5" />
-                </a>
-              </div>
             </div>
 
             <div>
@@ -303,7 +293,11 @@ export function App() {
               </h4>
               <ul className="space-y-2.5 font-medium text-slate-600">
                 <li>
-                  <Link to="/creator" className="hover:text-[#E36138] transition">
+                  <Link
+                    to="/creator"
+                    onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+                    className="hover:text-[#E36138] transition"
+                  >
                     Dashboard
                   </Link>
                 </li>
@@ -346,7 +340,11 @@ export function App() {
                   </a>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:text-[#E36138] transition">
+                  <Link
+                    to="/contact"
+                    onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+                    className="hover:text-[#E36138] transition"
+                  >
                     Contact Us
                   </Link>
                 </li>
@@ -377,15 +375,39 @@ export function App() {
           </div>
 
           <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <div>© 2026 Nagrik. All rights reserved.</div>
+            <div>© {new Date().getFullYear()} Nagrik. All rights reserved.</div>
             <div className="flex items-center gap-4">
-              <Link to="/terms?tab=privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
+              <Link
+                to="/terms?tab=privacy"
+                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+                className="hover:text-slate-900 transition"
+              >
+                Privacy Policy
+              </Link>
               <span>•</span>
-              <Link to="/terms?tab=terms" className="hover:text-slate-900 transition">Terms of Service</Link>
+              <Link
+                to="/terms?tab=terms"
+                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+                className="hover:text-slate-900 transition"
+              >
+                Terms of Service
+              </Link>
               <span>•</span>
-              <Link to="/terms?tab=creator" className="hover:text-slate-900 transition">Creator Agreement</Link>
+              <Link
+                to="/terms?tab=creator"
+                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+                className="hover:text-slate-900 transition"
+              >
+                Creator Agreement
+              </Link>
               <span>•</span>
-              <Link to="/terms?tab=dmca" className="hover:text-slate-900 transition">DMCA</Link>
+              <Link
+                to="/terms?tab=dmca"
+                onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+                className="hover:text-slate-900 transition"
+              >
+                DMCA
+              </Link>
             </div>
           </div>
         </div>
