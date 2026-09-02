@@ -42,6 +42,7 @@ class MemoryDataStore {
   reports: any[] = [];
   auditLogs: any[] = [];
   notifications: any[] = [];
+  cmsPages: any[] = [];
 
   clear() {
     this.users = [];
@@ -57,6 +58,7 @@ class MemoryDataStore {
     this.reports = [];
     this.auditLogs = [];
     this.notifications = [];
+    this.cmsPages = [];
   }
 }
 
@@ -285,6 +287,18 @@ export const CreatorsDb = {
       return count || 0;
     }
     return memoryStore.creators.length;
+  },
+
+  async list() {
+    if (isLiveSupabaseConfigured()) {
+      const { data, error } = await supabase.from('creators').select('*, users(*)');
+      if (error) throw error;
+      return (data || []).map(normalizeDoc);
+    }
+    return memoryStore.creators.map(c => {
+      const u = memoryStore.users.find(usr => usr.id === c.userId || usr._id === c.userId || usr.id === c.user_id || usr._id === c.user_id);
+      return normalizeDoc({ ...c, user: u ? normalizeDoc(u) : null });
+    });
   }
 };
 
@@ -385,6 +399,47 @@ export const CategoriesDb = {
     }
     const list = [...memoryStore.categories].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
     return normalizeDocs(list);
+  },
+
+  async update(id: string, updates: { name?: string; slug?: string; displayOrder?: number; status?: 'ACTIVE' | 'INACTIVE' }) {
+    if (isLiveSupabaseConfigured()) {
+      const dbUpdates: any = { updated_at: new Date().toISOString() };
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
+      if (updates.displayOrder !== undefined) dbUpdates.display_order = updates.displayOrder;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+      const { data, error } = await supabase.from('categories').update(dbUpdates).eq('id', id).select().single();
+      if (error) throw error;
+      return normalizeDoc(data);
+    }
+    const cat = memoryStore.categories.find(c => c.id === id || c._id === id);
+    if (cat) {
+      if (updates.name !== undefined) cat.name = updates.name;
+      if (updates.slug !== undefined) cat.slug = updates.slug;
+      if (updates.displayOrder !== undefined) {
+        cat.displayOrder = updates.displayOrder;
+        cat.display_order = updates.displayOrder;
+      }
+      if (updates.status !== undefined) cat.status = updates.status;
+      cat.updatedAt = new Date().toISOString();
+      cat.updated_at = new Date().toISOString();
+      return normalizeDoc(cat);
+    }
+    return null;
+  },
+
+  async delete(id: string) {
+    if (isLiveSupabaseConfigured()) {
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
+      return true;
+    }
+    const idx = memoryStore.categories.findIndex(c => c.id === id || c._id === id);
+    if (idx !== -1) {
+      memoryStore.categories.splice(idx, 1);
+    }
+    return true;
   }
 };
 
@@ -995,5 +1050,83 @@ export const AuditLogsDb = {
   async listRecent(limit = 100) {
     const sorted = [...memoryStore.auditLogs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     return normalizeDocs(sorted.slice(0, limit));
+  }
+};
+
+// ==========================================================
+// CMS & LEGAL PAGES REPOSITORY
+// ==========================================================
+export const CmsDb = {
+  async findBySlug(slug: string) {
+    const clean = slug.toLowerCase().trim();
+    if (isLiveSupabaseConfigured()) {
+      const { data, error } = await supabase.from('cms_pages').select('*').eq('slug', clean).maybeSingle();
+      if (error && error.code !== 'PGRST116') throw error;
+      if (data) return normalizeDoc(data);
+    }
+    const found = memoryStore.cmsPages.find(p => p.slug === clean);
+    return normalizeDoc(found);
+  },
+
+  async list() {
+    if (isLiveSupabaseConfigured()) {
+      const { data, error } = await supabase.from('cms_pages').select('*').order('updated_at', { ascending: false });
+      if (error && error.code !== 'PGRST116') throw error;
+      if (data && data.length > 0) return normalizeDocs(data);
+    }
+    return normalizeDocs([...memoryStore.cmsPages]);
+  },
+
+  async upsert(page: { slug: string; title: string; content: string; version?: string; isPublished?: boolean }) {
+    const cleanSlug = page.slug.toLowerCase().trim();
+    const existing = await this.findBySlug(cleanSlug);
+    const id = existing?.id || uuidv4();
+    const doc = {
+      id,
+      _id: id,
+      slug: cleanSlug,
+      title: page.title,
+      content: page.content,
+      version: page.version || '1.0',
+      isPublished: page.isPublished !== undefined ? page.isPublished : true,
+      is_published: page.isPublished !== undefined ? page.isPublished : true,
+      updatedAt: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      created_at: existing?.created_at || new Date().toISOString()
+    };
+
+    if (isLiveSupabaseConfigured()) {
+      const { data, error } = await supabase.from('cms_pages').upsert([{
+        id: doc.id,
+        slug: doc.slug,
+        title: doc.title,
+        content: doc.content,
+        version: doc.version,
+        is_published: doc.is_published,
+        updated_at: doc.updated_at
+      }]).select().single();
+      if (!error && data) return normalizeDoc({ ...doc, ...data });
+    }
+
+    const idx = memoryStore.cmsPages.findIndex(p => p.slug === cleanSlug || p.id === id);
+    if (idx !== -1) {
+      memoryStore.cmsPages[idx] = doc;
+    } else {
+      memoryStore.cmsPages.push(doc);
+    }
+    return normalizeDoc(doc);
+  },
+
+  async delete(id: string) {
+    if (isLiveSupabaseConfigured()) {
+      const { error } = await supabase.from('cms_pages').delete().eq('id', id);
+      if (error && error.code !== 'PGRST116') throw error;
+    }
+    const idx = memoryStore.cmsPages.findIndex(p => p.id === id || p._id === id || p.slug === id);
+    if (idx !== -1) {
+      memoryStore.cmsPages.splice(idx, 1);
+    }
+    return true;
   }
 };

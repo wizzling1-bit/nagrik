@@ -7,11 +7,8 @@ import {
   MessageSquare,
   CheckCircle2,
   Clock,
-  HelpCircle,
-  Building,
   Sparkles,
   ArrowRight,
-  ShieldCheck,
   AlertCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';

@@ -9,11 +9,38 @@ import {
   CategoriesDb,
   LocationsDb,
   UsersDb,
-  ReportsDb
+  ReportsDb,
+  CmsDb
 } from '../db/supabaseClient';
 import { ModerationStatus, UserRole } from '@naagrik/shared-types';
 
 export class ContentController {
+  /**
+   * Get All Public Legal CMS Pages
+   */
+  static async getCmsPages(req: AuthRequest, res: Response) {
+    try {
+      const pages = await CmsDb.list();
+      return res.json({ success: true, pages });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Get Single Legal CMS Page by slug
+   */
+  static async getCmsPage(req: AuthRequest, res: Response) {
+    try {
+      const { slug } = req.params;
+      const page = await CmsDb.findBySlug(slug);
+      if (!page) return res.status(404).json({ success: false, error: 'Legal page not found' });
+      return res.json({ success: true, page });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
   /**
    * Get All Public Active Categories (For Flutter Mobile App)
    */

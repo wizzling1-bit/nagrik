@@ -4,7 +4,8 @@ import {
   LocationsDb,
   UsersDb,
   CreatorsDb,
-  SystemSettingsDb
+  SystemSettingsDb,
+  CmsDb
 } from '../db/supabaseClient';
 import { UserRole } from '@naagrik/shared-types';
 
@@ -74,31 +75,40 @@ export const seedDatabase = async () => {
     console.warn('[Seeder] Admin seeding error:', err.message);
   }
 
-  // 5. Default Creator User
+  // 5. Default CMS & Legal Documents
   try {
-    const creatorEmail = 'creator1@naagrik.news';
-    const existingCreator = await UsersDb.findByEmail(creatorEmail);
-    if (!existingCreator) {
-      const passwordHash = await bcrypt.hash('CreatorPass123!', 10);
-      const newCreatorUser = await UsersDb.create({
-        name: 'Rahul Kumar (Reporter)',
-        email: creatorEmail,
-        passwordHash,
-        role: UserRole.CREATOR,
-        location: defaultLocations[0]
-      });
-      await CreatorsDb.create({
-        userId: newCreatorUser.id,
-        bio: 'Senior Hyperlocal Citizen Reporter for Patna & Bihar.',
-        verificationStatus: 'VERIFIED',
-        availableBalance: 24.50,
-        lifetimeEarnings: 58.00,
-        totalEligibleViews: 38666,
-        totalPaid: 33.50
-      });
-      console.log('[Seeder] Default Creator seeded: creator1@naagrik.news / CreatorPass123!');
+    const defaultCmsPages = [
+      {
+        slug: 'terms',
+        title: 'Terms of Service & Civic Charter',
+        version: '2.1',
+        content: `### 1. Civic Integrity & Publisher Charter\nNagrik is dedicated to authentic, verified ground reporting. All contributors agree to publish factual, unbiased local investigations without inciting violence or defamatory falsehoods.\n\n### 2. Fair Revenue Disbursal\nPublishers are compensated based on counted verified video impressions under strict anti-bot fraud policies ($1.50 CPM base).\n\n### 3. Termination\nAccounts attempting automated replay attacks or view fraud are permanently suspended.`
+      },
+      {
+        slug: 'privacy',
+        title: 'Privacy Policy & Data Rights',
+        version: '1.4',
+        content: `### 1. Hyperlocal Geo-Coordinates\nWe use GPS and ward-level location tags solely to deliver relevant local news feeds. We never sell raw location coordinates to third parties.\n\n### 2. Creator Bank & UPI Details\nFinancial identifiers are encrypted and used solely for payout disbursals.`
+      },
+      {
+        slug: 'creator',
+        title: 'Citizen Reporter & Creator Partner Agreement',
+        version: '2.0',
+        content: `### 1. Independent Publisher Relationship\nPublishers act as independent citizen journalists and retain intellectual copyright of their original camera footage.\n\n### 2. Monetization Rules\nEarnings accrue per 1,000 valid views up to a daily ceiling per viewer device. Minimum withdrawal threshold is $10.00 USD.`
+      },
+      {
+        slug: 'dmca',
+        title: 'DMCA Copyright & Content Takedown Policy',
+        version: '1.2',
+        content: `### 1. Intellectual Property Protection\nNagrik complies with international DMCA copyright directives. If you believe your copyrighted video or audio has been used without authorization, submit a notice to legal@nagrik.news.\n\n### 2. Counter-Notices\nPublishers may file counter-notices within 14 business days.`
+      }
+    ];
+
+    for (const page of defaultCmsPages) {
+      await CmsDb.upsert(page);
     }
+    console.log('[Seeder] Default Legal CMS Pages seeded.');
   } catch (err: any) {
-    console.warn('[Seeder] Creator seeding error:', err.message);
+    console.warn('[Seeder] CMS seeding error:', err.message);
   }
 };

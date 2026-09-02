@@ -4,13 +4,10 @@ import {
   Home,
   Menu,
   X,
-  FileEdit,
-  UserCheck,
-  LogOut
+  FileEdit
 } from 'lucide-react';
 import { NagrikLogo } from './components/NagrikLogo';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { useAuth } from './context/AuthContext';
 import { HomeView } from './views/HomeView';
 import { CreatorView } from './views/CreatorView';
 import { AdminView } from './views/AdminView';
@@ -20,7 +17,6 @@ import { TermsView } from './views/TermsView';
 export function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, role, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const currentPath = location.pathname;

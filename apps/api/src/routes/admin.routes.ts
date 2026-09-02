@@ -25,5 +25,15 @@ router.get('/audit-logs', AdminController.getAuditLogs);
 
 router.get('/categories', AdminController.getCategories);
 router.post('/categories', AdminController.createCategory);
+router.put('/categories/:id', AdminController.updateCategory);
+router.delete('/categories/:id', AdminController.deleteCategory);
+
+router.get('/creators', AdminController.getCreators);
+
+router.get('/cms', AdminController.getCmsPages);
+router.get('/cms/:slug', AdminController.getCmsPage);
+router.put('/cms/:slug', AdminController.upsertCmsPage);
+router.post('/cms', AdminController.upsertCmsPage);
+router.delete('/cms/:id', AdminController.deleteCmsPage);
 
 export default router;

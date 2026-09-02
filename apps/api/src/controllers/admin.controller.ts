@@ -8,7 +8,8 @@ import {
   AdvertisementsDb,
   SystemSettingsDb,
   AuditLogsDb,
-  CategoriesDb
+  CategoriesDb,
+  CmsDb
 } from '../db/supabaseClient';
 import { ModerationService } from '../services/moderation.service';
 import { PayoutService } from '../services/payout.service';
@@ -236,6 +237,85 @@ export class AdminController {
       const { name, slug, displayOrder } = req.body;
       const category = await CategoriesDb.create({ name, slug, displayOrder });
       return res.status(201).json({ success: true, category });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  static async updateCategory(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, slug, displayOrder, status } = req.body;
+      const category = await CategoriesDb.update(id, { name, slug, displayOrder, status });
+      return res.json({ success: true, category, message: 'Category updated successfully.' });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  static async deleteCategory(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      await CategoriesDb.delete(id);
+      return res.json({ success: true, message: 'Category deleted successfully.' });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * Creators Management
+   */
+  static async getCreators(req: AuthRequest, res: Response) {
+    try {
+      const creators = await CreatorsDb.list();
+      return res.json({ success: true, creators });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * CMS & Legal Pages Management (Terms, Privacy, DMCA, etc.)
+   */
+  static async getCmsPages(req: AuthRequest, res: Response) {
+    try {
+      const pages = await CmsDb.list();
+      return res.json({ success: true, pages });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  static async getCmsPage(req: AuthRequest, res: Response) {
+    try {
+      const { slug } = req.params;
+      const page = await CmsDb.findBySlug(slug);
+      if (!page) return res.status(404).json({ success: false, error: 'CMS page not found' });
+      return res.json({ success: true, page });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  static async upsertCmsPage(req: AuthRequest, res: Response) {
+    try {
+      const { slug, title, content, version, isPublished } = req.body;
+      if (!slug || !title) {
+        return res.status(400).json({ success: false, error: 'slug and title are required' });
+      }
+      const page = await CmsDb.upsert({ slug, title, content: content || '', version, isPublished });
+      return res.json({ success: true, page, message: `Legal CMS document '${title}' saved successfully.` });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  static async deleteCmsPage(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      await CmsDb.delete(id);
+      return res.json({ success: true, message: 'CMS document deleted successfully.' });
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message });
     }

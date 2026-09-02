@@ -11,6 +11,8 @@ router.get('/feed', optionalAuth, ContentController.getFeed);
 router.get('/search', optionalAuth, ContentController.searchContent);
 router.get('/categories', ContentController.getCategories);
 router.get('/locations', ContentController.getLocations);
+router.get('/cms', ContentController.getCmsPages);
+router.get('/cms/:slug', ContentController.getCmsPage);
 
 // Creator Content Creation & Upload URLs
 router.post('/upload-url', requireAuth, ContentController.getUploadUrl);

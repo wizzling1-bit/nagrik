@@ -1,190 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { NagrikLogo } from '../components/NagrikLogo';
 import {
   Play,
   FileText,
-  FileEdit,
   MapPin,
-  Heart,
-  Bookmark,
-  Share2,
   Smartphone,
   ShieldCheck,
   DollarSign,
   ArrowRight,
-  Tv,
   Eye,
-  CheckCircle2,
   Sparkles,
-  QrCode,
-  X,
-  Search,
-  HelpCircle,
   TrendingUp,
-  Award,
-  Users,
-  Video,
   ChevronDown,
   ChevronUp,
-  AlertTriangle,
   Zap,
-  Globe2,
   Calculator,
-  Flame,
-  Radio,
-  Clock,
-  Layers,
-  Check,
-  ShieldAlert,
-  ArrowUpRight,
-  Download,
-  ExternalLink,
-  ThumbsUp,
   Upload,
-  Link as LinkIcon,
-  Bot,
   Laptop,
   CheckCircle,
-  XCircle,
   CreditCard,
-  Building,
-  Send,
-  HelpCircle as QuestionIcon
+  Building
 } from 'lucide-react';
-
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
 interface HomeViewProps {
   onNavigate: (view: 'home' | 'creator' | 'admin') => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
-  const [selectedCity, setSelectedCity] = useState<string>('Patna');
-  const [selectedArea, setSelectedArea] = useState<string>('Kankarbagh');
-  const [contentType, setContentType] = useState<'ALL' | 'VIDEO' | 'ARTICLE'>('ALL');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [feedItems, setFeedItems] = useState<any[]>([]);
-  const [loadingFeed, setLoadingFeed] = useState(false);
-  const [selectedContentModal, setSelectedContentModal] = useState<any | null>(null);
-  const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
-  const [savedMap, setSavedMap] = useState<Record<string, boolean>>({});
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [monthlyViews, setMonthlyViews] = useState<number>(50000);
-
-  // Fetch Categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/categories`);
-        const data = await res.json();
-        if (data.success && data.categories) {
-          setCategories(data.categories);
-        }
-      } catch (err) {
-        console.error('Failed to load categories', err);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Fetch Feed Items
-  const fetchFeed = async () => {
-    setLoadingFeed(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedCategory && selectedCategory !== 'ALL') params.append('category', selectedCategory);
-      if (contentType && contentType !== 'ALL') params.append('type', contentType);
-      if (selectedCity) params.append('city', selectedCity);
-      if (selectedArea) params.append('area', selectedArea);
-
-      const res = await fetch(`${API_BASE}/content/feed?${params.toString()}`);
-      const data = await res.json();
-      if (data.success && data.contents && data.contents.length > 0) {
-        setFeedItems(data.contents);
-      } else {
-        // Fallback realistic news items
-        setFeedItems([
-          {
-            id: '1',
-            _id: '1',
-            type: 'VIDEO',
-            title: 'New Elevated Flyover Construction Initiated in Kankarbagh: Major Traffic Diversion Active',
-            description: 'Local ground report on the multi-crore infrastructure development connecting Patna South to central business hubs.',
-            mediaUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&auto=format&fit=crop&q=80',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop&q=80',
-            categoryName: 'Local Infrastructure',
-            views: 18450,
-            likes: 620,
-            location: { city: 'Patna', area: 'Kankarbagh' },
-            authorName: 'Rahul Kumar (Senior Reporter)',
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: '2',
-            _id: '2',
-            type: 'VIDEO',
-            title: 'Ganga Riverfront Evening Aarti Draws Thousands: High-Definition Ground Stream',
-            description: 'Spectacular visual live stream capturing the historic evening rituals and civic crowd management at Patna Ghats.',
-            mediaUrl: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=1200&auto=format&fit=crop&q=80',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=800&auto=format&fit=crop&q=80',
-            categoryName: 'Culture & Heritage',
-            views: 20216,
-            likes: 890,
-            location: { city: 'Patna', area: 'Ganga Ghat' },
-            authorName: 'Rahul Kumar (Senior Reporter)',
-            createdAt: new Date(Date.now() - 3600000).toISOString()
-          },
-          {
-            id: '3',
-            _id: '3',
-            type: 'ARTICLE',
-            title: 'Muzaffarpur Smart City Sewerage Overhaul Reaches Final Phase: Waterlogging Solutions Ahead',
-            description: 'Municipal commissioner outlines ward-by-ward timeline for the newly installed storm-water drainage pumps.',
-            mediaUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&auto=format&fit=crop&q=80',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&auto=format&fit=crop&q=80',
-            categoryName: 'Civic Governance',
-            views: 12400,
-            likes: 410,
-            location: { city: 'Muzaffarpur', area: 'Town Hall' },
-            authorName: 'Priya Sharma (Citizen Reporter)',
-            createdAt: new Date(Date.now() - 7200000).toISOString()
-          }
-        ]);
-      }
-    } catch (err) {
-      console.error('Failed to load feed', err);
-    } finally {
-      setLoadingFeed(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFeed();
-  }, [selectedCategory, contentType, selectedCity, selectedArea]);
-
-  const toggleLike = (id: string) => {
-    setLikedMap((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const toggleSave = (id: string) => {
-    setSavedMap((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  // Filtered by Search
-  const displayFeed = feedItems.filter((item) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      item.title?.toLowerCase().includes(q) ||
-      item.description?.toLowerCase().includes(q) ||
-      item.categoryName?.toLowerCase().includes(q) ||
-      item.location?.area?.toLowerCase().includes(q) ||
-      item.location?.city?.toLowerCase().includes(q)
-    );
-  });
 
   return (
     <div className="bg-[#FFFDFB] text-slate-900 overflow-hidden selection:bg-orange-100 selection:text-orange-900 font-sans">
