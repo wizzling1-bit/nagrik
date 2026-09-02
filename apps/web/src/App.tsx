@@ -373,15 +373,11 @@ export function App() {
                   />
                 </a>
               </div>
-              <div className="text-[11px] text-slate-400 pt-2 leading-tight">
-                <strong>NAGRIK NEWS LLC</strong><br />
-                Patna • Muzaffarpur • Gaya, Bihar, India
-              </div>
             </div>
           </div>
 
           <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <div>© 2026 NAGRIK LLC. All rights reserved.</div>
+            <div>© 2026 Nagrik. All rights reserved.</div>
             <div className="flex items-center gap-4">
               <Link to="/terms?tab=privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
               <span>•</span>
