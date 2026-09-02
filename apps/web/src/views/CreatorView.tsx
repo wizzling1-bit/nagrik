@@ -142,6 +142,7 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
       const res = await fetch(`${API_BASE}/creator/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) return;
       const data = await res.json();
       if (data.success) setStats(data.stats);
     } catch (err) {
@@ -155,6 +156,7 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
       const res = await fetch(`${API_BASE}/creator/content`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) return;
       const data = await res.json();
       if (data.success) setContents(data.contents || []);
     } catch (err) {
@@ -168,6 +170,7 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
       const res = await fetch(`${API_BASE}/creator/analytics`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) return;
       const data = await res.json();
       if (data.success) setAnalytics(data.analytics);
     } catch (err) {
@@ -181,14 +184,18 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
       const resMethods = await fetch(`${API_BASE}/creator/payout-methods`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const dataMethods = await resMethods.json();
-      if (dataMethods.success) setPayoutMethods(dataMethods.methods || []);
+      if (resMethods.ok) {
+        const dataMethods = await resMethods.json();
+        if (dataMethods.success) setPayoutMethods(dataMethods.methods || []);
+      }
 
       const resRequests = await fetch(`${API_BASE}/creator/payout-requests`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const dataRequests = await resRequests.json();
-      if (dataRequests.success) setPayoutRequests(dataRequests.requests || []);
+      if (resRequests.ok) {
+        const dataRequests = await resRequests.json();
+        if (dataRequests.success) setPayoutRequests(dataRequests.requests || []);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -197,8 +204,9 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
   const fetchCategories = async () => {
     try {
       const res = await fetch(`${API_BASE}/categories`);
+      if (!res.ok) return;
       const data = await res.json();
-      if (data.success && data.categories.length > 0) {
+      if (data.success && data.categories?.length > 0) {
         setCategories(data.categories);
         setSelectedCategory(data.categories[0].id || data.categories[0].slug);
       }
@@ -418,6 +426,316 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
       setPayoutLoading(false);
     }
   };
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeTabNav, setActiveTabNav] = useState<'analytics' | 'upload' | 'files' | 'playlists' | 'branding' | 'billing' | 'agreement'>('analytics');
+  
+  // Branding state
+  const [brandName, setBrandName] = useState('Rahul Kumar (Citizen Reporter)');
+  const [brandEmail, setBrandEmail] = useState(authEmail || 'creator1@nagrik.news');
+  const [brandBio, setBrandBio] = useState('Hyperlocal Investigative Citizen Journalist covering civic issues, infrastructure, and rural realities across Bihar.');
+  const [brandTwitter, setBrandTwitter] = useState('@rahul_ground');
+  const [brandYoutube, setBrandYoutube] = useState('@PatnaGroundNews');
+  const [brandTelegram, setBrandTelegram] = useState('@patna_alerts');
+  const [brandInstagram, setBrandInstagram] = useState('@rahul_reports');
+  const [brandSavedToast, setBrandSavedToast] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Playlists state
+  const [playlists, setPlaylists] = useState<any[]>([
+    {
+      id: 'pl-1',
+      title: 'Patna Civic & Infrastructure Audit 2026',
+      description: 'Comprehensive ground investigation of drainage, flyovers, and road quality in Patna.',
+      episodesCount: 4,
+      totalViews: '14,200',
+      totalEarned: '$21.30',
+      status: 'ACTIVE'
+    },
+    {
+      id: 'pl-2',
+      title: 'Bihar Primary Healthcare Center Realities',
+      description: 'Undercover check of PHC medicine stocks, doctor attendance, and ambulance response.',
+      episodesCount: 3,
+      totalViews: '9,800',
+      totalEarned: '$14.70',
+      status: 'ACTIVE'
+    },
+    {
+      id: 'pl-3',
+      title: 'Gaya Agricultural Water & Mandi Crisis',
+      description: 'Farmers voice on MSP procurement delays and diesel pump subsidies.',
+      episodesCount: 2,
+      totalViews: '6,400',
+      totalEarned: '$9.60',
+      status: 'ACTIVE'
+    }
+  ]);
+  const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
+  const [newPlaylistTitle, setNewPlaylistTitle] = useState('');
+  const [newPlaylistDesc, setNewPlaylistDesc] = useState('');
+
+  // Search & Filters in File Manager
+  const [filesSearch, setFilesSearch] = useState('');
+  const [filesStatusFilter, setFilesStatusFilter] = useState<'ALL' | 'APPROVED' | 'PENDING_REVIEW' | 'REJECTED'>('ALL');
+
+  // Withdrawal modal / form state
+  const [showWithdrawForm, setShowWithdrawForm] = useState(false);
+  const [withdrawSuccessMsg, setWithdrawSuccessMsg] = useState('');
+
+  // Story Modals & Action States
+  const [selectedPreviewStory, setSelectedPreviewStory] = useState<any>(null);
+  const [selectedEditStory, setSelectedEditStory] = useState<any>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [selectedPlaylistDetail, setSelectedPlaylistDetail] = useState<any>(null);
+  const [actionToastMsg, setActionToastMsg] = useState('');
+
+  // Graph Timeframe & Metric States
+  const [chartTimeframe, setChartTimeframe] = useState<'daily' | 'monthly' | 'yearly'>('daily');
+  const [chartMetric, setChartMetric] = useState<'combined' | 'revenue' | 'views' | 'content'>('combined');
+
+  // Tour States
+  const [showTourModal, setShowTourModal] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
+  // Auto-trigger tour on initial load for new creators
+  useEffect(() => {
+    if (token) {
+      const tourDone = localStorage.getItem('nagrik_creator_tour_completed');
+      if (!tourDone) {
+        setShowTourModal(true);
+        setTourStep(0);
+      }
+    }
+  }, [token]);
+
+  const handleCopyStoryLink = (item: any) => {
+    const url = `https://nagrik.news/story/${item.id}`;
+    navigator.clipboard?.writeText(url);
+    setActionToastMsg(`Story link copied: ${url}`);
+    setTimeout(() => setActionToastMsg(''), 3000);
+  };
+
+  const handleDeleteStory = (storyId: string) => {
+    if (!window.confirm('Are you sure you want to delete this ground report?')) return;
+    setContents(prev => prev.filter(c => c.id !== storyId));
+    setActionToastMsg('Ground report removed from library.');
+    setTimeout(() => setActionToastMsg(''), 3000);
+  };
+
+  const handleOpenEditStory = (item: any) => {
+    setSelectedEditStory(item);
+    setEditTitle(item.title);
+    setEditCategory(item.category || 'Civic Issues');
+  };
+
+  const handleSaveEditStory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEditStory) return;
+    setContents(prev => prev.map(c => {
+      if (c.id === selectedEditStory.id) {
+        return { ...c, title: editTitle, category: editCategory };
+      }
+      return c;
+    }));
+    setSelectedEditStory(null);
+    setActionToastMsg('Report details updated successfully!');
+    setTimeout(() => setActionToastMsg(''), 3000);
+  };
+
+  const handleCopyPublicLink = () => {
+    const url = `https://nagrik.news/creator/${authEmail.split('@')[0] || 'rahul_kumar'}`;
+    navigator.clipboard?.writeText(url);
+    setCopiedLink(true);
+    setActionToastMsg(`Profile link copied: ${url}`);
+    setTimeout(() => { setCopiedLink(false); setActionToastMsg(''); }, 2500);
+  };
+
+  const handleSaveBrandDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBrandSavedToast(true);
+    setActionToastMsg('Brand settings saved successfully!');
+    setTimeout(() => { setBrandSavedToast(false); setActionToastMsg(''); }, 3000);
+  };
+
+  const handleCreatePlaylist = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPlaylistTitle) return;
+    setPlaylists([
+      {
+        id: `pl-${Date.now()}`,
+        title: newPlaylistTitle,
+        description: newPlaylistDesc || 'Citizen investigation bulletin',
+        episodesCount: 0,
+        totalViews: '0',
+        totalEarned: '$0.00',
+        status: 'ACTIVE'
+      },
+      ...playlists
+    ]);
+    setNewPlaylistTitle('');
+    setNewPlaylistDesc('');
+    setShowNewPlaylistModal(false);
+  };
+
+  const handleCompleteTour = () => {
+    localStorage.setItem('nagrik_creator_tour_completed', 'true');
+    setShowTourModal(false);
+    setActionToastMsg('Tour completed! Enjoy Nagrik Studio.');
+    setTimeout(() => setActionToastMsg(''), 3000);
+  };
+
+  const displayContents = contents.length > 0 ? contents : [
+    {
+      id: 'c-101',
+      title: 'Exclusive: Massive Water-logging & Broken Drainage at Kankarbagh Tempo Stand',
+      contentType: 'VIDEO',
+      category: 'Civic Issues',
+      state: 'Bihar',
+      city: 'Patna',
+      area: 'Kankarbagh',
+      views: 18450,
+      eligibleViews: 17200,
+      likes: 890,
+      earned: '$25.80',
+      moderationStatus: 'APPROVED',
+      createdAt: '2026-08-28T10:30:00Z',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'c-102',
+      title: 'Ground Reality of Muzaffarpur District Hospital Emergency Ward After Midnight',
+      contentType: 'VIDEO',
+      category: 'Healthcare',
+      state: 'Bihar',
+      city: 'Muzaffarpur',
+      area: 'Sadar',
+      views: 12300,
+      eligibleViews: 11400,
+      likes: 640,
+      earned: '$17.10',
+      moderationStatus: 'APPROVED',
+      createdAt: '2026-08-29T14:15:00Z',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'c-103',
+      title: 'Investigation: Illegal Sand Mining Active Near Son River Bank at Night',
+      contentType: 'ARTICLE',
+      category: 'Crime & Safety',
+      state: 'Bihar',
+      city: 'Patna',
+      area: 'Bihta',
+      views: 7910,
+      eligibleViews: 7100,
+      likes: 420,
+      earned: '$10.65',
+      moderationStatus: 'PENDING_REVIEW',
+      createdAt: '2026-09-01T09:00:00Z',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=600&auto=format&fit=crop&q=80'
+    }
+  ];
+
+  const filteredContents = displayContents.filter(c => {
+    const matchQuery = !filesSearch || c.title?.toLowerCase().includes(filesSearch.toLowerCase()) || c.city?.toLowerCase().includes(filesSearch.toLowerCase());
+    const matchStatus = filesStatusFilter === 'ALL' || c.moderationStatus === filesStatusFilter;
+    return matchQuery && matchStatus;
+  });
+
+  const chartDatasets = {
+    daily: {
+      data: [
+        { label: '27 Aug', revenue: 4.20, views: 2800, content: 1 },
+        { label: '28 Aug', revenue: 7.50, views: 5000, content: 2 },
+        { label: '29 Aug', revenue: 11.80, views: 7860, content: 1 },
+        { label: '30 Aug', revenue: 15.30, views: 10200, content: 3 },
+        { label: '31 Aug', revenue: 18.90, views: 12600, content: 2 },
+        { label: '1 Sep', revenue: 24.60, views: 16400, content: 4 },
+        { label: '2 Sep (Today)', revenue: 28.50, views: 19000, content: 3 }
+      ],
+      totalViews: '19.0k',
+      totalRevenue: '$28.50',
+      totalContent: '16 stories',
+      avgCpm: '$1.75'
+    },
+    monthly: {
+      data: [
+        { label: 'Oct', revenue: 18.60, views: 12400, content: 4 },
+        { label: 'Nov', revenue: 27.30, views: 18200, content: 6 },
+        { label: 'Dec', revenue: 36.75, views: 24500, content: 8 },
+        { label: 'Jan', revenue: 46.50, views: 31000, content: 7 },
+        { label: 'Feb', revenue: 57.90, views: 38600, content: 9 },
+        { label: 'Mar', revenue: 67.80, views: 45200, content: 12 },
+        { label: 'Apr', revenue: 79.20, views: 52800, content: 11 },
+        { label: 'May', revenue: 92.10, views: 61400, content: 14 },
+        { label: 'Jun', revenue: 111.00, views: 74000, content: 16 },
+        { label: 'Jul', revenue: 132.75, views: 88500, content: 18 },
+        { label: 'Aug', revenue: 156.30, views: 104200, content: 22 },
+        { label: 'Sep (MTD)', revenue: 192.90, views: 128600, content: 25 }
+      ],
+      totalViews: '685.4k',
+      totalRevenue: '$1,027.85',
+      totalContent: '152 reports',
+      avgCpm: '$1.82'
+    },
+    yearly: {
+      data: [
+        { label: '2024 (Pilot)', revenue: 128.10, views: 85400, content: 42 },
+        { label: '2025 (Regional)', revenue: 631.20, views: 420800, content: 186 },
+        { label: '2026 (Scale)', revenue: 1875.00, views: 1250000, content: 420 }
+      ],
+      totalViews: '1.75M',
+      totalRevenue: '$2,634.30',
+      totalContent: '648 reports',
+      avgCpm: '$1.90'
+    }
+  };
+
+  const tourSteps = [
+    {
+      title: 'Welcome to Nagrik Creator Studio!',
+      description: 'The dedicated workspace for citizen journalists and ground reporters to investigate, publish, and earn transparent $1.50+ CPM for local news.',
+      badge: 'Getting Started',
+      targetTab: 'analytics' as const
+    },
+    {
+      title: 'Tiered $1.50 - $2.00 CPM Monetization',
+      description: 'You are paid $1.50 to $2.00 USD per 1,000 verified hyperlocal views. Track daily, monthly, and yearly revenue and ground stories in real-time.',
+      badge: 'Revenue & Content Graph',
+      targetTab: 'analytics' as const
+    },
+    {
+      title: 'Publish Ground Reports & Bulletins',
+      description: 'Upload video stories or ground articles with pinpoint geo-tagging (State, City/District, and Local Area) to deliver verified civic coverage.',
+      badge: 'Publishing Studio',
+      targetTab: 'upload' as const
+    },
+    {
+      title: 'File Manager & Public Share Links',
+      description: 'Inspect editorial review statuses, copy instant 1-click share links for WhatsApp/Telegram, and manage your entire investigative catalog.',
+      badge: 'Content Library',
+      targetTab: 'files' as const
+    },
+    {
+      title: 'Instant Disbursals via NPCI UPI & Bank',
+      description: 'Payouts above $10.00 USD are automatically converted to INR and credited to your verified UPI ID (GPay/PhonePe) or Bank account within 24 hours.',
+      badge: 'Disbursals',
+      targetTab: 'billing' as const
+    },
+    {
+      title: 'Your Public Channel & Brand Hub',
+      description: 'Customize your reporter bio, avatar, and social handles. Share your creator profile URL to grow your direct hyperlocal audience.',
+      badge: 'Creator Brand',
+      targetTab: 'branding' as const
+    }
+  ];
+
+  const totalRev = stats?.lifetimeEarnings ?? 58.00;
+  const paidRev = stats?.totalPaid ?? 33.50;
+  const availRev = stats?.availableBalance ?? 24.50;
+  const approvedRev = stats?.availableBalance ?? 24.50;
+  const currentData = chartDatasets[chartTimeframe];
 
   const availableBal = stats?.availableBalance ?? 24.50;
   const isEligibleForPayout = availableBal >= 10.0;
@@ -798,321 +1116,6 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
       </div>
     );
   }
-  // =========================================================================
-  // 2. DEDICATED CREATOR STUDIO WORKSPACE (DiskWala-Inspired Dark Architecture)
-  // =========================================================================
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeTabNav, setActiveTabNav] = useState<'analytics' | 'upload' | 'files' | 'playlists' | 'branding' | 'billing' | 'agreement'>('analytics');
-  
-  // Branding state
-  const [brandName, setBrandName] = useState('Rahul Kumar (Citizen Reporter)');
-  const [brandEmail, setBrandEmail] = useState(authEmail || 'creator1@nagrik.news');
-  const [brandBio, setBrandBio] = useState('Hyperlocal Investigative Citizen Journalist covering civic issues, infrastructure, and rural realities across Bihar.');
-  const [brandTwitter, setBrandTwitter] = useState('@rahul_ground');
-  const [brandYoutube, setBrandYoutube] = useState('@PatnaGroundNews');
-  const [brandTelegram, setBrandTelegram] = useState('@patna_alerts');
-  const [brandInstagram, setBrandInstagram] = useState('@rahul_reports');
-  const [brandSavedToast, setBrandSavedToast] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
-
-  // Playlists state
-  const [playlists, setPlaylists] = useState<any[]>([
-    {
-      id: 'pl-1',
-      title: 'Patna Civic & Infrastructure Audit 2026',
-      description: 'Comprehensive ground investigation of drainage, flyovers, and road quality in Patna.',
-      episodesCount: 4,
-      totalViews: '14,200',
-      totalEarned: '$21.30',
-      status: 'ACTIVE'
-    },
-    {
-      id: 'pl-2',
-      title: 'Bihar Primary Healthcare Center Realities',
-      description: 'Undercover check of PHC medicine stocks, doctor attendance, and ambulance response.',
-      episodesCount: 3,
-      totalViews: '9,800',
-      totalEarned: '$14.70',
-      status: 'ACTIVE'
-    },
-    {
-      id: 'pl-3',
-      title: 'Gaya Agricultural Water & Mandi Crisis',
-      description: 'Farmers voice on MSP procurement delays and diesel pump subsidies.',
-      episodesCount: 2,
-      totalViews: '6,400',
-      totalEarned: '$9.60',
-      status: 'ACTIVE'
-    }
-  ]);
-  const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
-  const [newPlaylistTitle, setNewPlaylistTitle] = useState('');
-  const [newPlaylistDesc, setNewPlaylistDesc] = useState('');
-
-  // Search & Filters in File Manager
-  const [filesSearch, setFilesSearch] = useState('');
-  const [filesStatusFilter, setFilesStatusFilter] = useState<'ALL' | 'APPROVED' | 'PENDING_REVIEW' | 'REJECTED'>('ALL');
-
-  // Withdrawal modal / form state
-  const [showWithdrawForm, setShowWithdrawForm] = useState(false);
-  const [withdrawSuccessMsg, setWithdrawSuccessMsg] = useState('');
-
-  // Sample static / dynamic items for file manager
-  const displayContents = contents.length > 0 ? contents : [
-    {
-      id: 'c-101',
-      title: 'Exclusive: Massive Water-logging & Broken Drainage at Kankarbagh Tempo Stand',
-      contentType: 'VIDEO',
-      category: 'Civic Issues',
-      state: 'Bihar',
-      city: 'Patna',
-      area: 'Kankarbagh',
-      views: 18450,
-      eligibleViews: 17200,
-      likes: 890,
-      earned: '$25.80',
-      moderationStatus: 'APPROVED',
-      createdAt: '2026-08-28T10:30:00Z',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'c-102',
-      title: 'Ground Reality of Muzaffarpur District Hospital Emergency Ward After Midnight',
-      contentType: 'VIDEO',
-      category: 'Healthcare',
-      state: 'Bihar',
-      city: 'Muzaffarpur',
-      area: 'Sadar',
-      views: 12300,
-      eligibleViews: 11400,
-      likes: 640,
-      earned: '$17.10',
-      moderationStatus: 'APPROVED',
-      createdAt: '2026-08-29T14:15:00Z',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'c-103',
-      title: 'Investigation: Illegal Sand Mining Active Near Son River Bank at Night',
-      contentType: 'ARTICLE',
-      category: 'Crime & Safety',
-      state: 'Bihar',
-      city: 'Patna',
-      area: 'Bihta',
-      views: 7910,
-      eligibleViews: 7100,
-      likes: 420,
-      earned: '$10.65',
-      moderationStatus: 'PENDING_REVIEW',
-      createdAt: '2026-09-01T09:00:00Z',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=600&auto=format&fit=crop&q=80'
-    }
-  ];
-
-  const filteredContents = displayContents.filter(c => {
-    const matchQuery = !filesSearch || c.title?.toLowerCase().includes(filesSearch.toLowerCase()) || c.city?.toLowerCase().includes(filesSearch.toLowerCase());
-    const matchStatus = filesStatusFilter === 'ALL' || c.moderationStatus === filesStatusFilter;
-    return matchQuery && matchStatus;
-  });
-
-  // Story Modals & Action States
-  const [selectedPreviewStory, setSelectedPreviewStory] = useState<any>(null);
-  const [selectedEditStory, setSelectedEditStory] = useState<any>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editCategory, setEditCategory] = useState('');
-  const [selectedPlaylistDetail, setSelectedPlaylistDetail] = useState<any>(null);
-  const [actionToastMsg, setActionToastMsg] = useState('');
-
-  const handleCopyStoryLink = (item: any) => {
-    const url = `https://nagrik.news/story/${item.id}`;
-    navigator.clipboard?.writeText(url);
-    setActionToastMsg(`Story link copied: ${url}`);
-    setTimeout(() => setActionToastMsg(''), 3000);
-  };
-
-  const handleDeleteStory = (storyId: string) => {
-    if (!window.confirm('Are you sure you want to delete this ground report?')) return;
-    setContents(prev => prev.filter(c => c.id !== storyId));
-    setActionToastMsg('Ground report removed from library.');
-    setTimeout(() => setActionToastMsg(''), 3000);
-  };
-
-  const handleOpenEditStory = (item: any) => {
-    setSelectedEditStory(item);
-    setEditTitle(item.title);
-    setEditCategory(item.category || 'Civic Issues');
-  };
-
-  const handleSaveEditStory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEditStory) return;
-    setContents(prev => prev.map(c => {
-      if (c.id === selectedEditStory.id) {
-        return { ...c, title: editTitle, category: editCategory };
-      }
-      return c;
-    }));
-    setSelectedEditStory(null);
-    setActionToastMsg('Report details updated successfully!');
-    setTimeout(() => setActionToastMsg(''), 3000);
-  };
-
-  const handleCopyPublicLink = () => {
-    const url = `https://nagrik.news/creator/${authEmail.split('@')[0] || 'rahul_kumar'}`;
-    navigator.clipboard?.writeText(url);
-    setCopiedLink(true);
-    setActionToastMsg(`Profile link copied: ${url}`);
-    setTimeout(() => { setCopiedLink(false); setActionToastMsg(''); }, 2500);
-  };
-
-  const handleSaveBrandDetails = (e: React.FormEvent) => {
-    e.preventDefault();
-    setBrandSavedToast(true);
-    setActionToastMsg('Brand settings saved successfully!');
-    setTimeout(() => { setBrandSavedToast(false); setActionToastMsg(''); }, 3000);
-  };
-
-  const handleCreatePlaylist = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPlaylistTitle) return;
-    setPlaylists([
-      {
-        id: `pl-${Date.now()}`,
-        title: newPlaylistTitle,
-        description: newPlaylistDesc || 'Citizen investigation bulletin',
-        episodesCount: 0,
-        totalViews: '0',
-        totalEarned: '$0.00',
-        status: 'ACTIVE'
-      },
-      ...playlists
-    ]);
-    setNewPlaylistTitle('');
-    setNewPlaylistDesc('');
-    setShowNewPlaylistModal(false);
-  };
-
-  // Graph Timeframe & Metric States
-  const [chartTimeframe, setChartTimeframe] = useState<'daily' | 'monthly' | 'yearly'>('daily');
-  const [chartMetric, setChartMetric] = useState<'combined' | 'revenue' | 'views' | 'content'>('combined');
-
-  // Tour States
-  const [showTourModal, setShowTourModal] = useState(false);
-  const [tourStep, setTourStep] = useState(0);
-
-  // Auto-trigger tour on initial load for new creators
-  useEffect(() => {
-    if (token) {
-      const tourDone = localStorage.getItem('nagrik_creator_tour_completed');
-      if (!tourDone) {
-        setShowTourModal(true);
-        setTourStep(0);
-      }
-    }
-  }, [token]);
-
-  const handleCompleteTour = () => {
-    localStorage.setItem('nagrik_creator_tour_completed', 'true');
-    setShowTourModal(false);
-    setActionToastMsg('Tour completed! Enjoy Nagrik Studio.');
-    setTimeout(() => setActionToastMsg(''), 3000);
-  };
-
-  const chartDatasets = {
-    daily: {
-      data: [
-        { label: '27 Aug', revenue: 4.20, views: 2800, content: 1 },
-        { label: '28 Aug', revenue: 7.50, views: 5000, content: 2 },
-        { label: '29 Aug', revenue: 11.80, views: 7860, content: 1 },
-        { label: '30 Aug', revenue: 15.30, views: 10200, content: 3 },
-        { label: '31 Aug', revenue: 18.90, views: 12600, content: 2 },
-        { label: '1 Sep', revenue: 24.60, views: 16400, content: 4 },
-        { label: '2 Sep (Today)', revenue: 28.50, views: 19000, content: 3 }
-      ],
-      totalViews: '19.0k',
-      totalRevenue: '$28.50',
-      totalContent: '16 stories',
-      avgCpm: '$1.75'
-    },
-    monthly: {
-      data: [
-        { label: 'Oct', revenue: 18.60, views: 12400, content: 4 },
-        { label: 'Nov', revenue: 27.30, views: 18200, content: 6 },
-        { label: 'Dec', revenue: 36.75, views: 24500, content: 8 },
-        { label: 'Jan', revenue: 46.50, views: 31000, content: 7 },
-        { label: 'Feb', revenue: 57.90, views: 38600, content: 9 },
-        { label: 'Mar', revenue: 67.80, views: 45200, content: 12 },
-        { label: 'Apr', revenue: 79.20, views: 52800, content: 11 },
-        { label: 'May', revenue: 92.10, views: 61400, content: 14 },
-        { label: 'Jun', revenue: 111.00, views: 74000, content: 16 },
-        { label: 'Jul', revenue: 132.75, views: 88500, content: 18 },
-        { label: 'Aug', revenue: 156.30, views: 104200, content: 22 },
-        { label: 'Sep (MTD)', revenue: 192.90, views: 128600, content: 25 }
-      ],
-      totalViews: '685.4k',
-      totalRevenue: '$1,027.85',
-      totalContent: '152 reports',
-      avgCpm: '$1.82'
-    },
-    yearly: {
-      data: [
-        { label: '2024 (Pilot)', revenue: 128.10, views: 85400, content: 42 },
-        { label: '2025 (Regional)', revenue: 631.20, views: 420800, content: 186 },
-        { label: '2026 (Scale)', revenue: 1875.00, views: 1250000, content: 420 }
-      ],
-      totalViews: '1.75M',
-      totalRevenue: '$2,634.30',
-      totalContent: '648 reports',
-      avgCpm: '$1.90'
-    }
-  };
-
-  const tourSteps = [
-    {
-      title: 'Welcome to Nagrik Creator Studio!',
-      description: 'The dedicated workspace for citizen journalists and ground reporters to investigate, publish, and earn transparent $1.50+ CPM for local news.',
-      badge: 'Getting Started',
-      targetTab: 'analytics' as const
-    },
-    {
-      title: 'Tiered $1.50 - $2.00 CPM Monetization',
-      description: 'You are paid $1.50 to $2.00 USD per 1,000 verified hyperlocal views. Track daily, monthly, and yearly revenue and ground stories in real-time.',
-      badge: 'Revenue & Content Graph',
-      targetTab: 'analytics' as const
-    },
-    {
-      title: 'Publish Ground Reports & Bulletins',
-      description: 'Upload video stories or ground articles with pinpoint geo-tagging (State, City/District, and Local Area) to deliver verified civic coverage.',
-      badge: 'Publishing Studio',
-      targetTab: 'upload' as const
-    },
-    {
-      title: 'File Manager & Public Share Links',
-      description: 'Inspect editorial review statuses, copy instant 1-click share links for WhatsApp/Telegram, and manage your entire investigative catalog.',
-      badge: 'Content Library',
-      targetTab: 'files' as const
-    },
-    {
-      title: 'Instant Disbursals via NPCI UPI & Bank',
-      description: 'Payouts above $10.00 USD are automatically converted to INR and credited to your verified UPI ID (GPay/PhonePe) or Bank account within 24 hours.',
-      badge: 'Disbursals',
-      targetTab: 'billing' as const
-    },
-    {
-      title: 'Your Public Channel & Brand Hub',
-      description: 'Customize your reporter bio, avatar, and social handles. Share your creator profile URL to grow your direct hyperlocal audience.',
-      badge: 'Creator Brand',
-      targetTab: 'branding' as const
-    }
-  ];
-
-  const totalRev = stats?.lifetimeEarnings ?? 58.00;
-  const paidRev = stats?.totalPaid ?? 33.50;
-  const availRev = stats?.availableBalance ?? 24.50;
-  const approvedRev = stats?.availableBalance ?? 24.50;
-
-  // Active chart calculation
-  const currentData = chartDatasets[chartTimeframe];
 
   return (
     <div className="h-screen w-screen bg-[#F5F2EB] text-stone-900 flex overflow-hidden antialiased font-sans selection:bg-orange-100 selection:text-orange-900">
@@ -1311,23 +1314,23 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
                 setTourStep(0);
                 setShowTourModal(true);
               }}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-bold transition cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF7ED] border border-[#FDBA74]/60 text-[#C2410C] hover:bg-[#FFEDD5] rounded-xl text-xs font-bold transition cursor-pointer"
             >
-              <Compass className="w-3.5 h-3.5 text-indigo-600" />
+              <Compass className="w-3.5 h-3.5 text-[#E36138]" />
               <span>Take a Tour</span>
             </button>
 
             {/* Quick Balance indicator */}
-            <div className="flex items-center gap-2 bg-white border border-slate-200/90 px-3.5 py-1.5 rounded-xl shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs text-slate-500 font-medium">Balance:</span>
-              <span className="text-xs font-black text-emerald-700 font-mono">${availRev.toFixed(2)}</span>
+            <div className="flex items-center gap-2 bg-[#FAF9F5] border border-[#E3E0D4] px-3.5 py-1.5 rounded-xl shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#E36138] animate-pulse" />
+              <span className="text-xs text-stone-500 font-medium">Balance:</span>
+              <span className="text-xs font-black text-[#C2410C] font-mono">${availRev.toFixed(2)}</span>
             </div>
 
             {/* Direct Upload Action */}
             <button
               onClick={() => setActiveTabNav('upload')}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="px-3.5 py-1.5 bg-[#E36138] hover:bg-[#D24E25] text-white font-extrabold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm shadow-orange-500/20"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Files</span>
@@ -1346,12 +1349,12 @@ export const CreatorView: React.FC<CreatorViewProps> = ({ onBackToHome }) => {
               
               {/* Header Title Banner */}
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center shrink-0 mt-0.5">
-                  <BarChart3 className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-[#FFEDD5] text-[#C2410C] border border-[#FDBA74]/60 flex items-center justify-center shrink-0 mt-0.5">
+                  <BarChart3 className="w-5 h-5 text-[#E36138]" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-slate-900">Analytics & Real Performance</h2>
-                  <p className="text-xs text-slate-500">Track your daily, monthly, and yearly revenue, monetized views, and ground reports published.</p>
+                  <h2 className="text-lg font-black text-stone-900">Analytics & Real Performance</h2>
+                  <p className="text-xs text-stone-500">Track your daily, monthly, and yearly revenue, monetized views, and ground reports published.</p>
                 </div>
               </div>
 
