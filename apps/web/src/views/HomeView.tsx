@@ -147,17 +147,17 @@ export const HomeView: React.FC<HomeViewProps> = () => {
           <div className="w-full lg:w-[45%] xl:w-[44%] shrink-0 space-y-6 sm:space-y-7 text-left">
             
             {/* Level 1: Refined Editorial Eyebrow Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-200/60 dark:bg-slate-800/80 border border-stone-300/80 dark:border-slate-700/60 text-[11px] sm:text-xs font-mono font-bold tracking-widest text-slate-700 dark:text-slate-300 uppercase">
-              <span className="w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-200/60 dark:bg-slate-800/80 border border-stone-300/80 dark:border-slate-700/60 text-xs font-mono font-bold tracking-normal text-slate-700 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" aria-hidden="true" />
               <span>
                 {language === 'hi'
                   ? 'स्थानीय ग्राउंड रिपोर्टिंग • स्वतंत्र पत्रकारिता'
-                  : 'HYPERLOCAL GROUND JOURNALISM • CREATOR STUDIO'}
+                  : 'Hyperlocal Ground Journalism • Creator Studio'}
               </span>
             </div>
 
             {/* Level 2: Dominant Editorial Headline (Newsreader Serif) */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[58px] xl:text-[66px] font-black font-serif tracking-tight text-slate-950 dark:text-white leading-[1.04] sm:leading-[1.02]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-serif tracking-tight text-slate-950 dark:text-white leading-[1.04] sm:leading-[1.02]">
               {language === 'hi' ? (
                 <>
                   ग्राउंड न्यूज़ रिपोर्ट करें।<br />
@@ -273,9 +273,9 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 
                 {/* Webcam Notch & Living Studio Status Light */}
                 <div className="flex items-center justify-between px-3 mb-1.5">
-                  <div className="flex items-center gap-1.5 text-[8px] font-mono text-slate-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>STUDIO ENGINE • LIVE</span>
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-slate-300" aria-label="Studio Engine Status: Live">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
+                    <span className="font-semibold tracking-wide">Studio Engine • Live</span>
                   </div>
                   <div className="w-2 h-2 rounded-full bg-slate-900 border border-slate-700" />
                   <div className="flex items-center gap-1">
@@ -301,10 +301,10 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                       <div className="w-4 h-4 rounded-md bg-[#DE5227] text-white font-serif font-black text-[10px] flex items-center justify-center">
                         N
                       </div>
-                      <span className="text-[11px] font-bold tracking-tight text-slate-900">
+                      <span className="text-xs font-bold tracking-tight text-slate-900">
                         Nagrik Creator Studio
                       </span>
-                      <span className="text-[8px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                      <span className="text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                         Patna Ward 12
                       </span>
                     </div>
@@ -357,34 +357,34 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                     <div className="flex-1 p-2 sm:p-2.5 lg:p-3 space-y-2 bg-[#FAF9F6] overflow-hidden pr-2 sm:pr-3">
                       
                       {/* Dynamic Simulation Ticker Toast */}
-                      <div className="bg-slate-900 text-white px-2.5 sm:px-3 py-1 rounded-md flex items-center justify-between text-[8px] sm:text-[8.5px] font-mono shadow-xs border border-slate-800">
-                        <div className="flex items-center gap-1.5 truncate pr-2">
+                      <div className="bg-slate-900 text-white px-3 py-1.5 rounded-md flex items-center justify-between text-xs font-mono shadow-xs border border-slate-800" role="status" aria-live="polite">
+                        <div className="flex items-center gap-2 truncate pr-2">
                           {simStep === 0 && (
                             <>
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                              <span className="text-amber-200 font-semibold truncate">Stage 1: Report Submitted (Digha Chowk • 5km Ward)</span>
+                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0" aria-hidden="true" />
+                              <span className="text-amber-100 font-semibold truncate">Stage 1: Report Submitted (Digha Chowk • 5km Ward)</span>
                             </>
                           )}
                           {simStep === 1 && (
                             <>
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                              <span className="text-blue-200 font-semibold truncate">Stage 2: 5km GPS & Fact Review Verified</span>
+                              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0" aria-hidden="true" />
+                              <span className="text-blue-100 font-semibold truncate">Stage 2: 5km GPS & Fact Review Verified</span>
                             </>
                           )}
                           {simStep === 2 && (
                             <>
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                              <span className="text-emerald-300 font-semibold truncate">Stage 3: Published to Ward 12 Feed (Views Growing)</span>
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
+                              <span className="text-emerald-200 font-semibold truncate">Stage 3: Published to Ward 12 Feed (Views Growing)</span>
                             </>
                           )}
                           {simStep === 3 && (
                             <>
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#DE5227]" />
-                              <span className="text-orange-200 font-semibold truncate">Stage 4: $1.50 CPM Disbursed • UPI Payout Ready</span>
+                              <span className="w-2 h-2 rounded-full bg-[#DE5227] shrink-0" aria-hidden="true" />
+                              <span className="text-orange-100 font-semibold truncate">Stage 4: $1.50 CPM Disbursed • UPI Payout Ready</span>
                             </>
                           )}
                         </div>
-                        <span className="text-slate-400 text-[7px] shrink-0 font-sans">
+                        <span className="text-slate-400 text-xs shrink-0 font-mono font-bold">
                           {simStep + 1}/4
                         </span>
                       </div>
@@ -651,10 +651,12 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </p>
 
               {/* Editorial Pull Quote */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-stone-100/80 dark:bg-[#121927] border-l-2 border-[#DE5227] text-xs sm:text-sm text-slate-700 dark:text-slate-300 italic font-serif leading-relaxed">
-                &ldquo;{language === 'hi'
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#121927] border border-stone-200/80 dark:border-slate-800 shadow-xs text-xs sm:text-sm text-slate-800 dark:text-slate-200 italic font-serif leading-relaxed">
+                <span className="text-[#DE5227] font-sans font-bold not-italic mr-1.5 text-base">&ldquo;</span>
+                {language === 'hi'
                   ? 'हम एल्गोरिदम से स्थानीय आवाज़ों को दबाते नहीं हैं। हम उन्हें सीधे उसी 5km दायरे में पहुँचाते हैं जहाँ वे सबसे अधिक मायने रखती हैं।'
-                  : 'We do not algorithmically suppress local voices under national clickbait. We deliver eyewitness journalism directly to the exact 5km ward where it matters most.'}&rdquo;
+                  : 'We do not algorithmically suppress local voices under national clickbait. We deliver eyewitness journalism directly to the exact 5km ward where it matters most.'}
+                <span className="text-[#DE5227] font-sans font-bold not-italic ml-1 text-base">&rdquo;</span>
               </div>
 
               <div className="pt-2">
@@ -1108,7 +1110,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
           ════════════════════════════════════════════════════════════════════ */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 sm:p-8 max-w-sm w-full space-y-4 text-center shadow-2xl relative border border-stone-200 dark:border-slate-800 text-slate-900 dark:text-white animate-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-[#111827] rounded-2xl p-6 sm:p-8 max-w-sm w-full space-y-4 text-center shadow-2xl relative border border-stone-200 dark:border-slate-800 text-slate-900 dark:text-white animate-in zoom-in-95 duration-150">
             <button
               onClick={() => setShowQrModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white font-bold text-lg p-1 cursor-pointer"
@@ -1132,14 +1134,14 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               <div className="w-36 h-36 bg-slate-900 rounded-xl p-3 flex flex-col items-center justify-center relative">
                 <QrCode className="w-28 h-28 text-white" />
               </div>
-              <span className="text-[10px] font-mono text-slate-500">Scan to download APK</span>
+              <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Scan to download APK</span>
             </div>
 
             <div className="p-3 bg-stone-50 dark:bg-[#0B0F17] rounded-2xl border border-stone-200 dark:border-slate-800">
               <div className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">
                 v1.2.0 Production Release
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
                 Direct APK / Google Play / App Store
               </div>
             </div>

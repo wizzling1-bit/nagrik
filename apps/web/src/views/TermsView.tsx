@@ -110,23 +110,23 @@ export const TermsView: React.FC = () => {
   const activeDoc = tabsToRender.find((t) => t.id === activeTab) || tabsToRender[0];
 
   return (
-    <div className="bg-[#FAF9F6] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 py-12 md:py-20 px-4 sm:px-6 font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F4EFE6] dark:bg-[#0A0E17] text-slate-900 dark:text-slate-100 py-16 md:py-24 px-4 sm:px-6 lg:px-8 font-sans transition-colors duration-200 selection:bg-[#DE5227] selection:text-white">
       <div className="max-w-4xl mx-auto space-y-10">
         
         {/* Page Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-500/10 dark:bg-brand-500/20 border border-brand-500/30 text-brand-600 dark:text-brand-400 text-xs font-semibold">
-            <Scale className="w-3.5 h-3.5 text-brand-500" />
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-[#DE5227]/20 text-[#DE5227] dark:text-orange-400 text-xs font-mono font-bold uppercase tracking-wider">
+            <Scale className="w-3.5 h-3.5 text-[#DE5227]" />
             <span>{language === 'hi' ? 'कानूनी एवं नीतिगत नियम' : 'Legal & Platform Governance'}</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black font-serif tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-4xl sm:text-5xl font-black font-serif tracking-tight text-slate-950 dark:text-white">
             {language === 'hi' ? (
-              <>नियम एवं <span className="text-brand-500">नीतियां</span></>
+              <>नियम एवं <span className="text-[#DE5227]">नीतियां</span></>
             ) : (
-              <>Terms & <span className="text-brand-500">Policies</span></>
+              <>Terms & <span className="text-[#DE5227]">Policies</span></>
             )}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-relaxed font-normal">
             {language === 'hi'
               ? 'अंतिम अपडेट: सितंबर 2026 • संस्करण 1.0 • सभी नागरिक संवाददाताओं, प्रकाशकों और ऐप उपयोगकर्ताओं के लिए लागू।'
               : `Last Updated: ${activeDoc?.updatedAt ? new Date(activeDoc.updatedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'September 2026'} • Version ${activeDoc?.version || '1.0'} • Effective for all Citizen Reporters, Publishers, and App Users.`}
@@ -142,10 +142,10 @@ export const TermsView: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold shrink-0 transition flex items-center gap-2 cursor-pointer ${
+                className={`px-4 py-2.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-2 cursor-pointer ${
                   isActive
-                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                    ? 'bg-[#DE5227] text-white shadow-md shadow-orange-500/20'
+                    : 'bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 border border-stone-200 dark:border-slate-800'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -156,15 +156,15 @@ export const TermsView: React.FC = () => {
         </div>
 
         {/* Content Container */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 text-left leading-relaxed text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+        <div className="bg-white dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 text-left leading-relaxed text-xs sm:text-sm text-slate-700 dark:text-slate-300">
           
           {/* Dynamic Content from CMS */}
           {activeDoc?.content ? (
             <div className="space-y-6">
-              <div className="border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center justify-between">
+              <div className="border-b border-stone-100 dark:border-slate-800 pb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif">{activeDoc.label}</h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-serif">{activeDoc.label}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-normal">
                     {language === 'hi' ? 'आधिकारिक मंच घोषणा एवं संचालन समझौता' : 'Official platform charter & governance agreement'}
                   </p>
                 </div>
@@ -183,34 +183,34 @@ export const TermsView: React.FC = () => {
               {/* TAB 1: TERMS OF SERVICE */}
               {activeTab === 'terms' && (
                 <div className="space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif">1. Terms of Service</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Agreement between Nagrik News Platform and You</p>
+                  <div className="border-b border-stone-100 dark:border-slate-800 pb-4">
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-serif">1. Terms of Service</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-normal">Agreement between Nagrik News Platform and You</p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">1.1 Platform Purpose</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">1.1 Platform Purpose</h3>
                     <p>
                       Nagrik is an open, decentralized citizen journalism and content monetization ecosystem. By accessing our website, creator workstation, or mobile apps, you acknowledge and agree to comply with these terms.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">1.2 Content Authenticity & Citizen Reporting</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">1.2 Content Authenticity & Citizen Reporting</h3>
                     <p>
                       All reports, ground video streams, and photos submitted must represent real, truthful, and verified events. Fabricated news, deepfakes, hate speech, or defamatory reporting against individuals will lead to immediate permanent suspension and account forfeiture.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">1.3 User Responsibility & Accounts</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">1.3 User Responsibility & Accounts</h3>
                     <p>
                       You are responsible for maintaining the confidentiality of your creator account credentials and for all activities that occur under your account. You agree not to upload malware, copyrighted unauthorized streams, or malicious code.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">1.4 Service Modifications</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">1.4 Service Modifications</h3>
                     <p>
                       Nagrik reserves the right to modify, suspend, or discontinue any feature, rate schedule, or service at any time with prior notice provided on the Creator Studio announcement desk.
                     </p>
@@ -221,65 +221,65 @@ export const TermsView: React.FC = () => {
               {/* TAB 2: PRIVACY POLICY */}
               {activeTab === 'privacy' && (
                 <div className="space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif">2. Privacy Policy</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">How we protect your personal data, identity, and payout details</p>
+                  <div className="border-b border-stone-100 dark:border-slate-800 pb-4">
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-serif">2. Privacy Policy</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-normal">How we protect your personal data, identity, and payout details</p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">2.1 Information We Collect</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">2.1 Information We Collect</h3>
                     <p>
                       We collect basic information required to process publisher payouts and verify ground reports:
                     </p>
                     <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-                      <li><strong className="text-slate-900 dark:text-white">Creator Profile:</strong> Full name, verified email, and phone number.</li>
-                      <li><strong className="text-slate-900 dark:text-white">Payout Details:</strong> UPI VPA ID (e.g. <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono">username@okhdfcbank</code>) and Bank Account Number / IFSC code for NEFT settlements.</li>
-                      <li><strong className="text-slate-900 dark:text-white">Geo-Location Metadata:</strong> Latitude/longitude data attached during ground reporting to establish news location validity.</li>
+                      <li><strong className="text-slate-950 dark:text-white">Creator Profile:</strong> Full name, verified email, and phone number.</li>
+                      <li><strong className="text-slate-950 dark:text-white">Payout Details:</strong> UPI VPA ID (e.g. <code className="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-800 font-mono">username@okhdfcbank</code>) and Bank Account Number / IFSC code for NEFT settlements.</li>
+                      <li><strong className="text-slate-950 dark:text-white">Geo-Location Metadata:</strong> Latitude/longitude data attached during ground reporting to establish news location validity.</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">2.2 Protection of Financial Details</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">2.2 Protection of Financial Details</h3>
                     <p>
                       Your banking information is encrypted at rest using AES-256 standards and is never shared with third-party advertising brokers. Payout transactions are routed exclusively through Reserve Bank of India (RBI) authorized banking gateways.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">2.3 Anonymous Whistleblower Protection</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">2.3 Anonymous Whistleblower Protection</h3>
                     <p>
-                      Citizen reporters who opt for anonymous whistleblowing have their personal metadata scrubbed from public viewer logs to protect journalistic sources.
+                      Reporters may mark sensitive civic whistleblower submissions as anonymous. When selected, public news streams strip creator metadata while preserving internal cryptographic location audit trails.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* TAB 3: CREATOR AGREEMENT */}
+              {/* TAB 3: CREATOR & MONETIZATION AGREEMENT */}
               {activeTab === 'creator' && (
                 <div className="space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif">3. Creator Monetization Agreement</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Rates, view verification algorithms, and payout terms</p>
+                  <div className="border-b border-stone-100 dark:border-slate-800 pb-4">
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-serif">3. Creator & Monetization Agreement</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-normal">Terms governing $1.50 CPM publisher earnings, UPI disbursals, and rights</p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">3.1 Revenue Model & $1.50 CPM Rate</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">3.1 Revenue Model & Rate Policy</h3>
                     <p>
-                      Nagrik pays a flat rate of <strong className="text-slate-900 dark:text-white">$1.50 USD per 1,000 verified unique views</strong>. Monetization begins from the very first view with zero subscriber or channel threshold.
+                      Nagrik pays active publishers a flat estimated rate of <strong className="text-[#DE5227]">$1.50 USD (~₹129 INR)</strong> per 1,000 verified human reads. A verified read requires at least 5 seconds of active user dwell time within the story modal or feed.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">3.2 Anti-Fraud & Bot Filtering</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">3.2 Minimum Withdrawal Threshold</h3>
                     <p>
-                      To protect advertiser budgets and sustain creator payouts, view counts are verified via automated browser fingerprinting and IP uniqueness checks. Artificially inflated views from click farms, proxy bots, or auto-refresh scripts will result in immediate earnings cancellation.
+                      Creators can initiate a payout request once their approved contributor balance reaches <strong className="text-slate-950 dark:text-white">₹850 INR ($10 USD)</strong>. Disbursals are processed via UPI or direct bank transfer within 24 to 48 business hours with zero platform deduction.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">3.3 Minimum Payout & Disbursal Schedule</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">3.3 Intellectual Property & Content Rights</h3>
                     <p>
-                      The minimum payout threshold is <strong className="text-slate-900 dark:text-white">$10.00 USD (approx. ₹850 INR)</strong>. Payout requests submitted via UPI are settled within 2 to 24 hours. Manual bank transfers via NEFT/IMPS are completed within 1 to 2 business days.
+                      You retain 100% intellectual property ownership and copyright over your footage, photos, and writing. By uploading to Nagrik, you grant the platform a non-exclusive license to host, display, and stream your content.
                     </p>
                   </div>
                 </div>
@@ -288,27 +288,25 @@ export const TermsView: React.FC = () => {
               {/* TAB 4: DMCA & COPYRIGHT */}
               {activeTab === 'dmca' && (
                 <div className="space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif">4. DMCA & Copyright Policy</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Intellectual property protection and takedown requests</p>
+                  <div className="border-b border-stone-100 dark:border-slate-800 pb-4">
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-serif">4. DMCA & Copyright Policy</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-normal">Reporting intellectual property infringement and takedown procedures</p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">4.1 Copyright Ownership</h3>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">4.1 Notice and Takedown Procedure</h3>
                     <p>
-                      Publishers retain 100% intellectual property rights and copyright to their original video footage and written reports. By uploading to Nagrik, you grant us a worldwide license to host, stream, and distribute the content across our mobile and web applications.
+                      If you believe your copyrighted work has been uploaded without authorization, you may submit a formal takedown request to our legal desk at <a href="mailto:support@nagrik.news" className="text-[#DE5227] font-mono">support@nagrik.news</a>.
                     </p>
                   </div>
 
                   <div className="space-y-2.5">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">4.2 Filing a DMCA Notice</h3>
-                    <p>
-                      If you believe your copyrighted video or audio has been republished without authorization, please send a formal notice to our legal desk at <a href="mailto:dmca@nagrik.news" className="text-brand-500 font-bold hover:underline">dmca@nagrik.news</a> with:
-                    </p>
-                    <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-                      <li>Identification of the copyrighted material claimed to be infringed.</li>
-                      <li>URL or link to the infringing post on Nagrik.</li>
-                      <li>Your full contact details and an electronic signature.</li>
+                    <h3 className="font-bold text-slate-950 dark:text-white text-sm">4.2 Required Information</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
+                      <li>Identification of the copyrighted work claimed to have been infringed.</li>
+                      <li>URL or exact description of where the infringing material is located on Nagrik.</li>
+                      <li>Your contact information (name, address, telephone number, email).</li>
+                      <li>A statement that you have a good faith belief that the use is not authorized.</li>
                     </ul>
                   </div>
                 </div>
@@ -316,24 +314,8 @@ export const TermsView: React.FC = () => {
             </>
           )}
 
-          {/* Bottom Help Note */}
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              {language === 'hi' ? 'नियमों के संबंध में सहायता चाहिए? ' : 'Need assistance regarding our terms? '}
-              <a href="mailto:legal@nagrik.news" className="text-brand-500 hover:text-brand-600 font-bold hover:underline">
-                legal@nagrik.news
-              </a>
-            </div>
-
-            <Link
-              href="/contact"
-              className="px-5 py-2.5 rounded-full bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-xs transition flex items-center gap-1.5 shrink-0 shadow-sm"
-            >
-              <span>{language === 'hi' ? 'सहायता डेस्क से संपर्क करें' : 'Contact Support Desk'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
         </div>
+
       </div>
     </div>
   );

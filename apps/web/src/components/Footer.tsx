@@ -49,9 +49,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 1: Platform (2 cols) */}
           <div className="lg:col-span-2 space-y-3 text-left">
-            <h4 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
+            <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
               Platform
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <Link href="/creator" className="hover:text-white transition">
@@ -78,9 +78,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 2: Resources (2 cols) */}
           <div className="lg:col-span-2 space-y-3 text-left">
-            <h4 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
+            <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
               Resources
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <a href="/#faq" className="hover:text-white transition">
@@ -102,9 +102,9 @@ export const Footer: React.FC = () => {
 
           {/* Col 3: Legal (2 cols) */}
           <div className="lg:col-span-2 space-y-3 text-left">
-            <h4 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
+            <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
               Legal & Trust
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <Link href="/terms?tab=privacy" className="hover:text-white transition">
@@ -131,15 +131,15 @@ export const Footer: React.FC = () => {
 
           {/* Col 4: Consumer App (2 cols) */}
           <div className="lg:col-span-2 space-y-3 text-left">
-            <h4 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
+            <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-white">
               Consumer App
-            </h4>
+            </h3>
             <div className="space-y-2">
               <a
                 href="https://play.google.com"
                 target="_blank"
                 rel="noreferrer"
-                className="block px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition text-[11px] text-slate-300 font-mono"
+                className="block px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition text-xs text-slate-300 font-mono"
               >
                 Google Play →
               </a>
@@ -147,7 +147,7 @@ export const Footer: React.FC = () => {
                 href="https://apple.com"
                 target="_blank"
                 rel="noreferrer"
-                className="block px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition text-[11px] text-slate-300 font-mono"
+                className="block px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition text-xs text-slate-300 font-mono"
               >
                 App Store →
               </a>

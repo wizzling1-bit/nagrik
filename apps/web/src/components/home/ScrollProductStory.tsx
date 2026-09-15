@@ -509,12 +509,12 @@ export const ScrollProductStory: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4 mb-2.5">
-                        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+                        <span className="text-xs font-mono font-bold tracking-wider uppercase text-slate-600 dark:text-slate-300">
                           {step.tag}
                         </span>
                         <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
                           <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#DE5227]' : 'text-slate-400 dark:text-slate-500'}`} />
-                          <span className="text-[11px]">{step.highlight}</span>
+                          <span className="text-xs">{step.highlight}</span>
                         </div>
                       </div>
 
