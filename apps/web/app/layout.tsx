@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, Newsreader } from 'next/font/google';
+import { Plus_Jakarta_Sans, Newsreader, Outfit, Caveat } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -14,10 +14,23 @@ const sansFont = Plus_Jakarta_Sans({
 const serifFont = Newsreader({
   subsets: ['latin'],
   style: ['normal', 'italic'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600', '700'],
   variable: '--font-serif',
   display: 'swap',
   adjustFontFallback: false,
+});
+
+const displayFont = Outfit({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const scriptFont = Caveat({
+  subsets: ['latin'],
+  variable: '--font-script',
+  weight: ['400', '600', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -45,8 +58,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="hi" className={`${sansFont.variable} ${serifFont.variable}`}>
-      <body className="bg-newspaper-100 text-newspaper-900 dark:bg-ink-950 dark:text-ink-100 font-sans antialiased selection:bg-brand-500 selection:text-white min-h-screen flex flex-col transition-colors duration-200">
+    <html lang="hi" className={`${sansFont.variable} ${serifFont.variable} ${displayFont.variable} ${scriptFont.variable}`}>
+      <body className="bg-[#F4EFE6] text-slate-900 dark:bg-[#0B0F17] dark:text-slate-100 font-sans antialiased selection:bg-[#DE5227] selection:text-white min-h-screen flex flex-col transition-colors duration-200">
         <Providers>
           <Navbar />
           <div className="flex-1">

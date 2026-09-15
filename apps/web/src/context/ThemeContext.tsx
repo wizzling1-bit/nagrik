@@ -38,19 +38,35 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
+    
+    // Add smooth theme transition class for fallback animations
+    root.classList.add('theme-transitioning');
+    
     if (newTheme === 'dark') {
       root.classList.add('dark');
       root.style.colorScheme = 'dark';
     } else {
       root.classList.remove('dark');
-      root.style.colorScheme = 'light';
     }
+
+    // Clean up temporary transition class after transition finishes
+    window.setTimeout(() => {
+      root.classList.remove('theme-transitioning');
+    }, 450);
   };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem('nagrik_theme', newTheme);
-    applyTheme(newTheme);
+    
+    // Use View Transitions API if supported for ultra-smooth wave/fade transition
+    if (typeof document !== 'undefined' && 'startViewTransition' in document && typeof (document as any).startViewTransition === 'function') {
+      (document as any).startViewTransition(() => {
+        applyTheme(newTheme);
+      });
+    } else {
+      applyTheme(newTheme);
+    }
   };
 
   const toggleTheme = () => {

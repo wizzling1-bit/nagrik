@@ -158,17 +158,23 @@ export const Navbar: React.FC = () => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center justify-center cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227]"
+              className="w-9 h-9 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] group"
               title="Toggle Theme"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              <span className="transition-transform duration-300 group-hover:rotate-45 group-active:scale-75 flex items-center justify-center">
+                {theme === 'dark' ? (
+                  <Sun className="w-4 h-4 text-amber-400 transition-all duration-300 animate-in spin-in-180" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-600 dark:text-slate-200 transition-all duration-300 animate-in spin-in-180" />
+                )}
+              </span>
             </button>
 
             {/* Language Toggle Pill with Globe */}
             <button
               onClick={toggleLanguage}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227]"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-150 active:scale-95 cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227]"
               title="Change Language / भाषा बदलें"
               aria-label="Toggle language"
             >
@@ -191,10 +197,14 @@ export const Navbar: React.FC = () => {
             {/* Dark mode */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-xs rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-brand-500"
+              className="p-2 text-xs rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 active:scale-90 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#DE5227]"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400 animate-in spin-in-180 duration-300" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600 animate-in spin-in-180 duration-300" />
+              )}
             </button>
 
             {/* Language toggle */}

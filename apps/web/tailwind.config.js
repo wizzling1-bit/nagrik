@@ -49,20 +49,11 @@ module.exports = {
         }
       },
       fontFamily: {
-        serif: ['var(--font-serif)', 'Newsreader', '"Noto Serif Devanagari"', 'Georgia', 'Cambria', 'serif'],
-        sans: ['var(--font-sans)', '"Plus Jakarta Sans"', '"Noto Sans Devanagari"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Newsreader', 'Georgia', 'Cambria', 'serif'],
+        display: ['var(--font-display)', 'Outfit', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        script: ['var(--font-script)', 'Caveat', 'cursive'],
         mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'monospace']
-      },
-      letterSpacing: {
-        'serif-tight': '-0.035em',
-        'serif-snug': '-0.02em',
-        'editorial-label': '0.14em',
-        'editorial-nav': '0.04em',
-      },
-      lineHeight: {
-        'display': '0.98',
-        'tight-serif': '1.04',
-        'snug-serif': '1.12',
       },
       keyframes: {
         fadeInUp: {

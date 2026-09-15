@@ -4,23 +4,19 @@
 
 @layer base {
   :root {
-    --bg-page: #FAF9F6;
+    --bg-page: #F4EFE6;
     --bg-card: #FFFFFF;
-    --border-subtle: #E7E5DC;
-    --text-main: #131310;
-    --text-muted: #6E6A5E;
-    --brand-accent: #B45334;
-
-    --font-display: var(--font-serif, 'Newsreader', Georgia, serif);
-    --font-body: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
-    --font-ui: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+    --border-subtle: #E2DBD0;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --brand-accent: #DE5227;
   }
 
   .dark {
     --bg-page: #0B0F17;
-    --bg-card: #141C2B;
-    --border-subtle: #1F2B3F;
-    --text-main: #F1F5F9;
+    --bg-card: #111827;
+    --border-subtle: #1E293B;
+    --text-main: #F8FAFC;
     --text-muted: #94A3B8;
     --brand-accent: #C9856E;
   }
@@ -35,9 +31,30 @@
     color: var(--text-main);
   }
 
+  /* Silky smooth theme switching transition */
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: background-color 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                color 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                fill 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                stroke 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 380ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition-delay: 0s !important;
+  }
+
+  /* View Transition API Polish */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 380ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   /* Accessible focus indicators */
   :focus-visible {
-    outline: 2px solid #B45334;
+    outline: 2px solid #DE5227;
     outline-offset: 2px;
   }
 }
@@ -136,6 +153,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Script handwritten typography */
+.font-script {
+  font-family: var(--font-script), 'Caveat', cursive;
 }
 
 /* Hide Next.js dev portal indicator for clean production aesthetics */
