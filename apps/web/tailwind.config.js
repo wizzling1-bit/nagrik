@@ -9,18 +9,18 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50: '#FDF8F6',
-          100: '#F7EBE6',
-          200: '#EED5CC',
-          300: '#DFB4A4',
-          400: '#C9856E',
-          500: '#B45334', // Soft warm terracotta (low glare, premium editorial)
-          600: '#9A4125',
-          700: '#7E321B',
-          800: '#672A17',
-          900: '#552414',
-          950: '#2F1108',
-          DEFAULT: '#B45334'
+          50: '#FFF7F4',
+          100: '#FEECE6',
+          200: '#FDD5C7',
+          300: '#FCB59E',
+          400: '#F4835E',
+          500: '#DE5227', // Nagrik Signature Brand Orange (10% Accent)
+          600: '#C84318',
+          700: '#A83410',
+          800: '#892B0E',
+          900: '#71260F',
+          950: '#3D1005',
+          DEFAULT: '#DE5227'
         },
         newspaper: {
           50: '#FFFFFF',

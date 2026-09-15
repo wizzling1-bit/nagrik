@@ -18,7 +18,7 @@
     --border-subtle: #1E293B;
     --text-main: #F8FAFC;
     --text-muted: #94A3B8;
-    --brand-accent: #C9856E;
+    --brand-accent: #DE5227;
   }
 
   html {
@@ -29,6 +29,16 @@
   body {
     background-color: var(--bg-page);
     color: var(--text-main);
+  }
+
+  /* Global selection and caret styling */
+  ::selection {
+    background-color: #DE5227;
+    color: #FFFFFF;
+  }
+
+  * {
+    caret-color: #DE5227;
   }
 
   /* Silky smooth theme switching transition */
@@ -75,7 +85,7 @@
   background: #1E293B;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B45334;
+  background: #DE5227;
 }
 
 /* Scroll Progress Bar */
@@ -85,7 +95,7 @@
   left: 0;
   right: 0;
   height: 2.5px;
-  background: #B45334;
+  background: linear-gradient(90deg, #DE5227, #F97316);
   z-index: 9999;
   transform-origin: 0%;
 }

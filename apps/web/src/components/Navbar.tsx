@@ -219,7 +219,7 @@ export const Navbar: React.FC = () => {
             {/* Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 rounded-full transition cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-brand-500"
+              className="p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 rounded-full transition cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#DE5227]"
               aria-label="Toggle navigation menu"
               aria-expanded={mobileMenuOpen}
             >
