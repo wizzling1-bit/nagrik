@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-page: #FAF9F6;
+    --bg-card: #FFFFFF;
+    --border-subtle: #E7E5DC;
+    --text-main: #131310;
+    --text-muted: #6E6A5E;
+    --brand-accent: #B45334;
+
+    --font-display: var(--font-serif, 'Newsreader', Georgia, serif);
+    --font-body: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+    --font-ui: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  }
+
+  .dark {
+    --bg-page: #0B0F17;
+    --bg-card: #141C2B;
+    --border-subtle: #1F2B3F;
+    --text-main: #F1F5F9;
+    --text-muted: #94A3B8;
+    --brand-accent: #C9856E;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+  }
+
+  /* Accessible focus indicators */
+  :focus-visible {
+    outline: 2px solid #B45334;
+    outline-offset: 2px;
+  }
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #1E293B;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B45334;
+}
+
+/* Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #B45334;
+  z-index: 9999;
+  transform-origin: 0%;
+}
+
+/* Refined Subtle Transitions */
+.transition-editorial {
+  transition-property: color, background-color, border-color, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 250ms;
+}
+
+/* Stagger Animation Delays */
+.animate-delay-75 { animation-delay: 75ms; }
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-150 { animation-delay: 150ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+
+/* Interactive Card Elevation & Glow */
+.card-hover-effect {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.08), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
+}
+.dark .card-hover-effect:hover {
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.45), 0 0 20px 2px rgba(194, 65, 12, 0.08);
+}
+
+/* Button Shimmer Sweep Effect */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transform: rotate(30deg) translateX(-100%);
+  transition: transform 0.75s ease-out;
+}
+.btn-shimmer:hover::after {
+  transform: rotate(30deg) translateX(100%);
+}
+
+/* Accessibility: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Script handwritten typography */
+.font-script {
+  font-family: var(--font-script), 'Caveat', cursive;
+}
+
+/* Hide Next.js dev portal indicator for clean production aesthetics */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay] {
+  display: none !important;
+}

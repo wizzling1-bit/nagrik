@@ -1,0 +1,11 @@
+# Google Play Store Release Keystore Configuration Template
+# Copy this file to `android/key.properties` (which is gitignored) and fill in your actual credentials.
+#
+# Generate a release keystore using keytool:
+# keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias nagrik
+#
+# Move `my-release-key.jks` into `android/app/` or specify an absolute/relative path:
+keyAlias=nagrik
+keyPassword=YOUR_KEY_PASSWORD
+storeFile=my-release-key.jks
+storePassword=YOUR_STORE_PASSWORD

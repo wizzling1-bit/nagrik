@@ -1,0 +1,33 @@
+name: nagrik
+description: "Hyperlocal Indian information and community application."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.8.1
+  google_fonts: ^6.2.1
+  shared_preferences: ^2.5.3
+  cached_network_image: ^3.4.1
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.6.0
+  geolocator: ^14.0.3
+  video_player: ^2.14.0
+  share_plus: ^13.3.0
+  google_mobile_ads: ^5.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
