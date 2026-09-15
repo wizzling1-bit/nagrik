@@ -572,6 +572,8 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                     <img
                       src="/cleaner-streets-phone.jpg"
                       alt="Cleaner Streets"
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />

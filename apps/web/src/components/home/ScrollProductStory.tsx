@@ -126,6 +126,8 @@ export const ScrollProductStory: React.FC = () => {
               <img
                 src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80"
                 alt="On-scene recording"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover opacity-80"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40" />
