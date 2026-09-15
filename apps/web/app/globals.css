@@ -138,11 +138,6 @@
   }
 }
 
-/* Script handwritten typography */
-.font-script {
-  font-family: var(--font-script), 'Caveat', cursive;
-}
-
 /* Hide Next.js dev portal indicator for clean production aesthetics */
 nextjs-portal,
 [data-nextjs-toast],
