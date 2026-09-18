@@ -167,7 +167,7 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Add Category Form */}
-        <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
+        <div className="lg:col-span-5 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center">
               <Tag className="w-4 h-4" />
@@ -212,8 +212,8 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
         </div>
 
         {/* Right: Active Categories List */}
-        <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div className="lg:col-span-7 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
             <h3 className="font-black text-slate-900 dark:text-white text-sm">Active Categories ({categories.length})</h3>
           </div>
 
@@ -276,8 +276,8 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
       {/* Edit Category Modal */}
       {editingCategory && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center">
                   <Edit3 className="w-3.5 h-3.5" />

@@ -19,11 +19,12 @@ class CategoryModel {
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     final id = (json['id'] ?? json['_id'] ?? '').toString();
+    final order = (json['displayOrder'] ?? json['display_order']) as num?;
     return CategoryModel(
       id: id,
       name: (json['name'] ?? '').toString(),
       slug: (json['slug'] ?? '').toString(),
-      displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
+      displayOrder: order?.toInt() ?? 0,
       status: (json['status'] ?? 'ACTIVE').toString(),
     );
   }

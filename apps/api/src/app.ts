@@ -125,6 +125,14 @@ export const createApp = (): Express => {
     res.redirect('/docs');
   });
 
+  // 404 JSON Fallback Handler
+  app.use((req: Request, res: Response) => {
+    res.status(404).json({
+      success: false,
+      error: `Endpoint not found: ${req.method} ${req.originalUrl}`
+    });
+  });
+
   app.use(errorHandler);
 
   return app;

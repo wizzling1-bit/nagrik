@@ -38,6 +38,32 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
   int? _lastPingMs;
   bool _isPinging = false;
   String? _pingError;
+  late final TextEditingController _customUrlController;
+
+  @override
+  void initState() {
+    super.initState();
+    _customUrlController = TextEditingController(text: ApiConstants.baseUrl);
+  }
+
+  @override
+  void dispose() {
+    _customUrlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _applyServerUrl(String url) async {
+    await ApiConstants.saveBaseUrl(url);
+    if (mounted) {
+      setState(() {
+        _customUrlController.text = ApiConstants.baseUrl;
+      });
+    }
+    ref.invalidate(apiCategoriesProvider);
+    ref.invalidate(apiLocationsProvider);
+    ref.invalidate(feedStateProvider);
+    await _pingServer();
+  }
 
   Future<void> _pingServer() async {
     setState(() {
@@ -177,6 +203,120 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
               ),
 
               const SizedBox(height: 20),
+
+              // Target Backend Switcher Card
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? context.nagrikTheme.level3Interactive
+                      : context.nagrikTheme.surfaceMuted,
+                  borderRadius: NagrikRadii.borderRadiusCard,
+                  border: Border.all(color: context.nagrikTheme.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Backend Server Destination',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                          ),
+                        ),
+                        if (ApiConstants.baseUrl != ApiConstants.liveStagingBaseUrl)
+                          GestureDetector(
+                            onTap: () async {
+                              await ApiConstants.resetBaseUrl();
+                              _customUrlController.text = ApiConstants.baseUrl;
+                              ref.invalidate(apiCategoriesProvider);
+                              ref.invalidate(apiLocationsProvider);
+                              ref.invalidate(feedStateProvider);
+                              await _pingServer();
+                            },
+                            child: Text(
+                              'Reset Default',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: context.nagrikTheme.brandBright,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('PC Wi-Fi (10.201.28.237)', style: TextStyle(fontSize: 11)),
+                          selected: ApiConstants.baseUrl == ApiConstants.localWifiBaseUrl,
+                          onSelected: (selected) {
+                            if (selected) _applyServerUrl(ApiConstants.localWifiBaseUrl);
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 11)),
+                          selected: ApiConstants.baseUrl == ApiConstants.localEmulatorBaseUrl,
+                          onSelected: (selected) {
+                            if (selected) _applyServerUrl(ApiConstants.localEmulatorBaseUrl);
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('Render Live Cloud', style: TextStyle(fontSize: 11)),
+                          selected: ApiConstants.baseUrl == ApiConstants.liveStagingBaseUrl,
+                          onSelected: (selected) {
+                            if (selected) _applyServerUrl(ApiConstants.liveStagingBaseUrl);
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _customUrlController,
+                            style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: textColor),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              hintText: 'http://192.168.x.x:5000/api/v1',
+                              hintStyle: TextStyle(fontSize: 11, color: context.nagrikTheme.textTertiary),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: context.nagrikTheme.border),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton.tonal(
+                          onPressed: () {
+                            final text = _customUrlController.text.trim();
+                            if (text.isNotEmpty) {
+                              _applyServerUrl(text);
+                            }
+                          },
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            minimumSize: const Size(0, 36),
+                          ),
+                          child: const Text('Apply', style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
 
               // Ping Test Card
               Container(

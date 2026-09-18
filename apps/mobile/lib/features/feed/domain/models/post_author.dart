@@ -25,11 +25,26 @@ class PostAuthor {
   }
 
   factory PostAuthor.fromJson(Map<String, dynamic> json) {
-    final id = _readString(json, const ['id', '_id', 'authorId', 'sourceId']);
-    final name = _readString(
+    final userJson = json['users'] is Map
+        ? (json['users'] as Map).cast<String, dynamic>()
+        : json['user'] is Map
+            ? (json['user'] as Map).cast<String, dynamic>()
+            : null;
+
+    final idRaw = _readString(json, const ['id', '_id', 'authorId', 'sourceId']);
+    final id = idRaw.isNotEmpty
+        ? idRaw
+        : (userJson != null ? _readString(userJson, const ['id', '_id']) : '');
+
+    final nameRaw = _readString(
       json,
       const ['name', 'displayName', 'sourceName', 'publisherName'],
     );
+    final name = nameRaw.isNotEmpty
+        ? nameRaw
+        : (userJson != null
+            ? _readString(userJson, const ['name', 'displayName'])
+            : '');
 
     if (id.isEmpty && name.isEmpty) {
       throw const FormatException('Author id or name is required.');
@@ -39,9 +54,12 @@ class PostAuthor {
       id: id.isNotEmpty ? id : name,
       name: name.isNotEmpty ? name : 'Nagrik Desk',
       avatarUrl: _readNullableString(
-        json,
-        const ['avatarUrl', 'avatar_url', 'imageUrl', 'logoUrl'],
-      ),
+            json,
+            const ['avatarUrl', 'avatar_url', 'imageUrl', 'logoUrl', 'profile_image', 'profileImage'],
+          ) ??
+          (userJson != null
+              ? _readNullableString(userJson, const ['avatarUrl', 'avatar_url', 'imageUrl', 'profile_image', 'profileImage'])
+              : null),
       isVerified: _readBool(
         json,
         const ['isVerified', 'verified', 'is_verified'],

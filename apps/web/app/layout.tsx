@@ -59,10 +59,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="hi" className={`${sansFont.variable} ${serifFont.variable} ${displayFont.variable} ${scriptFont.variable}`}>
-      <body className="bg-[#F4EFE6] text-slate-900 dark:bg-[#0B0F17] dark:text-slate-100 font-sans antialiased selection:bg-[#DE5227] selection:text-white min-h-screen flex flex-col transition-colors duration-200">
+      <body className="text-content font-sans antialiased selection:bg-[#DE5227] selection:text-white min-h-screen flex flex-col transition-colors duration-200">
         <Providers>
           <Navbar />
-          <div className="flex-1">
+          <div className="flex-1 relative z-10">
             {children}
           </div>
           <Footer />

@@ -28,23 +28,23 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 flex justify-between items-center shadow-xs">
+      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl p-4 flex justify-between items-center shadow-xs">
         <h3 className="text-sm font-black text-slate-900 dark:text-white">Registered Citizen Reporters</h3>
         <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
           {creatorsList.length} Active {creatorsList.length === 1 ? 'Creator' : 'Creators'}
         </span>
       </div>
 
-      <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs">
+      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs">
         {creatorsList.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-[#0B0F17] rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 bg-stone-100/60 dark:bg-[#0B0F17] rounded-2xl border border-stone-200 dark:border-slate-800">
             No registered creators found in the database.
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="overflow-x-auto rounded-2xl border border-stone-200/90 dark:border-slate-800">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-[#0B0F17] text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-[#F2ECE1]/60 dark:bg-[#0B0F17] text-slate-700 dark:text-slate-300 font-bold border-b border-stone-200/80 dark:border-slate-800">
                   <tr>
                     <th className="p-4">Reporter Name</th>
                     <th className="p-4">Email</th>
@@ -54,7 +54,7 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
                     <th className="p-4">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-[#111827]">
+                <tbody className="divide-y divide-stone-200/60 dark:divide-slate-800 bg-[#FAF8F5] dark:bg-[#111827]">
                   {paginatedCreators.map((creator: any, idx: number) => {
                     const repName = creator.user?.name || creator.name || 'Citizen Reporter';
                     const repEmail = creator.user?.email || creator.email || '-';
@@ -79,7 +79,9 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
                           </span>
                         </td>
                         <td className="p-4 font-mono text-slate-600 dark:text-slate-400">{Number(repViews).toLocaleString()} Views</td>
-                        <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">${Number(repBal).toFixed(2)}</td>
+                        <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                          ₹{Number(repBal).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
                         <td className="p-4">
                           <button
                             onClick={() => setSelectedCreatorModal({
@@ -97,10 +99,10 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
                               totalViews: repViews,
                               payoutMethod: creator.payoutMethod || 'UPI'
                             })}
-                            className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 rounded-xl text-white font-bold text-[11px] shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                            className="px-3 py-1.5 bg-[#DE5227] hover:bg-[#c4431e] rounded-xl text-white font-bold text-[11px] shadow-xs transition cursor-pointer flex items-center gap-1.5"
                           >
                             <Eye className="w-3.5 h-3.5" />
-                            <span>View Portfolio</span>
+                            <span>View Profile</span>
                           </button>
                         </td>
                       </tr>
@@ -123,17 +125,17 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
       {/* Creator Portfolio Modal */}
       {selectedCreatorModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 shadow-2xl relative space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 shadow-2xl relative space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setSelectedCreatorModal(null)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+              className="absolute top-5 right-5 p-2 rounded-full bg-stone-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-stone-200 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-700 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Reporter Header Info */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-amber-600 text-white font-black text-2xl flex items-center justify-center shadow-md">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#DE5227] to-amber-600 text-white font-black text-2xl flex items-center justify-center shadow-md">
                 {selectedCreatorModal.name.charAt(0)}
               </div>
 
@@ -157,21 +159,21 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
               <div className="bg-slate-50 dark:bg-[#0B0F17] border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-2xs">
                 <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Available Balance</div>
                 <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
-                  ${selectedCreatorModal.availableBalance?.toFixed(2)}
+                  ₹{Number(selectedCreatorModal.availableBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
 
               <div className="bg-slate-50 dark:bg-[#0B0F17] border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-2xs">
                 <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Lifetime Earned</div>
-                <div className="text-xl font-black text-brand-500 font-mono mt-0.5">
-                  ${selectedCreatorModal.lifetimeEarnings?.toFixed(2)}
+                <div className="text-xl font-black text-[#DE5227] font-mono mt-0.5">
+                  ₹{Number(selectedCreatorModal.lifetimeEarnings || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
 
               <div className="bg-slate-50 dark:bg-[#0B0F17] border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl shadow-2xs">
                 <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Total Paid Out</div>
                 <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
-                  ${selectedCreatorModal.totalPaid?.toFixed(2)}
+                  ₹{Number(selectedCreatorModal.totalPaid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
 

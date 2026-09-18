@@ -15,12 +15,17 @@ export const RevealOnScroll: React.FC<RevealOnScrollProps> = ({
   className = '',
   delay = 0,
   direction = 'up',
-  distance = 32
+  distance = 24
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
@@ -31,8 +36,8 @@ export const RevealOnScroll: React.FC<RevealOnScrollProps> = ({
         });
       },
       {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px'
+        threshold: 0.05,
+        rootMargin: '0px 0px -20px 0px'
       }
     );
 
@@ -47,25 +52,24 @@ export const RevealOnScroll: React.FC<RevealOnScrollProps> = ({
   }, []);
 
   const getTransform = () => {
-    if (isVisible) return 'translate3d(0, 0, 0) scale(1) rotateX(0deg) rotateY(0deg)';
+    if (isVisible) return 'translate3d(0, 0, 0)';
     switch (direction) {
-      case 'up': return `translate3d(0, ${distance}px, 0) scale(0.97)`;
-      case 'down': return `translate3d(0, -${distance}px, 0) scale(0.97)`;
-      case 'left': return `translate3d(${distance}px, 0, 0) scale(0.97)`;
-      case 'right': return `translate3d(-${distance}px, 0, 0) scale(0.97)`;
-      case 'zoom': return 'translate3d(0, 20px, 0) scale(0.92)';
-      case 'flip': return 'translate3d(0, 30px, 0) rotateX(15deg) scale(0.95)';
-      default: return 'translate3d(0, 0, 0) scale(0.96)';
+      case 'up': return `translate3d(0, ${distance}px, 0)`;
+      case 'down': return `translate3d(0, -${distance}px, 0)`;
+      case 'left': return `translate3d(${distance}px, 0, 0)`;
+      case 'right': return `translate3d(-${distance}px, 0, 0)`;
+      case 'zoom': return 'translate3d(0, 16px, 0) scale(0.97)';
+      case 'flip': return 'translate3d(0, 20px, 0)';
+      default: return 'translate3d(0, 0, 0)';
     }
   };
 
   return (
     <div
       ref={domRef}
-      className={`transition-all duration-800 ease-out will-change-[transform,opacity,filter] ${className}`}
+      className={`transition-all duration-550 ease-out ${isVisible ? '' : 'will-change-[transform,opacity]'} ${className}`}
       style={{
         opacity: isVisible ? 1 : 0,
-        filter: isVisible ? 'blur(0px)' : 'blur(4px)',
         transform: getTransform(),
         transitionDelay: `${delay}ms`,
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
@@ -75,4 +79,5 @@ export const RevealOnScroll: React.FC<RevealOnScrollProps> = ({
     </div>
   );
 };
+
 

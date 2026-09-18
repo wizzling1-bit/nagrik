@@ -50,7 +50,7 @@ export enum UserStatus {
 export const BUSINESS_RULES = {
   MAX_COUNTED_VIEWS_PER_VIDEO: 3,
   MIN_PAYOUT_AMOUNT: 10.00, // US$ 10.00
-  DEFAULT_EARNING_RATE_PER_1000_VIEWS: 1.50, // $1.50 per 1000 eligible views
+  DEFAULT_EARNING_RATE_PER_1000_VIEWS: 1.00, // $1.00 per 1000 eligible views
   DEFAULT_AD_FEED_FREQUENCY: 4 // insert ad every 4 content items
 };
 
@@ -218,22 +218,23 @@ export const LoginSchema = z.object({
 });
 
 export const ContentCreateSchema = z.object({
-  type: z.nativeEnum(ContentType),
+  type: z.nativeEnum(ContentType).optional().default(ContentType.ARTICLE),
   title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  mediaUrl: z.string().url('Valid media URL is required'),
-  thumbnailUrl: z.string().url('Valid thumbnail URL is required'),
-  categoryId: z.string().min(1, 'Category is required'),
+  description: z.string().min(5, 'Description must be at least 5 characters'),
+  mediaUrl: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
+  categoryId: z.string().optional(),
+  category: z.string().optional(),
   location: z.object({
-    country: z.string().default('India'),
-    state: z.string(),
-    city: z.string(),
-    area: z.string(),
+    country: z.string().default('India').optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    area: z.string().optional(),
     coordinates: z.object({
       latitude: z.number(),
       longitude: z.number()
     }).optional()
-  })
+  }).optional()
 });
 
 export const ModerationActionSchema = z.object({
@@ -243,8 +244,10 @@ export const ModerationActionSchema = z.object({
 });
 
 export const PayoutRequestSchema = z.object({
-  amount: z.number().min(BUSINESS_RULES.MIN_PAYOUT_AMOUNT, `Minimum payout is $${BUSINESS_RULES.MIN_PAYOUT_AMOUNT}`),
-  payoutMethodId: z.string()
+  amount: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) : val),
+  payoutMethodId: z.string().optional(),
+  payoutMethod: z.string().optional(),
+  details: z.record(z.any()).optional()
 });
 
 export const ProcessPayoutSchema = z.object({

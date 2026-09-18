@@ -21,10 +21,10 @@ export const PublisherGatewaySection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 bg-[#FAF9F6] dark:bg-[#0B0F17] border-t border-slate-200/80 dark:border-slate-800/80 transition-colors">
+    <section className="py-16 sm:py-20 bg-surface-page dark:bg-surface-page border-t border-slate-200/80 dark:border-slate-800/80 transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="card-hover-effect group p-8 sm:p-10 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 hover:border-brand-500/40 dark:hover:border-brand-500/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 text-left relative overflow-hidden">
+        <div className="card-hover-effect group p-8 sm:p-10 rounded-2xl bg-surface-card dark:bg-surface-card border border-slate-200/80 dark:border-slate-800 hover:border-brand-500/40 dark:hover:border-brand-500/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 text-left relative overflow-hidden">
           
           {/* Subtle Accent Glow */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-brand-500/0 to-transparent group-hover:via-brand-500/60 transition-all duration-500" />
@@ -69,6 +69,9 @@ export const PublisherGatewaySection: React.FC = () => {
             >
               <span>{t.navPublisherPortal} →</span>
             </Link>
+            <span className="font-script text-indigo-600 dark:text-indigo-400 text-lg sm:text-xl font-bold rotate-3 text-center select-none pointer-events-none hidden sm:block pt-1 animate-scribble-float-2">
+              ~ 1,200+ local reporters and growing ✍️
+            </span>
           </div>
 
         </div>

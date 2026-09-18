@@ -89,8 +89,8 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
 
   if (!content) {
     return (
-      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#0B0F17] flex flex-col items-center justify-center p-6 text-center font-sans">
-        <div className="max-w-md bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5">
+      <div className="min-h-screen bg-[#F4EFE6] dark:bg-[#0B0F17] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="max-w-md bg-[#FAF8F5] dark:bg-[#111827] p-8 sm:p-10 rounded-3xl border border-stone-200 dark:border-slate-800 shadow-xl space-y-5">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto">
             <ShieldCheck className="w-8 h-8" />
           </div>
@@ -102,7 +102,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl transition shadow-lg shadow-brand-500/20"
+            className="inline-flex items-center gap-2 bg-[#DE5227] hover:bg-[#C84318] text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl transition shadow-lg shadow-orange-500/20"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>मुख्य पृष्ठ पर वापस जाएं</span>
@@ -151,7 +151,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F4EFE6] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -185,7 +185,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
         </h1>
 
         {/* Metadata Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 py-3.5 border-y border-slate-200/80 dark:border-slate-800 mb-6 text-xs text-slate-600 dark:text-slate-400">
+        <div className="flex flex-wrap items-center justify-between gap-4 py-3.5 border-y border-stone-200 dark:border-slate-800 mb-6 text-xs text-slate-600 dark:text-slate-400">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
               <MapPin className="w-4 h-4 text-brand-500 shrink-0" />
@@ -210,7 +210,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
         </div>
 
         {/* Media Block (Video / Image) */}
-        <div className="mb-8 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-950">
+        <div className="mb-8 rounded-3xl overflow-hidden border border-stone-200 dark:border-slate-800 shadow-sm bg-slate-950">
           {content.type === 'VIDEO' ? (
             <div className="relative aspect-video flex items-center justify-center bg-black">
               <video
@@ -251,7 +251,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
         </div>
 
         {/* Reporter Card */}
-        <div className="p-4 mb-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+        <div className="p-4 mb-8 rounded-2xl bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
               <User className="w-5 h-5" />

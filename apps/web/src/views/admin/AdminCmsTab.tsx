@@ -14,7 +14,7 @@ import {
   Lock,
   DollarSign,
   Scale,
-  Sparkles,
+  FilePlus,
   RefreshCw,
   X
 } from 'lucide-react';
@@ -286,7 +286,7 @@ Publishers may file counter-notices within 14 business days.`
       )}
 
       {/* Top Header Card */}
-      <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
+      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shadow-2xs">
@@ -323,8 +323,8 @@ Publishers may file counter-notices within 14 business days.`
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Document List Sidebar (4 Cols) */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 px-2">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-4 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-2.5 px-2">
               <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                 Legal Documents ({allPages.length})
               </span>
@@ -344,12 +344,12 @@ Publishers may file counter-notices within 14 business days.`
                     onClick={() => handleSelectDoc(page.slug)}
                     className={`p-3 rounded-2xl flex items-center justify-between transition cursor-pointer border text-xs ${
                       isSelected
-                        ? 'bg-slate-50 dark:bg-[#0B0F17] border-brand-500 shadow-xs ring-1 ring-brand-500/20'
-                        : 'bg-slate-50/50 hover:bg-slate-50 dark:bg-[#0B0F17]/50 dark:hover:bg-[#0B0F17] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                        ? 'bg-[#F2ECE1]/70 dark:bg-[#0B0F17] border-brand-500 shadow-xs ring-1 ring-brand-500/20'
+                        : 'bg-stone-100/50 hover:bg-stone-100 dark:bg-[#0B0F17]/50 dark:hover:bg-[#0B0F17] border-stone-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="p-2 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shrink-0">
+                      <div className="p-2 rounded-xl bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 shrink-0">
                         {getDocIcon(page.slug)}
                       </div>
                       <div className="min-w-0">
@@ -394,7 +394,7 @@ Publishers may file counter-notices within 14 business days.`
           </div>
 
           {/* Quick Preview Link Card */}
-          <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs shadow-xs">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs shadow-xs">
             <div className="space-y-0.5">
               <div className="font-bold text-slate-900 dark:text-white">Public Consumer URL</div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">/terms?tab={selectedSlug}</div>
@@ -403,7 +403,7 @@ Publishers may file counter-notices within 14 business days.`
               href={`/terms?tab=${selectedSlug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-brand-500 dark:text-brand-400 rounded-xl transition flex items-center gap-1 text-[11px] font-bold shadow-2xs"
+              className="p-2 bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-700 text-brand-500 dark:text-brand-400 rounded-xl transition flex items-center gap-1 text-[11px] font-bold shadow-2xs"
             >
               <span>View Live</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -412,9 +412,9 @@ Publishers may file counter-notices within 14 business days.`
         </div>
 
         {/* Right: Rich Policy Document Editor (8 Cols) */}
-        <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 space-y-5 shadow-xs">
+        <div className="lg:col-span-8 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-5 shadow-xs">
           {/* Editor Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200/60 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2.5">
               {getDocIcon(selectedSlug)}
               <div>
@@ -535,17 +535,17 @@ Publishers may file counter-notices within 14 business days.`
       {/* Create New Legal Policy Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative my-8">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative my-8">
             <button
               onClick={() => setShowCreateModal(false)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+              className="absolute top-5 right-5 p-2 rounded-full bg-stone-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-stone-200 dark:border-slate-700 transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="w-9 h-9 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shadow-2xs">
-                <Sparkles className="w-4 h-4" />
+                <FilePlus className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-black text-slate-900 dark:text-white text-sm">Create New CMS Document</h3>

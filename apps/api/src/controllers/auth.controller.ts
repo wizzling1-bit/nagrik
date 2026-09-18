@@ -62,7 +62,22 @@ export class AuthController {
     try {
       const { email, password } = req.body;
 
-      const user = await UsersDb.findByEmail(email);
+      if (!email || !password) {
+        return res.status(400).json({ success: false, error: 'Email and password are required' });
+      }
+
+      const cleanEmail = email.toLowerCase().trim();
+      let user = await UsersDb.findByEmail(cleanEmail);
+
+      // Support nagrik.news <=> naagrik.news alias fallback
+      if (!user) {
+        if (cleanEmail.includes('@nagrik.news')) {
+          user = await UsersDb.findByEmail(cleanEmail.replace('@nagrik.news', '@naagrik.news'));
+        } else if (cleanEmail.includes('@naagrik.news')) {
+          user = await UsersDb.findByEmail(cleanEmail.replace('@naagrik.news', '@nagrik.news'));
+        }
+      }
+
       if (!user) {
         return res.status(401).json({ success: false, error: 'Invalid email or password' });
       }
@@ -124,4 +139,33 @@ export class AuthController {
       return res.status(500).json({ success: false, error: error.message });
     }
   }
+
+  static async updateMe(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+      const { name, bio, profileImage, phone, location } = req.body;
+      const userUpdates: any = {};
+      if (name) userUpdates.name = name;
+      if (profileImage) userUpdates.profileImage = profileImage;
+      if (phone) userUpdates.phone = phone;
+      if (location) userUpdates.location = location;
+
+      const updatedUser = await UsersDb.update(req.user.id, userUpdates);
+
+      if (bio && req.user.role === UserRole.CREATOR) {
+        let creator = await CreatorsDb.findByUserId(req.user.id);
+        if (creator) {
+          await CreatorsDb.update(creator.id, { bio });
+        }
+      }
+
+      const { passwordHash, password_hash, ...safeUser } = updatedUser;
+      return res.json({ success: true, user: safeUser, message: 'Profile updated successfully' });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  }
 }
+

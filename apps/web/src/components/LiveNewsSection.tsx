@@ -9,7 +9,6 @@ import {
   Clock,
   ShieldCheck,
   Share2,
-  Sparkles,
   ArrowRight,
   Flame,
   Filter,

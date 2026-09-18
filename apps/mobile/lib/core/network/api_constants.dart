@@ -1,41 +1,78 @@
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Centralized API constants, endpoints, and environment configurations.
 class ApiConstants {
   ApiConstants._();
 
+  static const String prefsKeyBaseUrl = 'nagrik_api_base_url';
+  static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
+
   static String? _customBaseUrl;
+
+  /// Active Wi-Fi host IP for physical device testing on local network.
+  static const String localWifiBaseUrl = 'http://10.201.28.237:5000/api/v1';
+
+  /// Android emulator loopback base URL.
+  static const String localEmulatorBaseUrl = 'http://10.0.2.2:5000/api/v1';
+
+  /// Live Staging Base API URL deployed on Render.
+  static const String liveStagingBaseUrl =
+      'https://nagrik-1x9o.onrender.com/api/v1';
+
+  /// Initializes base URL from persistent storage or environment.
+  static Future<void> initBaseUrl([SharedPreferences? prefs]) async {
+    try {
+      final p = prefs ?? await SharedPreferences.getInstance();
+      final savedUrl = p.getString(prefsKeyBaseUrl);
+      if (savedUrl != null && savedUrl.trim().isNotEmpty) {
+        setBaseUrl(savedUrl.trim());
+      }
+    } catch (_) {}
+  }
 
   /// Override base URL at runtime (e.g., for staging or production backend).
   static void setBaseUrl(String url) {
     _customBaseUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
 
-  /// Reset base URL to default.
-  static void resetBaseUrl() {
-    _customBaseUrl = null;
+  /// Persists base URL to SharedPreferences and updates active runtime URL.
+  static Future<void> saveBaseUrl(String url) async {
+    setBaseUrl(url);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(prefsKeyBaseUrl, _customBaseUrl ?? url);
+    } catch (_) {}
   }
 
-  /// Live Staging Base API URL deployed on Render.
-  static const String liveStagingBaseUrl =
-      'https://nagrik-1x9o.onrender.com/api/v1';
+  /// Reset base URL to default and clear persistent override.
+  static Future<void> resetBaseUrl() async {
+    _customBaseUrl = null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(prefsKeyBaseUrl);
+    } catch (_) {}
+  }
 
   /// Local Development Base API URL helper (Android emulator uses 10.0.2.2).
   static String get localBaseUrl {
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000/api/v1';
+      return localEmulatorBaseUrl;
     }
     return 'http://localhost:5000/api/v1';
   }
 
   /// Default API base URL:
-  /// Defaults to live staging on Render (https://nagrik-1x9o.onrender.com/api/v1),
-  /// or overridden at runtime via [setBaseUrl].
+  /// 1. Saved custom URL from SharedPreferences
+  /// 2. Compile-time --dart-define=API_BASE_URL=...
+  /// 3. Default live staging URL
   static String get baseUrl {
     if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
       return _customBaseUrl!;
     }
-
+    if (_envBaseUrl.isNotEmpty) {
+      return _envBaseUrl;
+    }
     return liveStagingBaseUrl;
   }
 

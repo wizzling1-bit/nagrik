@@ -24,8 +24,8 @@ export const AdminAuditTab: React.FC<AdminAuditTabProps> = ({ auditLogs }) => {
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-6 rounded-3xl space-y-5 animate-in fade-in duration-200 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+    <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 animate-in fade-in duration-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200/60 dark:border-slate-800 pb-4">
         <div>
           <h3 className="font-black text-slate-900 dark:text-white text-base flex items-center gap-2">
             <History className="w-4 h-4 text-brand-500" />
@@ -79,7 +79,7 @@ export const AdminAuditTab: React.FC<AdminAuditTabProps> = ({ auditLogs }) => {
               className="p-4 bg-slate-50 dark:bg-[#0B0F17] border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition shadow-2xs"
             >
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5 font-mono">
+                <div className="w-8 h-8 rounded-xl bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5 font-mono">
                   {(currentPage - 1) * pageSize + idx + 1}
                 </div>
 

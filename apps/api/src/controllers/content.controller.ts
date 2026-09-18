@@ -88,17 +88,23 @@ export class ContentController {
   private static async resolveCategoryId(categoryId: any): Promise<string | null> {
     if (!categoryId) return null;
     
-    const byId = await CategoriesDb.findById(categoryId.toString());
-    if (byId) return byId.id;
+    const str = categoryId.toString().trim();
+    const cleanSlug = str.toLowerCase().replace(/^cat_/, '');
 
-    const cleanSlug = categoryId.toString().toLowerCase().replace(/^cat_/, '');
+    // 1. Try by slug directly first if not a UUID
     const bySlug = await CategoriesDb.findBySlug(cleanSlug);
     if (bySlug) return bySlug.id;
 
+    // 2. Try by ID if valid UUID format or via findById
+    const byId = await CategoriesDb.findById(str);
+    if (byId) return byId.id;
+
+    // 3. Try by Name
     const byName = await CategoriesDb.findByName(cleanSlug);
     if (byName) return byName.id;
 
-    const defaultCat = await CategoriesDb.findBySlug('local');
+    // 4. Default fallback category
+    const defaultCat = await CategoriesDb.findBySlug('civic-issues') || await CategoriesDb.findBySlug('local');
     return defaultCat ? defaultCat.id : null;
   }
 

@@ -32,15 +32,19 @@ export class ModerationService {
       throw new Error('Content not found.');
     }
 
-    if (status === ModerationStatus.REJECTED && !rejectionReason) {
-      throw new Error('Rejection reason is required when rejecting content.');
-    }
+    const reason = rejectionReason || (status === ModerationStatus.REJECTED ? 'Content does not meet editorial guidelines.' : status === ModerationStatus.FLAGGED ? 'Flagged for editorial review.' : undefined);
+
+    const isApproved = status === ModerationStatus.APPROVED;
 
     const updated = await ContentsDb.update(contentId, {
       moderationStatus: status,
       moderation_status: status,
-      rejectionReason: rejectionReason || null,
-      rejection_reason: rejectionReason || null
+      publicationStatus: isApproved ? 'PUBLISHED' : 'UNPUBLISHED',
+      publication_status: isApproved ? 'PUBLISHED' : 'UNPUBLISHED',
+      publishedAt: isApproved ? new Date().toISOString() : null,
+      published_at: isApproved ? new Date().toISOString() : null,
+      rejectionReason: !isApproved ? reason : null,
+      rejection_reason: !isApproved ? reason : null
     });
 
     // Record Audit Log
@@ -51,7 +55,7 @@ export class ModerationService {
       action: `CONTENT_MODERATION_${status}`,
       entity: 'Content',
       entityId: contentId,
-      metadata: { status, rejectionReason }
+      metadata: { status, rejectionReason: reason }
     });
 
     return updated;

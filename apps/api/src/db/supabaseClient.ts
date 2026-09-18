@@ -12,6 +12,12 @@ import {
   ILocationData
 } from '@naagrik/shared-types';
 
+// Helper to validate UUID format
+export const isUuid = (str: string | null | undefined): boolean => {
+  if (!str || typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+};
+
 // Helper to normalize objects with _id <-> id compatibility
 export const normalizeDoc = <T extends Record<string, any>>(doc: T | null | undefined): (T & { _id: string; id: string }) | null => {
   if (!doc) return null;
@@ -71,8 +77,9 @@ export const UsersDb = {
   async findById(id: string) {
     if (!id) return null;
     if (isLiveSupabaseConfigured()) {
+      if (!isUuid(id)) return null;
       const { data, error } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') throw error;
       return normalizeDoc(data);
     }
     const found = memoryStore.users.find(u => u.id === id || u._id === id);
@@ -146,12 +153,28 @@ export const UsersDb = {
 
   async update(id: string, updates: Partial<any>) {
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('users').update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      }).eq('id', id).select().single();
-      if (error) throw error;
-      return normalizeDoc(data);
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.email !== undefined) dbUpdates.email = updates.email;
+        if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+        if (updates.location !== undefined) dbUpdates.location = updates.location;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.profileImage !== undefined || updates.profile_image !== undefined) {
+          dbUpdates.profile_image = updates.profileImage ?? updates.profile_image;
+        }
+        if (updates.savedContentIds !== undefined || updates.saved_content_ids !== undefined) {
+          dbUpdates.saved_content_ids = updates.savedContentIds ?? updates.saved_content_ids;
+        }
+        if (updates.fcmTokens !== undefined || updates.fcm_tokens !== undefined) {
+          dbUpdates.fcm_tokens = updates.fcmTokens ?? updates.fcm_tokens;
+        }
+
+        const { data, error } = await supabase.from('users').update(dbUpdates).eq('id', id).select().single();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[UsersDb] update live error:', err.message);
+      }
     }
     const idx = memoryStore.users.findIndex(u => u.id === id || u._id === id);
     if (idx >= 0) {
@@ -188,8 +211,9 @@ export const CreatorsDb = {
   async findById(id: string) {
     if (!id) return null;
     if (isLiveSupabaseConfigured()) {
+      if (!isUuid(id)) return null;
       const { data, error } = await supabase.from('creators').select('*').eq('id', id).maybeSingle();
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') throw error;
       return normalizeDoc(data);
     }
     const found = memoryStore.creators.find(c => c.id === id || c._id === id);
@@ -260,12 +284,30 @@ export const CreatorsDb = {
 
   async update(id: string, updates: Partial<any>) {
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('creators').update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      }).eq('id', id).select().single();
-      if (error) throw error;
-      return normalizeDoc(data);
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+        if (updates.verificationStatus !== undefined || updates.verification_status !== undefined) {
+          dbUpdates.verification_status = updates.verificationStatus ?? updates.verification_status;
+        }
+        if (updates.totalEligibleViews !== undefined || updates.total_eligible_views !== undefined) {
+          dbUpdates.total_eligible_views = updates.totalEligibleViews ?? updates.total_eligible_views;
+        }
+        if (updates.availableBalance !== undefined || updates.available_balance !== undefined) {
+          dbUpdates.available_balance = updates.availableBalance ?? updates.available_balance;
+        }
+        if (updates.lifetimeEarnings !== undefined || updates.lifetime_earnings !== undefined) {
+          dbUpdates.lifetime_earnings = updates.lifetimeEarnings ?? updates.lifetime_earnings;
+        }
+        if (updates.totalPaid !== undefined || updates.total_paid !== undefined) {
+          dbUpdates.total_paid = updates.totalPaid ?? updates.total_paid;
+        }
+
+        const { data, error } = await supabase.from('creators').update(dbUpdates).eq('id', id).select().single();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[CreatorsDb] update live error:', err.message);
+      }
     }
     const idx = memoryStore.creators.findIndex(c => c.id === id || c._id === id);
     if (idx >= 0) {
@@ -309,33 +351,47 @@ export const CategoriesDb = {
   async findById(id: string) {
     if (!id) return null;
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('categories').select('*').eq('id', id).maybeSingle();
-      if (error) throw error;
-      return normalizeDoc(data);
+      if (!isUuid(id)) {
+        return this.findBySlug(id);
+      }
+      try {
+        const { data, error } = await supabase.from('categories').select('*').eq('id', id).maybeSingle();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[CategoriesDb] findById live error:', err.message);
+      }
+      return this.findBySlug(id);
     }
-    return normalizeDoc(memoryStore.categories.find(c => c.id === id || c._id === id));
+    const found = memoryStore.categories.find(c => c.id === id || c._id === id || c.slug?.toLowerCase() === id.toLowerCase());
+    return normalizeDoc(found);
   },
 
   async findBySlug(slug: string) {
     if (!slug) return null;
-    const clean = slug.toLowerCase().trim();
+    const clean = slug.toLowerCase().trim().replace(/^cat_/, '');
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('categories').select('*').eq('slug', clean).maybeSingle();
-      if (error) throw error;
-      return normalizeDoc(data);
+      try {
+        const { data, error } = await supabase.from('categories').select('*').eq('slug', clean).maybeSingle();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[CategoriesDb] findBySlug live error:', err.message);
+      }
     }
-    return normalizeDoc(memoryStore.categories.find(c => c.slug?.toLowerCase() === clean));
+    return normalizeDoc(memoryStore.categories.find(c => c.slug?.toLowerCase() === clean || c.id === clean || c._id === clean));
   },
 
   async findByName(name: string) {
     if (!name) return null;
     const clean = name.toLowerCase().trim();
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('categories').select('*').ilike('name', clean).maybeSingle();
-      if (error) throw error;
-      return normalizeDoc(data);
+      try {
+        const { data, error } = await supabase.from('categories').select('*').ilike('name', `%${clean}%`).maybeSingle();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[CategoriesDb] findByName live error:', err.message);
+      }
     }
-    return normalizeDoc(memoryStore.categories.find(c => c.name?.toLowerCase() === clean));
+    return normalizeDoc(memoryStore.categories.find(c => c.name?.toLowerCase().includes(clean)));
   },
 
   async create(cat: { name: string; slug?: string; displayOrder?: number; status?: 'ACTIVE' | 'INACTIVE' }) {
@@ -356,15 +412,18 @@ export const CategoriesDb = {
     };
 
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('categories').insert([{
-        id: doc.id,
-        name: doc.name,
-        slug: doc.slug,
-        display_order: doc.display_order,
-        status: doc.status
-      }]).select().single();
-      if (error) throw error;
-      return normalizeDoc({ ...doc, ...data });
+      try {
+        const { data, error } = await supabase.from('categories').insert([{
+          id: doc.id,
+          name: doc.name,
+          slug: doc.slug,
+          display_order: doc.display_order,
+          status: doc.status
+        }]).select().single();
+        if (!error && data) return normalizeDoc({ ...doc, ...data });
+      } catch (err: any) {
+        console.warn('[CategoriesDb] create live error:', err.message);
+      }
     }
 
     memoryStore.categories.push(doc);
@@ -374,14 +433,17 @@ export const CategoriesDb = {
   async upsert(cat: { name: string; slug: string; displayOrder?: number }) {
     const existing = await this.findBySlug(cat.slug);
     if (existing) {
-      if (isLiveSupabaseConfigured()) {
-        const { data, error } = await supabase.from('categories').update({
-          name: cat.name,
-          display_order: cat.displayOrder || 0,
-          updated_at: new Date().toISOString()
-        }).eq('id', existing.id).select().single();
-        if (error) throw error;
-        return normalizeDoc(data);
+      if (isLiveSupabaseConfigured() && isUuid(existing.id)) {
+        try {
+          const { data, error } = await supabase.from('categories').update({
+            name: cat.name,
+            display_order: cat.displayOrder || 0,
+            updated_at: new Date().toISOString()
+          }).eq('id', existing.id).select().single();
+          if (!error && data) return normalizeDoc(data);
+        } catch (err: any) {
+          console.warn('[CategoriesDb] upsert live error:', err.message);
+        }
       }
       existing.name = cat.name;
       existing.displayOrder = cat.displayOrder || 0;
@@ -393,27 +455,39 @@ export const CategoriesDb = {
 
   async list() {
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('categories').select('*').order('display_order', { ascending: true });
-      if (error) throw error;
-      return normalizeDocs(data || []);
+      try {
+        const { data, error } = await supabase.from('categories').select('*').order('display_order', { ascending: true });
+        if (!error && data) return normalizeDocs(data);
+      } catch (err: any) {
+        console.warn('[CategoriesDb] list live error:', err.message);
+      }
     }
     const list = [...memoryStore.categories].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
     return normalizeDocs(list);
   },
 
   async update(id: string, updates: { name?: string; slug?: string; displayOrder?: number; status?: 'ACTIVE' | 'INACTIVE' }) {
-    if (isLiveSupabaseConfigured()) {
-      const dbUpdates: any = { updated_at: new Date().toISOString() };
-      if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
-      if (updates.displayOrder !== undefined) dbUpdates.display_order = updates.displayOrder;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
-
-      const { data, error } = await supabase.from('categories').update(dbUpdates).eq('id', id).select().single();
-      if (error) throw error;
-      return normalizeDoc(data);
+    let targetId = id;
+    if (!isUuid(targetId)) {
+      const cat = await this.findBySlug(id);
+      if (cat) targetId = cat.id;
     }
-    const cat = memoryStore.categories.find(c => c.id === id || c._id === id);
+
+    if (isLiveSupabaseConfigured() && isUuid(targetId)) {
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
+        if (updates.displayOrder !== undefined) dbUpdates.display_order = updates.displayOrder;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+        const { data, error } = await supabase.from('categories').update(dbUpdates).eq('id', targetId).select().single();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[CategoriesDb] update live error:', err.message);
+      }
+    }
+    const cat = memoryStore.categories.find(c => c.id === id || c._id === id || c.id === targetId || c._id === targetId);
     if (cat) {
       if (updates.name !== undefined) cat.name = updates.name;
       if (updates.slug !== undefined) cat.slug = updates.slug;
@@ -430,12 +504,20 @@ export const CategoriesDb = {
   },
 
   async delete(id: string) {
-    if (isLiveSupabaseConfigured()) {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
-      if (error) throw error;
-      return true;
+    let targetId = id;
+    if (!isUuid(targetId)) {
+      const cat = await this.findBySlug(id);
+      if (cat) targetId = cat.id;
     }
-    const idx = memoryStore.categories.findIndex(c => c.id === id || c._id === id);
+
+    if (isLiveSupabaseConfigured() && isUuid(targetId)) {
+      try {
+        await supabase.from('categories').delete().eq('id', targetId);
+      } catch (err: any) {
+        console.warn('[CategoriesDb] delete live error:', err.message);
+      }
+    }
+    const idx = memoryStore.categories.findIndex(c => c.id === id || c._id === id || c.id === targetId || c._id === targetId);
     if (idx !== -1) {
       memoryStore.categories.splice(idx, 1);
     }
@@ -506,9 +588,33 @@ export const ContentsDb = {
   async findById(id: string) {
     if (!id) return null;
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('contents').select('*').eq('id', id).maybeSingle();
-      if (error) throw error;
-      return normalizeDoc(data);
+      if (!isUuid(id)) return null;
+      try {
+        const { data, error } = await supabase.from('contents').select('*, categories(*), creators(*, users(*))').eq('id', id).maybeSingle();
+        if (!error && data) {
+          return normalizeDoc({
+            ...data,
+            creatorId: data.creators ? {
+              ...normalizeDoc(data.creators),
+              userId: data.creators.users ? normalizeDoc(data.creators.users) : data.creators.user_id
+            } : data.creator_id,
+            creator_id: data.creator_id,
+            categoryId: data.categories ? normalizeDoc(data.categories) : data.category_id,
+            category_id: data.category_id,
+            mediaUrl: data.media_url,
+            thumbnailUrl: data.thumbnail_url,
+            moderationStatus: data.moderation_status,
+            rejectionReason: data.rejection_reason,
+            publicationStatus: data.publication_status,
+            eligibleViews: data.eligible_views,
+            publishedAt: data.published_at,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at
+          });
+        }
+      } catch (err: any) {
+        console.warn('[ContentsDb] findById live error:', err.message);
+      }
     }
     return normalizeDoc(memoryStore.contents.find(c => c.id === id || c._id === id));
   },
@@ -526,6 +632,12 @@ export const ContentsDb = {
     rejectionReason?: string;
     publicationStatus?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   }) {
+    let resolvedCategoryId = content.categoryId;
+    if (resolvedCategoryId && !isUuid(resolvedCategoryId)) {
+      const cat = await CategoriesDb.findBySlug(resolvedCategoryId);
+      if (cat) resolvedCategoryId = cat.id;
+    }
+
     const id = uuidv4();
     const doc = {
       id,
@@ -539,8 +651,8 @@ export const ContentsDb = {
       media_url: content.mediaUrl,
       thumbnailUrl: content.thumbnailUrl,
       thumbnail_url: content.thumbnailUrl,
-      categoryId: content.categoryId,
-      category_id: content.categoryId,
+      categoryId: resolvedCategoryId,
+      category_id: resolvedCategoryId,
       location: content.location,
       moderationStatus: content.moderationStatus || ModerationStatus.PENDING_REVIEW,
       moderation_status: content.moderationStatus || ModerationStatus.PENDING_REVIEW,
@@ -559,6 +671,7 @@ export const ContentsDb = {
       createdAt: new Date().toISOString(),
       created_at: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      updatedAt_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
@@ -572,7 +685,7 @@ export const ContentsDb = {
           description: doc.description,
           media_url: doc.media_url,
           thumbnail_url: doc.thumbnail_url,
-          category_id: doc.category_id,
+          category_id: isUuid(doc.category_id) ? doc.category_id : null,
           location: doc.location,
           moderation_status: doc.moderation_status,
           rejection_reason: doc.rejection_reason,
@@ -594,12 +707,53 @@ export const ContentsDb = {
 
   async update(id: string, updates: Partial<any>) {
     if (isLiveSupabaseConfigured()) {
-      const { data, error } = await supabase.from('contents').update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      }).eq('id', id).select().single();
-      if (error) throw error;
-      return normalizeDoc(data);
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.views !== undefined) dbUpdates.views = updates.views;
+        if (updates.eligibleViews !== undefined || updates.eligible_views !== undefined) {
+          dbUpdates.eligible_views = updates.eligibleViews ?? updates.eligible_views;
+        }
+        if (updates.likes !== undefined) dbUpdates.likes = updates.likes;
+        if (updates.shares !== undefined) dbUpdates.shares = updates.shares;
+        if (updates.saves !== undefined) dbUpdates.saves = updates.saves;
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.mediaUrl !== undefined || updates.media_url !== undefined) {
+          dbUpdates.media_url = updates.mediaUrl ?? updates.media_url;
+        }
+        if (updates.thumbnailUrl !== undefined || updates.thumbnail_url !== undefined) {
+          dbUpdates.thumbnail_url = updates.thumbnailUrl ?? updates.thumbnail_url;
+        }
+        if (updates.categoryId !== undefined || updates.category_id !== undefined) {
+          let catId = updates.categoryId ?? updates.category_id;
+          if (catId && !isUuid(catId)) {
+            const cat = await CategoriesDb.findBySlug(catId);
+            if (cat) catId = cat.id;
+          }
+          if (isUuid(catId)) {
+            dbUpdates.category_id = catId;
+          }
+        }
+        if (updates.moderationStatus !== undefined || updates.moderation_status !== undefined) {
+          dbUpdates.moderation_status = updates.moderationStatus ?? updates.moderation_status;
+        }
+        if (updates.rejectionReason !== undefined || updates.rejection_reason !== undefined) {
+          dbUpdates.rejection_reason = updates.rejectionReason ?? updates.rejection_reason;
+        }
+        if (updates.publicationStatus !== undefined || updates.publication_status !== undefined) {
+          dbUpdates.publication_status = updates.publicationStatus ?? updates.publication_status;
+        }
+        if (updates.publishedAt !== undefined || updates.published_at !== undefined) {
+          dbUpdates.published_at = updates.publishedAt ?? updates.published_at;
+        }
+
+        if (isUuid(id)) {
+          const { data, error } = await supabase.from('contents').update(dbUpdates).eq('id', id).select().single();
+          if (!error && data) return normalizeDoc(data);
+        }
+      } catch (err: any) {
+        console.warn('[ContentsDb] update live error:', err.message);
+      }
     }
     const idx = memoryStore.contents.findIndex(c => c.id === id || c._id === id);
     if (idx >= 0) {
@@ -626,6 +780,69 @@ export const ContentsDb = {
     limit?: number;
     skip?: number;
   }) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        let query = supabase.from('contents').select('*, categories(*), creators(*, users(*))', { count: 'exact' });
+
+        if (filter.creatorId && isUuid(filter.creatorId)) query = query.eq('creator_id', filter.creatorId);
+        if (filter.moderationStatus) query = query.eq('moderation_status', filter.moderationStatus);
+        if (filter.publicationStatus) query = query.eq('publication_status', filter.publicationStatus);
+        if (filter.type) query = query.eq('type', filter.type);
+        if (filter.categoryId) {
+          let catId = filter.categoryId;
+          if (!isUuid(catId)) {
+            const cat = await CategoriesDb.findBySlug(catId);
+            if (cat) catId = cat.id;
+          }
+          if (isUuid(catId)) {
+            query = query.eq('category_id', catId);
+          }
+        }
+        if (filter.city) query = query.filter('location->>city', 'ilike', `%${filter.city}%`);
+        if (filter.area) query = query.filter('location->>area', 'ilike', `%${filter.area}%`);
+        if (filter.searchQuery) {
+          query = query.or(`title.ilike.%${filter.searchQuery}%,description.ilike.%${filter.searchQuery}%`);
+        }
+
+        query = query.order('created_at', { ascending: false });
+
+        if (filter.skip !== undefined && filter.limit !== undefined) {
+          query = query.range(filter.skip, filter.skip + filter.limit - 1);
+        } else if (filter.limit !== undefined) {
+          query = query.limit(filter.limit);
+        }
+
+        const { data, count, error } = await query;
+        if (!error && data) {
+          const formatted = data.map(item => ({
+            ...item,
+            creatorId: item.creators ? {
+              ...normalizeDoc(item.creators),
+              userId: item.creators.users ? normalizeDoc(item.creators.users) : item.creators.user_id
+            } : item.creator_id,
+            creator_id: item.creator_id,
+            categoryId: item.categories ? normalizeDoc(item.categories) : item.category_id,
+            category_id: item.category_id,
+            mediaUrl: item.media_url,
+            thumbnailUrl: item.thumbnail_url,
+            moderationStatus: item.moderation_status,
+            rejectionReason: item.rejection_reason,
+            publicationStatus: item.publication_status,
+            eligibleViews: item.eligible_views,
+            publishedAt: item.published_at,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at
+          }));
+          return {
+            contents: normalizeDocs(formatted),
+            total: count !== null ? count : formatted.length
+          };
+        }
+      } catch (err: any) {
+        console.warn('[ContentsDb] find live error, falling back to memory store:', err.message);
+      }
+    }
+
     let list = [...memoryStore.contents];
 
     if (filter.creatorId) {
@@ -681,6 +898,18 @@ export const ContentsDb = {
   },
 
   async count(filter?: { moderationStatus?: ModerationStatus | string; creatorId?: string }) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        let query = supabase.from('contents').select('*', { count: 'exact', head: true });
+        if (filter?.moderationStatus) query = query.eq('moderation_status', filter.moderationStatus);
+        if (filter?.creatorId) query = query.eq('creator_id', filter.creatorId);
+        const { count, error } = await query;
+        if (!error && count !== null) return count;
+      } catch (err: any) {
+        console.warn('[ContentsDb] count live error:', err.message);
+      }
+    }
+
     let list = memoryStore.contents;
     if (filter?.moderationStatus) {
       list = list.filter(c => c.moderationStatus === filter.moderationStatus || c.moderation_status === filter.moderationStatus);
@@ -689,31 +918,108 @@ export const ContentsDb = {
       list = list.filter(c => c.creatorId === filter.creatorId || c.creator_id === filter.creatorId);
     }
     return list.length;
+  },
+
+  async delete(id: string) {
+    if (!id) return false;
+    if (isLiveSupabaseConfigured() && isUuid(id)) {
+      try {
+        await supabase.from('contents').delete().eq('id', id);
+      } catch (err: any) {
+        console.warn('[ContentsDb] delete live error:', err.message);
+      }
+    }
+    const idx = memoryStore.contents.findIndex(c => c.id === id || c._id === id);
+    if (idx >= 0) {
+      memoryStore.contents.splice(idx, 1);
+      return true;
+    }
+    return true;
   }
 };
 
 // ==========================================================
-// VIDEO VIEWS REPOSITORY (3-View Ceiling Rule)
+// VIDEO VIEWS REPOSITORY (3-View Ceiling Rule: User & Device)
 // ==========================================================
 export const VideoViewsDb = {
-  async findOne(userId: string, videoId: string) {
+  async findOne(viewerId: string, videoId: string) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        if (isUuid(viewerId)) {
+          const { data: userView } = await supabase
+            .from('video_views')
+            .select('*')
+            .eq('user_id', viewerId)
+            .eq('video_id', videoId)
+            .maybeSingle();
+          if (userView) return normalizeDoc(userView);
+        }
+
+        const { data: deviceView } = await supabase
+          .from('video_views')
+          .select('*')
+          .eq('device_id', viewerId)
+          .eq('video_id', videoId)
+          .maybeSingle();
+        if (deviceView) return normalizeDoc(deviceView);
+
+        return null;
+      } catch (err: any) {
+        console.warn('[VideoViewsDb] findOne error, falling back to memory store:', err.message);
+      }
+    }
+
     const found = memoryStore.videoViews.find(
-      v => (v.userId === userId || v.user_id === userId) && (v.videoId === videoId || v.video_id === videoId)
+      v => (v.userId === viewerId || v.user_id === viewerId || v.deviceId === viewerId || v.device_id === viewerId) &&
+           (v.videoId === videoId || v.video_id === videoId)
     );
     return normalizeDoc(found);
   },
 
   async create(view: { userId: string; videoId: string; countedViewCount?: number }) {
     const id = uuidv4();
+    const viewerId = view.userId;
+    const countedViews = view.countedViewCount || 0;
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        // Check if viewerId is a registered user
+        const user = isUuid(viewerId) ? await UsersDb.findById(viewerId) : null;
+        const insertPayload: any = {
+          id,
+          video_id: view.videoId,
+          counted_view_count: countedViews,
+          last_viewed_at: new Date().toISOString()
+        };
+        if (user) {
+          insertPayload.user_id = viewerId;
+        } else {
+          insertPayload.device_id = viewerId;
+        }
+
+        const { data, error } = await supabase
+          .from('video_views')
+          .insert([insertPayload])
+          .select()
+          .single();
+
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[VideoViewsDb] create error, falling back to memory store:', err.message);
+      }
+    }
+
     const doc = {
       id,
       _id: id,
-      userId: view.userId,
-      user_id: view.userId,
+      userId: viewerId,
+      user_id: viewerId,
+      deviceId: viewerId,
+      device_id: viewerId,
       videoId: view.videoId,
       video_id: view.videoId,
-      countedViewCount: view.countedViewCount || 0,
-      counted_view_count: view.countedViewCount || 0,
+      countedViewCount: countedViews,
+      counted_view_count: countedViews,
       lastViewedAt: new Date().toISOString(),
       last_viewed_at: new Date().toISOString(),
       createdAt: new Date().toISOString(),
@@ -726,6 +1032,27 @@ export const VideoViewsDb = {
   },
 
   async update(id: string, updates: Partial<any>) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.countedViewCount !== undefined) dbUpdates.counted_view_count = updates.countedViewCount;
+        if (updates.counted_view_count !== undefined) dbUpdates.counted_view_count = updates.counted_view_count;
+        if (updates.lastViewedAt !== undefined) dbUpdates.last_viewed_at = updates.lastViewedAt;
+        if (updates.last_viewed_at !== undefined) dbUpdates.last_viewed_at = updates.last_viewed_at;
+
+        const { data, error } = await supabase
+          .from('video_views')
+          .update(dbUpdates)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[VideoViewsDb] update error, falling back to memory store:', err.message);
+      }
+    }
+
     const idx = memoryStore.videoViews.findIndex(v => v.id === id || v._id === id);
     if (idx >= 0) {
       memoryStore.videoViews[idx] = {
@@ -780,25 +1107,91 @@ export const AdvertisementsDb = {
       updatedAt: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('advertisements').insert([{
+          id: doc.id,
+          name: doc.name,
+          type: doc.type,
+          media_url: doc.media_url,
+          target_location: doc.target_location,
+          target_category: doc.target_category,
+          start_date: doc.start_date,
+          end_date: doc.end_date,
+          frequency: doc.frequency,
+          status: doc.status,
+          clicks: 0,
+          impressions: 0
+        }]).select().single();
+
+        if (!error && data) return normalizeDoc({ ...doc, ...data });
+      } catch (err: any) {
+        console.warn('[AdvertisementsDb] create error, falling back to memory store:', err.message);
+      }
+    }
+
     memoryStore.advertisements.push(doc);
     return normalizeDoc(doc);
   },
 
   async findActive() {
-    const now = new Date().getTime();
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+          .from('advertisements')
+          .select('*')
+          .eq('status', 'ACTIVE')
+          .lte('start_date', now)
+          .gte('end_date', now);
+
+        if (!error && data) return normalizeDocs(data);
+      } catch (err: any) {
+        console.warn('[AdvertisementsDb] findActive error, falling back to memory store:', err.message);
+      }
+    }
+
+    const nowTime = new Date().getTime();
     const active = memoryStore.advertisements.filter(a => {
       const start = new Date(a.startDate || a.start_date).getTime();
       const end = new Date(a.endDate || a.end_date).getTime();
-      return a.status === 'ACTIVE' && start <= now && end >= now;
+      return a.status === 'ACTIVE' && start <= nowTime && end >= nowTime;
     });
     return normalizeDocs(active);
   },
 
   async list() {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('advertisements')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) return normalizeDocs(data);
+      } catch (err: any) {
+        console.warn('[AdvertisementsDb] list error, falling back to memory store:', err.message);
+      }
+    }
+
     return normalizeDocs([...memoryStore.advertisements].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   },
 
   async count(status = 'ACTIVE') {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { count, error } = await supabase
+          .from('advertisements')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', status);
+
+        if (!error && count !== null) return count;
+      } catch (err: any) {
+        console.warn('[AdvertisementsDb] count error:', err.message);
+      }
+    }
+
     return memoryStore.advertisements.filter(a => a.status === status).length;
   }
 };
@@ -809,10 +1202,26 @@ export const AdvertisementsDb = {
 export const PayoutMethodsDb = {
   async findById(id: string) {
     if (!id) return null;
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('payout_methods').select('*').eq('id', id).maybeSingle();
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[PayoutMethodsDb] findById error:', err.message);
+      }
+    }
     return normalizeDoc(memoryStore.payoutMethods.find(m => m.id === id || m._id === id));
   },
 
   async findByCreatorId(creatorId: string) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('payout_methods').select('*').eq('creator_id', creatorId);
+        if (!error && data) return normalizeDocs(data);
+      } catch (err: any) {
+        console.warn('[PayoutMethodsDb] findByCreatorId error:', err.message);
+      }
+    }
     const list = memoryStore.payoutMethods.filter(m => m.creatorId === creatorId || m.creator_id === creatorId);
     return normalizeDocs(list);
   },
@@ -842,11 +1251,40 @@ export const PayoutMethodsDb = {
       updatedAt: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('payout_methods').insert([{
+          id: doc.id,
+          creator_id: doc.creator_id,
+          type: doc.type,
+          bank_details: doc.bank_details,
+          upi_id: doc.upi_id,
+          is_default: doc.is_default
+        }]).select().single();
+
+        if (!error && data) return normalizeDoc({ ...doc, ...data });
+      } catch (err: any) {
+        console.warn('[PayoutMethodsDb] create error, falling back to memory store:', err.message);
+      }
+    }
+
     memoryStore.payoutMethods.push(doc);
     return normalizeDoc(doc);
   },
 
   async updateMany(creatorId: string, updates: Partial<any>) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.isDefault !== undefined) dbUpdates.is_default = updates.isDefault;
+        if (updates.is_default !== undefined) dbUpdates.is_default = updates.is_default;
+        await supabase.from('payout_methods').update(dbUpdates).eq('creator_id', creatorId);
+      } catch (err: any) {
+        console.warn('[PayoutMethodsDb] updateMany error:', err.message);
+      }
+    }
+
     memoryStore.payoutMethods.forEach(m => {
       if (m.creatorId === creatorId || m.creator_id === creatorId) {
         Object.assign(m, updates);
@@ -861,6 +1299,24 @@ export const PayoutMethodsDb = {
 export const PayoutRequestsDb = {
   async findById(id: string) {
     if (!id) return null;
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('payout_requests').select('*').eq('id', id).maybeSingle();
+        if (!error && data) {
+          const method = await PayoutMethodsDb.findById(data.payout_method_id);
+          const creator = await CreatorsDb.findById(data.creator_id);
+          const user = creator ? await UsersDb.findById(creator.userId || creator.user_id) : null;
+          return normalizeDoc({
+            ...data,
+            payoutMethodId: method ? normalizeDoc(method) : data.payout_method_id,
+            creatorId: creator ? { ...normalizeDoc(creator), userId: user ? normalizeDoc(user) : creator.userId } : data.creator_id
+          });
+        }
+      } catch (err: any) {
+        console.warn('[PayoutRequestsDb] findById error:', err.message);
+      }
+    }
+
     const req = memoryStore.payoutRequests.find(r => r.id === id || r._id === id);
     if (!req) return null;
     const method = memoryStore.payoutMethods.find(m => m.id === req.payoutMethodId || m.id === req.payout_method_id);
@@ -903,11 +1359,53 @@ export const PayoutRequestsDb = {
       updatedAt: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('payout_requests').insert([{
+          id: doc.id,
+          creator_id: doc.creator_id,
+          amount: doc.amount,
+          payout_method_id: doc.payout_method_id,
+          status: doc.status,
+          requested_at: doc.requested_at
+        }]).select().single();
+
+        if (!error && data) return normalizeDoc({ ...doc, ...data });
+      } catch (err: any) {
+        console.warn('[PayoutRequestsDb] create error, falling back to memory store:', err.message);
+      }
+    }
+
     memoryStore.payoutRequests.push(doc);
     return normalizeDoc(doc);
   },
 
   async update(id: string, updates: Partial<any>) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.transactionReference !== undefined) dbUpdates.transaction_reference = updates.transactionReference;
+        if (updates.transaction_reference !== undefined) dbUpdates.transaction_reference = updates.transaction_reference;
+        if (updates.processedAt !== undefined) dbUpdates.processed_at = updates.processedAt;
+        if (updates.processed_at !== undefined) dbUpdates.processed_at = updates.processed_at;
+        if (updates.adminNote !== undefined) dbUpdates.admin_note = updates.adminNote;
+        if (updates.admin_note !== undefined) dbUpdates.admin_note = updates.admin_note;
+
+        const { data, error } = await supabase
+          .from('payout_requests')
+          .update(dbUpdates)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (!error && data) return normalizeDoc(data);
+      } catch (err: any) {
+        console.warn('[PayoutRequestsDb] update error, falling back to memory store:', err.message);
+      }
+    }
+
     const idx = memoryStore.payoutRequests.findIndex(r => r.id === id || r._id === id);
     if (idx >= 0) {
       memoryStore.payoutRequests[idx] = {
@@ -922,6 +1420,34 @@ export const PayoutRequestsDb = {
   },
 
   async find(filter?: { creatorId?: string; status?: PayoutStatus | string }) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        let query = supabase.from('payout_requests').select('*');
+        if (filter?.creatorId) query = query.eq('creator_id', filter.creatorId);
+        if (filter?.status) query = query.eq('status', filter.status);
+        query = query.order('requested_at', { ascending: false });
+
+        const { data, error } = await query;
+        if (!error && data) {
+          const populated = await Promise.all(
+            data.map(async req => {
+              const method = await PayoutMethodsDb.findById(req.payout_method_id);
+              const creator = await CreatorsDb.findById(req.creator_id);
+              const user = creator ? await UsersDb.findById(creator.userId || creator.user_id) : null;
+              return {
+                ...req,
+                payoutMethodId: method ? normalizeDoc(method) : req.payout_method_id,
+                creatorId: creator ? { ...normalizeDoc(creator), userId: user ? normalizeDoc(user) : creator.userId } : req.creator_id
+              };
+            })
+          );
+          return normalizeDocs(populated);
+        }
+      } catch (err: any) {
+        console.warn('[PayoutRequestsDb] find error, falling back to memory store:', err.message);
+      }
+    }
+
     let list = [...memoryStore.payoutRequests];
     if (filter?.creatorId) {
       list = list.filter(r => r.creatorId === filter.creatorId || r.creator_id === filter.creatorId);
@@ -946,6 +1472,19 @@ export const PayoutRequestsDb = {
   },
 
   async count(status = PayoutStatus.PENDING) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { count, error } = await supabase
+          .from('payout_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', status);
+
+        if (!error && count !== null) return count;
+      } catch (err: any) {
+        console.warn('[PayoutRequestsDb] count error:', err.message);
+      }
+    }
+
     return memoryStore.payoutRequests.filter(r => r.status === status).length;
   }
 };
@@ -955,6 +1494,23 @@ export const PayoutRequestsDb = {
 // ==========================================================
 export const SystemSettingsDb = {
   async get() {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('system_settings').select('*').eq('key', 'DEFAULT').maybeSingle();
+        if (!error && data) {
+          return normalizeDoc({
+            ...data,
+            minPayoutAmount: Number(data.min_payout_amount),
+            earningRatePer1000Views: Number(data.earning_rate_per_1000_views),
+            maxCountedViewsPerVideo: Number(data.max_counted_views_per_video),
+            adFeedFrequency: Number(data.ad_feed_frequency)
+          });
+        }
+      } catch (err: any) {
+        console.warn('[SystemSettingsDb] get error, falling back to memory store:', err.message);
+      }
+    }
+
     let setting = memoryStore.systemSettings.find(s => s.key === 'DEFAULT');
     if (!setting) {
       setting = await this.upsert({
@@ -969,18 +1525,48 @@ export const SystemSettingsDb = {
   },
 
   async upsert(updates: Partial<any>) {
+    const minPayout = updates.minPayoutAmount !== undefined ? updates.minPayoutAmount : (updates.min_payout_amount !== undefined ? updates.min_payout_amount : BUSINESS_RULES.MIN_PAYOUT_AMOUNT);
+    const earningRate = updates.earningRatePer1000Views !== undefined ? updates.earningRatePer1000Views : (updates.earning_rate_per_1000_views !== undefined ? updates.earning_rate_per_1000_views : BUSINESS_RULES.DEFAULT_EARNING_RATE_PER_1000_VIEWS);
+    const maxCounted = updates.maxCountedViewsPerVideo !== undefined ? updates.maxCountedViewsPerVideo : (updates.max_counted_views_per_video !== undefined ? updates.max_counted_views_per_video : BUSINESS_RULES.MAX_COUNTED_VIEWS_PER_VIDEO);
+    const adFreq = updates.adFeedFrequency !== undefined ? updates.adFeedFrequency : (updates.ad_feed_frequency !== undefined ? updates.ad_feed_frequency : BUSINESS_RULES.DEFAULT_AD_FEED_FREQUENCY);
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('system_settings').upsert([{
+          key: 'DEFAULT',
+          min_payout_amount: minPayout,
+          earning_rate_per_1000_views: earningRate,
+          max_counted_views_per_video: maxCounted,
+          ad_feed_frequency: adFreq,
+          updated_at: new Date().toISOString()
+        }], { onConflict: 'key' }).select().single();
+
+        if (!error && data) {
+          return normalizeDoc({
+            ...data,
+            minPayoutAmount: Number(data.min_payout_amount),
+            earningRatePer1000Views: Number(data.earning_rate_per_1000_views),
+            maxCountedViewsPerVideo: Number(data.max_counted_views_per_video),
+            adFeedFrequency: Number(data.ad_feed_frequency)
+          });
+        }
+      } catch (err: any) {
+        console.warn('[SystemSettingsDb] upsert error, falling back to memory store:', err.message);
+      }
+    }
+
     let idx = memoryStore.systemSettings.findIndex(s => s.key === 'DEFAULT');
     const doc = {
       id: idx >= 0 ? memoryStore.systemSettings[idx].id : uuidv4(),
       key: 'DEFAULT',
-      minPayoutAmount: updates.minPayoutAmount !== undefined ? updates.minPayoutAmount : BUSINESS_RULES.MIN_PAYOUT_AMOUNT,
-      min_payout_amount: updates.minPayoutAmount !== undefined ? updates.minPayoutAmount : BUSINESS_RULES.MIN_PAYOUT_AMOUNT,
-      earningRatePer1000Views: updates.earningRatePer1000Views !== undefined ? updates.earningRatePer1000Views : BUSINESS_RULES.DEFAULT_EARNING_RATE_PER_1000_VIEWS,
-      earning_rate_per_1000_views: updates.earningRatePer1000Views !== undefined ? updates.earningRatePer1000Views : BUSINESS_RULES.DEFAULT_EARNING_RATE_PER_1000_VIEWS,
-      maxCountedViewsPerVideo: updates.maxCountedViewsPerVideo !== undefined ? updates.maxCountedViewsPerVideo : BUSINESS_RULES.MAX_COUNTED_VIEWS_PER_VIDEO,
-      max_counted_views_per_video: updates.maxCountedViewsPerVideo !== undefined ? updates.maxCountedViewsPerVideo : BUSINESS_RULES.MAX_COUNTED_VIEWS_PER_VIDEO,
-      adFeedFrequency: updates.adFeedFrequency !== undefined ? updates.adFeedFrequency : BUSINESS_RULES.DEFAULT_AD_FEED_FREQUENCY,
-      ad_feed_frequency: updates.adFeedFrequency !== undefined ? updates.adFeedFrequency : BUSINESS_RULES.DEFAULT_AD_FEED_FREQUENCY,
+      minPayoutAmount: minPayout,
+      min_payout_amount: minPayout,
+      earningRatePer1000Views: earningRate,
+      earning_rate_per_1000_views: earningRate,
+      maxCountedViewsPerVideo: maxCounted,
+      max_counted_views_per_video: maxCounted,
+      adFeedFrequency: adFreq,
+      ad_feed_frequency: adFreq,
       updated_at: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -1012,11 +1598,52 @@ export const ReportsDb = {
       createdAt: new Date().toISOString(),
       created_at: new Date().toISOString()
     };
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const isRegisteredUser = isUuid(report.reporterId) ? await UsersDb.findById(report.reporterId) : null;
+        const insertPayload: any = {
+          id,
+          content_id: report.contentId,
+          reason: report.reason,
+          status: report.status || 'PENDING'
+        };
+        if (isRegisteredUser) {
+          insertPayload.reporter_id = report.reporterId;
+        } else {
+          insertPayload.reporter_device_id = report.reporterId;
+        }
+
+        const { data, error } = await supabase
+          .from('reports')
+          .insert([insertPayload])
+          .select()
+          .single();
+
+        if (!error && data) return normalizeDoc({ ...doc, ...data });
+      } catch (err: any) {
+        console.warn('[ReportsDb] create error, falling back to memory store:', err.message);
+      }
+    }
+
     memoryStore.reports.push(doc);
     return normalizeDoc(doc);
   },
 
   async list() {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('reports')
+          .select('*, contents(*)')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) return normalizeDocs(data);
+      } catch (err: any) {
+        console.warn('[ReportsDb] list error, falling back to memory store:', err.message);
+      }
+    }
+
     return normalizeDocs([...memoryStore.reports].reverse());
   }
 };
@@ -1048,11 +1675,46 @@ export const AuditLogsDb = {
       metadata: log.metadata || null,
       timestamp: new Date().toISOString()
     };
+
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.from('audit_logs').insert([{
+          id: doc.id,
+          actor_id: doc.actor_id,
+          actor_email: doc.actor_email,
+          actor_role: doc.actor_role,
+          action: doc.action,
+          entity: doc.entity,
+          entity_id: doc.entity_id,
+          metadata: doc.metadata,
+          timestamp: doc.timestamp
+        }]).select().single();
+
+        if (!error && data) return normalizeDoc({ ...doc, ...data });
+      } catch (err: any) {
+        console.warn('[AuditLogsDb] create error, falling back to memory store:', err.message);
+      }
+    }
+
     memoryStore.auditLogs.push(doc);
     return normalizeDoc(doc);
   },
 
   async listRecent(limit = 100) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .order('timestamp', { ascending: false })
+          .limit(limit);
+
+        if (!error && data) return normalizeDocs(data);
+      } catch (err: any) {
+        console.warn('[AuditLogsDb] listRecent error, falling back to memory store:', err.message);
+      }
+    }
+
     const sorted = [...memoryStore.auditLogs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     return normalizeDocs(sorted.slice(0, limit));
   }

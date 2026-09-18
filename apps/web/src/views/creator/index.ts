@@ -7,5 +7,6 @@ export * from './CreatorPlaylistsTab';
 export * from './CreatorBrandingTab';
 export * from './CreatorBillingTab';
 export * from './CreatorAgreementTab';
+export * from './CreatorOnboardingGuide';
 export * from './CreatorLayout';
 export { CreatorLayout as CreatorView } from './CreatorLayout';

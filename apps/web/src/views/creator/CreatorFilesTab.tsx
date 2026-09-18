@@ -10,7 +10,15 @@ import {
   X,
   Play,
   MapPin,
-  Check
+  Check,
+  Calendar,
+  Layers,
+  ExternalLink,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  MessageCircle,
+  Copy
 } from 'lucide-react';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Pagination } from '../../components/Pagination';
@@ -31,41 +39,79 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
   fetchDashboard
 }) => {
   const [filesSearch, setFilesSearch] = useState('');
-  const [filesStatusFilter, setFilesStatusFilter] = useState<'ALL' | 'APPROVED' | 'PENDING_REVIEW'>('ALL');
+  const [filesStatusFilter, setFilesStatusFilter] = useState<'ALL' | 'APPROVED' | 'PENDING_REVIEW' | 'REJECTED' | 'VIDEO' | 'ARTICLE'>('ALL');
   const [selectedPreviewStory, setSelectedPreviewStory] = useState<any | null>(null);
   const [selectedEditStory, setSelectedEditStory] = useState<any | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [actionToastMsg, setActionToastMsg] = useState('');
   const [deletingStory, setDeletingStory] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 6;
+  const pageSize = 8;
 
   const filteredContents = contents.filter(c => {
     const matchQuery = !filesSearch ||
       c.title?.toLowerCase().includes(filesSearch.toLowerCase()) ||
+      c.location?.city?.toLowerCase().includes(filesSearch.toLowerCase()) ||
+      c.location?.area?.toLowerCase().includes(filesSearch.toLowerCase()) ||
       c.city?.toLowerCase().includes(filesSearch.toLowerCase()) ||
       c.state?.toLowerCase().includes(filesSearch.toLowerCase());
-    const matchStatus = filesStatusFilter === 'ALL' || c.moderationStatus === filesStatusFilter;
+
+    let matchStatus = true;
+    if (filesStatusFilter === 'APPROVED') matchStatus = c.moderationStatus === 'APPROVED';
+    else if (filesStatusFilter === 'PENDING_REVIEW') matchStatus = c.moderationStatus === 'PENDING_REVIEW';
+    else if (filesStatusFilter === 'REJECTED') matchStatus = c.moderationStatus === 'REJECTED';
+    else if (filesStatusFilter === 'VIDEO') matchStatus = c.type === 'VIDEO';
+    else if (filesStatusFilter === 'ARTICLE') matchStatus = c.type === 'ARTICLE';
+
     return matchQuery && matchStatus;
   });
 
   const paginatedContents = filteredContents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const formatCategoryLabel = (cat: any, fallbackCat?: any): string => {
+    const c = cat || fallbackCat;
+    if (!c) return 'Civic';
+    if (typeof c === 'object') return c.name || c.slug || 'Civic';
+    return String(c);
+  };
+
   const handleCopyStoryLink = (story: any) => {
-    const url = `https://nagrik.news/story/${story.id || story._id}`;
+    const storyId = story.id || story._id;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nagrik.news';
+    const url = `${origin}/news/${storyId}`;
     navigator.clipboard.writeText(url);
     setActionToastMsg('Story share link copied to clipboard!');
     setTimeout(() => setActionToastMsg(''), 3000);
   };
 
+  const handleShareWhatsApp = (story: any) => {
+    const storyId = story.id || story._id;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nagrik.news';
+    const url = `${origin}/news/${storyId}`;
+    const text = encodeURIComponent(`Check out this verified ground report on Nagrik:\n"${story.title}"\n${url}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  };
+
   const handleOpenEditStory = (story: any) => {
     setSelectedEditStory(story);
     setEditTitle(story.title || '');
-    setEditCategory(story.category || 'Civic Issues');
+    let catVal = 'civic-issues';
+    if (typeof story.category === 'object' && story.category !== null) {
+      catVal = story.category.slug || story.category.id || 'civic-issues';
+    } else if (typeof story.categoryId === 'object' && story.categoryId !== null) {
+      catVal = story.categoryId.slug || story.categoryId.id || 'civic-issues';
+    } else if (typeof story.category === 'string' && story.category) {
+      catVal = story.category;
+    } else if (typeof story.categoryId === 'string' && story.categoryId) {
+      catVal = story.categoryId;
+    }
+    setEditCategory(catVal);
+    setEditDescription(story.description || '');
   };
 
   const handleSaveEditStory = async (e: React.FormEvent) => {
@@ -81,7 +127,8 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
         },
         body: JSON.stringify({
           title: editTitle,
-          category: editCategory
+          category: editCategory,
+          description: editDescription
         })
       });
 
@@ -89,7 +136,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
       if (data.success) {
         setSelectedEditStory(null);
         fetchContents();
-        setActionToastMsg('Story headline updated successfully!');
+        setActionToastMsg('Story updated successfully!');
         setTimeout(() => setActionToastMsg(''), 3000);
       }
     } catch {
@@ -123,166 +170,229 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
-          <FileText className="w-5 h-5" />
-        </div>
-        <div>
-          <h2 className="text-lg font-black text-slate-900 dark:text-white">File Manager & Ground Reports</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Manage all your ground reports, review statuses, and copy public share links.</p>
+      
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200/80 dark:border-slate-800/80">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
+              CONTENT REPOSITORY
+            </span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
+            <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">
+              {contents.length} Total Reports
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold font-serif text-slate-900 dark:text-white">
+            Content Library
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Monitor editorial verification statuses, inspect view performance, and generate public share links.
+          </p>
         </div>
       </div>
 
       {/* Filters & Search Row */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-brand-500 shadow-xs transition"
-            placeholder="Search reports by title or city..."
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 shadow-2xs transition"
+            placeholder="Search stories by headline, ward, or city..."
             value={filesSearch}
-            onChange={e => setFilesSearch(e.target.value)}
+            onChange={e => {
+              setFilesSearch(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
 
-        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shadow-xs">
-          {(['ALL', 'APPROVED', 'PENDING_REVIEW'] as const).map(st => (
+        <div className="flex items-center gap-1 bg-stone-100 dark:bg-slate-800 p-1 rounded-xl border border-stone-200 dark:border-slate-700 text-xs shadow-2xs overflow-x-auto max-w-full">
+          {[
+            { id: 'ALL', label: 'All Reports' },
+            { id: 'APPROVED', label: 'Approved' },
+            { id: 'PENDING_REVIEW', label: 'In Review' },
+            { id: 'REJECTED', label: 'Rejected' },
+            { id: 'VIDEO', label: 'Videos' },
+            { id: 'ARTICLE', label: 'Articles' }
+          ].map(st => (
             <button
-              key={st}
-              onClick={() => setFilesStatusFilter(st)}
-              className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer text-[11px] ${
-                filesStatusFilter === st
-                  ? 'bg-brand-500 text-white shadow-xs'
+              key={st.id}
+              onClick={() => {
+                setFilesStatusFilter(st.id as any);
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer text-xs whitespace-nowrap ${
+                filesStatusFilter === st.id
+                  ? 'bg-brand-500 text-white shadow-2xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              {st === 'ALL' ? 'All Files' : st === 'APPROVED' ? 'Approved' : 'In Review'}
+              {st.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Reports Table */}
-      <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+      {/* Content Reports Table / Card Container */}
+      <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xs">
         {filteredContents.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-[#111827]">
-            No reports found matching your criteria.
+          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div className="font-bold text-slate-900 dark:text-white text-sm">No ground reports found</div>
+            <p className="max-w-sm mx-auto">
+              {filesSearch
+                ? `No stories matched "${filesSearch}". Try clearing your search query.`
+                : 'You have not submitted reports matching this filter.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 font-bold">
+              <thead className="bg-[#FAF8F5] dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-b border-stone-200/80 dark:border-slate-800 font-bold">
                 <tr>
-                  <th className="p-4 font-bold">Report / Video Title</th>
-                  <th className="p-4 font-bold">Location</th>
-                  <th className="p-4 font-bold">Views</th>
-                  <th className="p-4 font-bold">Earned</th>
-                  <th className="p-4 font-bold">Status</th>
+                  <th className="p-4 font-bold">Story Headline & Media</th>
+                  <th className="p-4 font-bold">Geofence Beat</th>
+                  <th className="p-4 font-bold">Verified Reads</th>
+                  <th className="p-4 font-bold">Accrued Yield</th>
+                  <th className="p-4 font-bold">Verification Status</th>
                   <th className="p-4 font-bold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-[#111827]">
-                {paginatedContents.map(item => (
-                  <tr key={item.id || item._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                          {item.thumbnailUrl ? (
-                            <img src={item.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <Video className="w-5 h-5 text-slate-400" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-bold text-slate-900 dark:text-white truncate max-w-sm">{item.title}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
-                            <span className="text-brand-600 dark:text-brand-400 font-bold">{item.category || 'Civic'}</span>
-                            <span>•</span>
-                            <span>{new Date(item.createdAt || Date.now()).toLocaleDateString()}</span>
+              <tbody className="divide-y divide-stone-200/60 dark:divide-slate-800/80 font-medium text-slate-700 dark:text-slate-300">
+                {paginatedContents.map(item => {
+                  const views = item.eligibleViews ?? item.eligible_views ?? item.views ?? 0;
+                  const accrued = views * 0.001;
+                  return (
+                    <tr key={item.id || item._id} className="hover:bg-stone-50/70 dark:hover:bg-slate-800/40 transition">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            onClick={() => setSelectedPreviewStory(item)}
+                            className="w-12 h-12 rounded-xl bg-slate-900 overflow-hidden shrink-0 border border-stone-200/80 dark:border-slate-700 flex items-center justify-center cursor-pointer relative group"
+                          >
+                            {item.thumbnailUrl ? (
+                              <img src={item.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
+                            ) : (
+                              <Video className="w-5 h-5 text-slate-400" />
+                            )}
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                              <Play className="w-4 h-4 text-white fill-white" />
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <div
+                              onClick={() => setSelectedPreviewStory(item)}
+                              className="font-bold text-slate-900 dark:text-white truncate max-w-xs sm:max-w-sm hover:text-brand-500 cursor-pointer"
+                            >
+                              {item.title}
+                            </div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
+                              <span className="text-brand-600 dark:text-brand-400 font-bold uppercase">{formatCategoryLabel(item.category, item.categoryId)}</span>
+                              <span>•</span>
+                              <span>{item.type === 'VIDEO' ? 'Video Byte' : 'Article'}</span>
+                              <span>•</span>
+                              <span>{new Date(item.createdAt || item.created_at || Date.now()).toLocaleDateString()}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                      {item.location?.city || item.city || 'Bihar'}, {item.location?.state || item.state || 'India'}
-                    </td>
-                    <td className="p-4 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                      {item.views?.toLocaleString() || 0}
-                    </td>
-                    <td className="p-4 font-mono font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">
-                      ${((item.views || 0) * 0.0015).toFixed(2)}
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide whitespace-nowrap shrink-0 ${
-                        item.moderationStatus === 'APPROVED'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60'
-                          : item.moderationStatus === 'REJECTED'
-                          ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60'
-                          : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                          item.moderationStatus === 'APPROVED' ? 'bg-emerald-500' :
-                          item.moderationStatus === 'REJECTED' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse'
-                        }`} />
-                        <span>{item.moderationStatus === 'APPROVED' ? 'Approved' : 'Pending Review'}</span>
-                      </span>
-                    </td>
-                    <td className="p-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => setSelectedPreviewStory(item)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-slate-200 dark:border-slate-700"
-                          title="Preview Report"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                      </td>
+                      <td className="p-4 text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-brand-500 shrink-0" />
+                          <span>{item.location?.area || item.area || 'Ward Beat'}, {item.location?.city || item.city || 'Patna'}</span>
+                        </span>
+                      </td>
+                      <td className="p-4 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                        {views.toLocaleString()}
+                      </td>
+                      <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        ${accrued.toFixed(2)} USD
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide whitespace-nowrap shrink-0 ${
+                          item.moderationStatus === 'APPROVED'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60'
+                            : item.moderationStatus === 'REJECTED'
+                            ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60'
+                            : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                            item.moderationStatus === 'APPROVED' ? 'bg-emerald-500' :
+                            item.moderationStatus === 'REJECTED' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse'
+                          }`} />
+                          <span>{item.moderationStatus === 'APPROVED' ? 'Approved & Live' : item.moderationStatus === 'REJECTED' ? 'Needs Revision' : 'In Review'}</span>
+                        </span>
+                      </td>
+                      <td className="p-4 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => setSelectedPreviewStory(item)}
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            title="Preview Story"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
 
-                        <button
-                          onClick={() => handleCopyStoryLink(item)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition cursor-pointer border border-slate-200 dark:border-slate-700"
-                          title="Copy Story Link"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                        </button>
+                          <button
+                            onClick={() => handleCopyStoryLink(item)}
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            title="Copy Public Link"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
 
-                        <button
-                          onClick={() => handleOpenEditStory(item)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-slate-200 dark:border-slate-700"
-                          title="Edit Headline"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
+                          <button
+                            onClick={() => handleShareWhatsApp(item)}
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            title="Share on WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                          </button>
 
-                        <button
-                          onClick={() => setDeletingStory(item)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 transition cursor-pointer border border-slate-200 dark:border-slate-700"
-                          title="Delete Report"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          <button
+                            onClick={() => handleOpenEditStory(item)}
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            title="Edit Report"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => setDeletingStory(item)}
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:border-rose-300 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            title="Delete Report"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
-            <div className="p-4 bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-slate-800">
-              <Pagination
-                currentPage={currentPage}
-                totalItems={filteredContents.length}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-              />
-            </div>
+            {filteredContents.length > pageSize && (
+              <div className="p-4 bg-white dark:bg-[#111827] border-t border-stone-200/90 dark:border-slate-800">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filteredContents.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Floating Action Toast Notification */}
+      {/* Floating Action Toast */}
       {actionToastMsg && (
-        <div className="fixed bottom-12 right-6 z-50 bg-slate-900 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-12 right-6 z-50 bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-200 border border-slate-700">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{actionToastMsg}</span>
         </div>
@@ -290,111 +400,143 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
       {/* Story Preview Modal */}
       {selectedPreviewStory && (
-        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-[#FAF9F5] border border-[#E3E0D4] rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="p-4 bg-[#FAF8F5] border-b border-[#E3E0D4] flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
-                <span className="w-2 h-2 rounded-full bg-[#E36138]" />
-                <span>Ground Report Preview</span>
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                <Eye className="w-4 h-4 text-brand-500" />
+                <span>Story Preview & Evidence</span>
               </div>
               <button
                 onClick={() => setSelectedPreviewStory(null)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-800 hover:bg-[#EFECE6] cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-stone-200 dark:hover:bg-slate-800"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="aspect-video rounded-2xl bg-stone-900 overflow-hidden relative border border-[#DBD7C9] flex items-center justify-center">
-                {selectedPreviewStory.thumbnailUrl ? (
-                  <img src={selectedPreviewStory.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <Video className="w-12 h-12 text-stone-600" />
-                )}
-                <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-[#E36138] text-white flex items-center justify-center shadow-lg cursor-pointer transform hover:scale-110 transition">
-                    <Play className="w-5 h-5 ml-0.5" />
-                  </div>
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Media Preview */}
+              {selectedPreviewStory.type === 'VIDEO' ? (
+                <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                  <video
+                    src={selectedPreviewStory.mediaUrl}
+                    controls
+                    poster={selectedPreviewStory.thumbnailUrl}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-              </div>
+              ) : selectedPreviewStory.mediaUrl ? (
+                <div className="relative rounded-2xl overflow-hidden bg-black max-h-72 flex items-center justify-center">
+                  <img
+                    src={selectedPreviewStory.mediaUrl}
+                    alt={selectedPreviewStory.title}
+                    className="w-full h-full object-cover max-h-72"
+                  />
+                </div>
+              ) : null}
 
-              <div className="space-y-1">
+              {/* Title & Metadata */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-[#C2410C] bg-[#FFF7ED] border border-[#FDBA74]/60 px-2 py-0.5 rounded-full font-mono">
-                    {selectedPreviewStory.category}
+                  <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20 font-mono">
+                    {formatCategoryLabel(selectedPreviewStory.category, selectedPreviewStory.categoryId)}
                   </span>
-                  <span className="text-xs text-stone-500 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-stone-400" />
-                    <span>{selectedPreviewStory.location?.area ? `${selectedPreviewStory.location.area}, ` : ''}{selectedPreviewStory.location?.city || selectedPreviewStory.city || 'Bihar'}</span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {new Date(selectedPreviewStory.createdAt || selectedPreviewStory.created_at || Date.now()).toLocaleDateString()}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-stone-900 pt-1">{selectedPreviewStory.title}</h3>
-                <p className="text-xs text-stone-600 leading-relaxed pt-1">
-                  {selectedPreviewStory.description || 'Verified hyperlocal ground reporting recorded directly from location.'}
+                <h3 className="text-base font-serif font-black text-slate-900 dark:text-white leading-snug">
+                  {selectedPreviewStory.title}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">
+                  {selectedPreviewStory.description}
                 </p>
               </div>
 
-              <div className="p-3 bg-[#FAF8F5] border border-[#E3E0D4] rounded-2xl flex items-center justify-between text-xs font-mono">
-                <span className="text-stone-600">Verified Views: <strong className="text-stone-900">{selectedPreviewStory.views?.toLocaleString() || 0}</strong></span>
-                <span className="text-[#C2410C] font-bold">Earned: ${((selectedPreviewStory.views || 0) * 0.0015).toFixed(2)}</span>
+              {/* Geofence & Yield Strip */}
+              <div className="p-3.5 bg-[#FAF8F5] dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+                <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                  <MapPin className="w-3.5 h-3.5 text-brand-500" />
+                  <span>{selectedPreviewStory.location?.area || 'Local Beat'}, {selectedPreviewStory.location?.city || 'Patna'}</span>
+                </span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                  {(selectedPreviewStory.eligibleViews ?? selectedPreviewStory.eligible_views ?? 0).toLocaleString()} Verified Reads
+                </span>
               </div>
+            </div>
+
+            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between">
+              <button
+                onClick={() => handleCopyStoryLink(selectedPreviewStory)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-stone-200 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Copy Share Link</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedPreviewStory(null)}
+                className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-2xs"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Story Quick Edit Modal */}
+      {/* Story Edit Modal */}
       {selectedEditStory && (
-        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-[#FAF9F5] border border-[#E3E0D4] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-[#E3E0D4] pb-3">
-              <h3 className="font-black text-stone-900 text-base">Edit Ground Report</h3>
-              <button onClick={() => setSelectedEditStory(null)} className="p-1 rounded-lg text-stone-400 hover:text-stone-700 cursor-pointer">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+                <Edit3 className="w-4 h-4 text-brand-500" />
+                <span>Edit Ground Report</span>
+              </div>
+              <button
+                onClick={() => setSelectedEditStory(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEditStory} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-stone-700">Headline / Title</label>
+            <form onSubmit={handleSaveEditStory} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-900 dark:text-white">Story Headline</label>
                 <input
                   type="text"
-                  className="w-full px-3.5 py-2.5 bg-[#EFECE6] border border-[#DBD7C9] rounded-xl text-xs text-stone-900 focus:bg-[#FAF9F5] focus:outline-none focus:border-[#E36138]"
                   value={editTitle}
                   onChange={e => setEditTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 font-bold"
                   required
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-stone-700">Category</label>
-                <select
-                  className="w-full px-3.5 py-2.5 bg-[#EFECE6] border border-[#DBD7C9] rounded-xl text-xs text-stone-900 focus:bg-[#FAF9F5] focus:outline-none focus:border-[#E36138]"
-                  value={editCategory}
-                  onChange={e => setEditCategory(e.target.value)}
-                >
-                  <option value="Civic Issues">Civic Issues</option>
-                  <option value="Crime & Safety">Crime & Safety</option>
-                  <option value="Infrastructure">Infrastructure</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Agriculture">Agriculture</option>
-                  <option value="Politics">Politics</option>
-                  <option value="Education">Education</option>
-                </select>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-900 dark:text-white">Ground Report Narrative</label>
+                <textarea
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  rows={5}
+                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 font-medium leading-relaxed resize-none"
+                  required
+                />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedEditStory(null)}
-                  className="px-4 py-2 bg-[#EFECE6] text-stone-700 rounded-xl text-xs font-bold hover:bg-[#E5E1D4] cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#E36138] hover:bg-[#D24E25] text-white rounded-xl text-xs font-bold cursor-pointer shadow-2xs"
+                  className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow-xs"
                 >
                   Save Changes
                 </button>
@@ -403,18 +545,21 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
           </div>
         </div>
       )}
-      {/* SweetAlert Style Custom Confirm Delete Modal */}
-      <ConfirmModal
-        isOpen={Boolean(deletingStory)}
-        title="Delete Ground Report"
-        message={`Are you sure you want to delete the report "${deletingStory?.title}" from Nagrik? This action cannot be undone.`}
-        confirmText="Yes, Delete Report"
-        cancelText="Keep Report"
-        variant="danger"
-        isLoading={isDeleting}
-        onConfirm={handleConfirmDeleteStory}
-        onClose={() => setDeletingStory(null)}
-      />
+
+      {/* Delete Confirmation Modal */}
+      {deletingStory && (
+        <ConfirmModal
+          isOpen={!!deletingStory}
+          title="Delete Ground Report"
+          message={`Are you sure you want to permanently delete "${deletingStory.title}"? This action cannot be undone and accrued reads will be removed.`}
+          confirmText="Delete Report"
+          cancelText="Keep Report"
+          onConfirm={handleConfirmDeleteStory}
+          onClose={() => setDeletingStory(null)}
+          variant="danger"
+          isLoading={isDeleting}
+        />
+      )}
     </div>
   );
 };

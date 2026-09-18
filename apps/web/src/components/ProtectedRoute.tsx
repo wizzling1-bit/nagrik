@@ -49,8 +49,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             </Link>
 
             <button
-              onClick={logout}
-              className="w-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition border border-red-200"
+              onClick={() => {
+                logout();
+                window.location.href = '/signin';
+              }}
+              className="w-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition border border-red-200 cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>दूसरे खाते से लॉगिन करें (Switch Account)</span>

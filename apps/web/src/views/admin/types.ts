@@ -1,12 +1,21 @@
 export type AdminTab =
   | 'dashboard'
   | 'moderation'
+  | 'reports'
   | 'creators'
+  | 'publishers'
+  | 'communities'
+  | 'analytics'
   | 'payouts'
-  | 'ads'
+  | 'verification'
+  | 'notifications'
+  | 'messages'
   | 'settings'
+  | 'users'
+  | 'geo'
   | 'categories'
   | 'cms'
+  | 'features'
   | 'audit';
 
 export interface AdminMetrics {
@@ -52,7 +61,7 @@ export interface AdminContextType {
   categories: any[];
   auditLogs: any[];
   handleModerate: (contentId: string, status: 'APPROVED' | 'REJECTED' | 'FLAGGED', reason?: string) => Promise<void>;
-  handleProcessPayout: (requestId: string, status: 'PAID' | 'REJECTED', txRef?: string) => Promise<void>;
+  handleProcessPayout: (requestId: string, status: 'PAID' | 'REJECTED', txRef?: string, adminNote?: string) => Promise<void>;
   timeframe: '24h' | '7d' | '30d' | 'all';
   setTimeframe: (tf: '24h' | '7d' | '30d' | 'all') => void;
   API_BASE: string;

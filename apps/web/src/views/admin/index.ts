@@ -1,5 +1,4 @@
 export * from './types';
-export * from './AdminAuth';
 export * from './AdminDashboardTab';
 export * from './AdminModerationTab';
 export * from './AdminCreatorsTab';

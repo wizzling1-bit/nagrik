@@ -97,14 +97,34 @@ export class AdminController {
   static async reviewContent(req: AuthRequest, res: Response) {
     try {
       if (!req.user) return res.status(401).json({ success: false, error: 'Auth required' });
-      const { contentId, status, rejectionReason } = req.body;
+      const { contentId, status, rejectionReason, reason } = req.body;
 
       const updated = await ModerationService.reviewContent(
         req.user.id,
         req.user.email,
         contentId,
         status as ModerationStatus,
-        rejectionReason
+        rejectionReason || reason
+      );
+
+      return res.json({ success: true, content: updated, message: `Content status updated to ${status}` });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+  }
+
+  static async reviewContentById(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ success: false, error: 'Auth required' });
+      const contentId = req.params.id;
+      const { status, rejectionReason, reason } = req.body;
+
+      const updated = await ModerationService.reviewContent(
+        req.user.id,
+        req.user.email,
+        contentId,
+        status as ModerationStatus,
+        rejectionReason || reason
       );
 
       return res.json({ success: true, content: updated, message: `Content status updated to ${status}` });
@@ -132,14 +152,35 @@ export class AdminController {
   static async processPayout(req: AuthRequest, res: Response) {
     try {
       if (!req.user) return res.status(401).json({ success: false, error: 'Auth required' });
-      const { requestId, status, transactionReference, adminNote } = req.body;
+      const { requestId, status, transactionReference, txRef, adminNote } = req.body;
 
       const payout = await PayoutService.processPayoutRequest(
         req.user.id,
         req.user.email,
         requestId,
         status as PayoutStatus,
-        transactionReference,
+        transactionReference || txRef,
+        adminNote
+      );
+
+      return res.json({ success: true, payout, message: `Payout request updated to ${status}` });
+    } catch (error: any) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+  }
+
+  static async processPayoutById(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ success: false, error: 'Auth required' });
+      const requestId = req.params.id;
+      const { status, transactionReference, txRef, adminNote } = req.body;
+
+      const payout = await PayoutService.processPayoutRequest(
+        req.user.id,
+        req.user.email,
+        requestId,
+        status as PayoutStatus,
+        transactionReference || txRef,
         adminNote
       );
 

@@ -32,7 +32,7 @@ export const seedDatabase = async () => {
   try {
     await SystemSettingsDb.upsert({
       minPayoutAmount: 10.00,
-      earningRatePer1000Views: 1.50,
+      earningRatePer1000Views: 1.00,
       maxCountedViewsPerVideo: 3,
       adFeedFrequency: 4
     });
@@ -58,18 +58,21 @@ export const seedDatabase = async () => {
 
   // 4. Default Admin User
   try {
-    const adminEmail = 'admin@naagrik.news';
-    const existingAdmin = await UsersDb.findByEmail(adminEmail);
-    if (!existingAdmin) {
-      const passwordHash = await bcrypt.hash('AdminPass123!', 10);
-      await UsersDb.create({
-        name: 'Chief Editorial Admin',
-        email: adminEmail,
-        passwordHash,
-        role: UserRole.ADMIN,
-        location: defaultLocations[0]
-      });
-      console.log('[Seeder] Default Admin seeded: admin@naagrik.news / AdminPass123!');
+    const adminEmails = ['admin@naagrik.news', 'admin@nagrik.news'];
+    const passwordHash = await bcrypt.hash('AdminPass123!', 10);
+
+    for (const email of adminEmails) {
+      const existing = await UsersDb.findByEmail(email);
+      if (!existing) {
+        await UsersDb.create({
+          name: 'Chief Editorial Admin',
+          email,
+          passwordHash,
+          role: UserRole.ADMIN,
+          location: defaultLocations[0]
+        });
+        console.log(`[Seeder] Default Admin seeded: ${email} / AdminPass123!`);
+      }
     }
   } catch (err: any) {
     console.warn('[Seeder] Admin seeding error:', err.message);
@@ -77,40 +80,48 @@ export const seedDatabase = async () => {
 
   // 5. Default Creator Account & Sample Content
   try {
-    const creatorEmail = 'creator1@naagrik.news';
-    let creatorUser = await UsersDb.findByEmail(creatorEmail);
-    if (!creatorUser) {
-      const passwordHash = await bcrypt.hash('CreatorPass123!', 10);
-      creatorUser = await UsersDb.create({
-        name: 'राहुल शर्मा (वरिष्ठ स्ट्रिंगर)',
-        email: creatorEmail,
-        passwordHash,
-        role: UserRole.CREATOR,
-        location: defaultLocations[0]
-      });
-    }
+    const creatorEmails = ['creator1@naagrik.news', 'creator1@nagrik.news'];
+    const passwordHash = await bcrypt.hash('CreatorPass123!', 10);
+    let primaryCreatorProfile: any = null;
 
-    let creatorProfile = await CreatorsDb.findByUserId(creatorUser.id);
-    if (!creatorProfile) {
-      creatorProfile = await CreatorsDb.create({
-        userId: creatorUser.id,
-        bio: 'वार्ड 14 व कंकड़बाग क्षेत्र से लाइव नागरिक रिपोर्टिंग।',
-        availableBalance: 42.50,
-        lifetimeEarnings: 215.00,
-        totalEligibleViews: 143000
-      });
-      console.log('[Seeder] Default Creator seeded: creator1@naagrik.news / CreatorPass123!');
+    for (const email of creatorEmails) {
+      let creatorUser = await UsersDb.findByEmail(email);
+      if (!creatorUser) {
+        creatorUser = await UsersDb.create({
+          name: 'राहुल शर्मा (वरिष्ठ स्ट्रिंगर)',
+          email,
+          passwordHash,
+          role: UserRole.CREATOR,
+          location: defaultLocations[0]
+        });
+      }
+
+      let creatorProfile = await CreatorsDb.findByUserId(creatorUser.id);
+      if (!creatorProfile) {
+        creatorProfile = await CreatorsDb.create({
+          userId: creatorUser.id,
+          bio: 'वार्ड 14 व कंकड़बाग क्षेत्र से लाइव नागरिक रिपोर्टिंग।',
+          availableBalance: 42.50,
+          lifetimeEarnings: 215.00,
+          totalEligibleViews: 143000
+        });
+        console.log(`[Seeder] Default Creator seeded: ${email} / CreatorPass123!`);
+      }
+
+      if (!primaryCreatorProfile) {
+        primaryCreatorProfile = creatorProfile;
+      }
     }
 
     // Seed sample approved news if feed is empty
     const existingCount = await ContentsDb.count({ moderationStatus: ModerationStatus.APPROVED });
-    if (existingCount === 0) {
+    if (existingCount === 0 && primaryCreatorProfile) {
       const civicCat = await CategoriesDb.findBySlug('civic-issues') || await CategoriesDb.findBySlug('local');
       const infraCat = await CategoriesDb.findBySlug('infrastructure') || civicCat;
 
       const sampleArticles = [
         {
-          creatorId: creatorProfile.id,
+          creatorId: primaryCreatorProfile.id,
           type: ContentType.ARTICLE,
           title: 'पटना कंकड़बाग में नए ड्रेनेज पंपिंग स्टेशन का सफल परीक्षण, 50,000 घरों को जलजमाव से मिलेगी राहत',
           description: 'कंकड़बाग वार्ड 14 में पिछले दो वर्षों से लंबित ड्रेनेज पम्पिंग स्टेशन का आज नगर निगम द्वारा सफल ट्रायल रन पूरा किया गया। बारिश के दिनों में जलजमाव की समस्या से जूझ रहे स्थानीय निवासियों ने राहत की सांस ली है। ग्राउंड स्ट्रिंगर राहुल शर्मा की लाइव रिपोर्ट।\n\nस्थानीय पार्षद और नगर आयुक्त ने मौके पर पहुंचकर 250 हॉर्सपावर के तीन सबमर्सिबल पंपों के फ्लो रेट का परीक्षण किया। निगम अधिकारियों ने दावा किया है कि इस वर्ष मानसून में मुख्य सड़कों पर 30 मिनट से अधिक पानी नहीं टिकेगा।',
@@ -122,7 +133,7 @@ export const seedDatabase = async () => {
           publicationStatus: 'PUBLISHED' as const
         },
         {
-          creatorId: creatorProfile.id,
+          creatorId: primaryCreatorProfile.id,
           type: ContentType.VIDEO,
           title: 'वाराणसी गोदौलिया चौराहे पर स्मार्ट ट्रैफिक सिग्नल और पैदल पथ का जीर्णोद्धार पूरा',
           description: 'वाराणसी के सबसे व्यस्त गोदौलिया-दशाश्वमेध मार्ग पर नए स्मार्ट ट्रैफिक सिस्टम और हेरिटेज वॉकवे का कार्य संपन्न हो गया है। ग्राउंड कैमरे से कैद की गई विशेष वीडियो बाइट में देखें कैसे अब पैदल यात्रियों को मिलेगी सुगम आवाजाही।\n\nपर्यटन और स्थानीय व्यापार को बढ़ावा देने के लिए चौराहे पर चौबीसों घंटे निगरानी वाले एआई कैमरे भी लगाए गए हैं।',
@@ -134,7 +145,7 @@ export const seedDatabase = async () => {
           publicationStatus: 'PUBLISHED' as const
         },
         {
-          creatorId: creatorProfile.id,
+          creatorId: primaryCreatorProfile.id,
           type: ContentType.ARTICLE,
           title: 'बेंगलुरु इंदिरानगर में नागरिक समूह ने शुरू किया 5km साइकिल ट्रैक कॉरिडोर अभियान',
           description: 'स्थानीय निवासियों और स्कूल छात्रों ने सुरक्षित साइकिल चालन के लिए अलग लेन की मांग को लेकर शांतिपूर्ण जागरूकता मार्च निकाला। 1,200 से अधिक नागरिकों ने हस्ताक्षरित ज्ञापन बीबीएमपी आयुक्त को सौंपा।',

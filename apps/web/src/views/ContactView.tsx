@@ -10,7 +10,6 @@ import {
   MessageSquare,
   CheckCircle2,
   Clock,
-  Sparkles,
   ArrowRight,
   AlertCircle,
   HelpCircle,
@@ -90,14 +89,14 @@ export const ContactView: React.FC = () => {
           
           {/* Left Column: Direct Channels & Support Details */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm text-left">
+            <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm text-left">
               <h3 className="text-xl font-bold font-serif text-slate-950 dark:text-white">
                 {language === 'hi' ? 'सीधे संपर्क माध्यम' : 'Direct Support Channels'}
               </h3>
               
               <div className="space-y-4 text-xs">
                 {/* Email Support */}
-                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-stone-50 dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800">
+                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-stone-100/70 dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800">
                   <div className="w-10 h-10 rounded-xl bg-[#DE5227] text-white flex items-center justify-center shrink-0 shadow-sm">
                     <Mail className="w-4 h-4" />
                   </div>
@@ -138,7 +137,7 @@ export const ContactView: React.FC = () => {
                 </div>
 
                 {/* Regional Operations Desk */}
-                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-stone-50 dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800">
+                <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-stone-100/70 dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800">
                   <div className="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-sm">
                     <MapPin className="w-4 h-4 text-orange-400" />
                   </div>
@@ -170,7 +169,7 @@ export const ContactView: React.FC = () => {
             <div className="bg-[#0B0F17] text-white border border-slate-800 rounded-3xl p-6 space-y-3 text-left relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#DE5227]/10 rounded-full blur-2xl pointer-events-none" />
               <div className="flex items-center gap-2 text-orange-400 font-mono font-bold text-xs uppercase tracking-wider relative z-10">
-                <Sparkles className="w-3.5 h-3.5" />
+                <HelpCircle className="w-3.5 h-3.5" />
                 <span>{language === 'hi' ? 'त्वरित प्रकाशक सहायता' : 'Need Instant Help?'}</span>
               </div>
               <h4 className="text-base font-bold font-serif text-white relative z-10">
@@ -193,7 +192,7 @@ export const ContactView: React.FC = () => {
 
           {/* Right Column: Contact Inquiry Form */}
           <div className="lg:col-span-7">
-            <div className="bg-white dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm space-y-6">
+            <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm space-y-6">
               {submittedTicket ? (
                 /* Success Confirmation State */
                 <div className="text-center py-10 space-y-5 animate-in fade-in zoom-in-95 duration-200">

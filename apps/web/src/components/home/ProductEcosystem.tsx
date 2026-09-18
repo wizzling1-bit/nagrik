@@ -10,11 +10,12 @@ import {
   ArrowDown,
   ShieldCheck,
   MapPin,
-  Sparkles,
   Radio,
   FileCheck,
   CheckCircle2,
-  DollarSign
+  DollarSign,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -30,127 +31,163 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
       
       {/* Section Header */}
       <div className="max-w-3xl space-y-3 sm:space-y-4 mb-12 sm:mb-16 lg:mb-20">
-        <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-[0.2em] uppercase text-slate-500 dark:text-slate-400">
-          <span className="text-slate-400 font-bold text-base leading-none">—</span>
-          <span>{language === 'hi' ? 'नागरिक नेटवर्क इकोसिस्टम' : 'THE NAGRIK CIVIC NETWORK'}</span>
+        <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-content-secondary">
+          <span className="text-[#DE5227] font-bold text-base leading-none">—</span>
+          <span>{language === 'hi' ? 'नागरिक नेटवर्क इकोसिस्टम' : 'The Nagrik Civic Network'}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight text-slate-950 dark:text-white leading-[1.08]">
           {language === 'hi'
             ? 'एक एकीकृत ढांचा। दो विशिष्ट अनुभव।'
             : 'One connected civic network. Two purposeful tools.'}
         </h2>
-        <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+        <p className="text-base sm:text-lg text-content-secondary leading-relaxed font-normal">
           {language === 'hi'
             ? 'नागरिक ग्राउंड रिपोर्टर्स को उनके पड़ोस के नागरिकों से सीधे जोड़ता है। कोई बिचौलिया नहीं, कोई राष्ट्रीय शोर नहीं।'
-            : 'How ground reporting travels from the street to the newsroom desk and directly into neighborhood hands within a 5km radius.'}
+            : 'How a street report reaches your neighborhood — verified and published within 5km.'}
         </p>
       </div>
 
       {/* ── INTERCONNECTED ARCHITECTURAL FLOW (Phone → Studio → Audience) ── */}
-      <div className="rounded-3xl bg-[#101726] border border-slate-800 p-6 sm:p-10 lg:p-12 text-white shadow-2xl relative overflow-hidden mb-12 sm:mb-16">
+      <div className="rounded-3xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 p-6 sm:p-8 lg:p-10 text-slate-900 dark:text-white shadow-xl dark:shadow-2xl relative overflow-hidden mb-12 sm:mb-16 transition-all duration-200">
         
         {/* Subtle Ambient Radial Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#DE5227]/5 dark:bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-center relative z-10">
+        {/* Top Workflow Header Strip */}
+        <div className="hidden sm:flex items-center justify-between pb-5 mb-6 border-b border-stone-200/80 dark:border-slate-800/80 text-xs font-mono relative z-10">
+          <div className="flex items-center gap-2 text-content-secondary">
+            <span className="w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" />
+            <span className="font-bold text-slate-900 dark:text-slate-200 tracking-wide uppercase">
+              {language === 'hi' ? 'एंड-टू-एंड हाइपरलोकल सत्यापन पाइपलाइन' : 'End-to-End Hyperlocal Verification Pipeline'}
+            </span>
+          </div>
+          <span className="font-script text-blue-600 dark:text-blue-400 text-xl font-bold -rotate-2 select-none pointer-events-none animate-scribble-float-1">
+            ~ connecting 4,000+ Indian wards 🇮🇳
+          </span>
+        </div>
+
+        {/* Flow Pipeline: Horizontal Row on Desktop, Vertical Stack on Mobile */}
+        <div className="flex flex-col lg:flex-row items-stretch justify-between gap-4 lg:gap-0 relative z-10">
           
           {/* NODE 1: ON-THE-SCENE REPORTER */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#162032] border border-slate-700/70 space-y-3 relative group hover:border-slate-500 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center">
-                <Smartphone className="w-5 h-5" />
+          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-surface-elevated border border-stone-200/90 dark:border-slate-700/70 space-y-4 relative group hover:border-stone-300 dark:hover:border-slate-500 transition-all duration-200 flex flex-col justify-between shadow-2xs">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                  STAGE 01 • SCENE
+                </span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-slate-800 text-slate-300">
-                STAGE 01 • SCENE
-              </span>
+              <h3 className="text-lg sm:text-xl font-bold font-serif text-slate-950 dark:text-white">
+                Mobile Reporting Companion
+              </h3>
+              <p className="text-xs text-content-secondary leading-relaxed font-normal">
+                Eyewitness recording on the scene. Automatic 5km ward-level GPS coordinate stamping.
+              </p>
             </div>
-            <h3 className="text-lg font-bold font-serif text-white">
-              Mobile Reporting Companion
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Eyewitness recording on the scene. Automatic 5km ward-level GPS coordinate stamping.
-            </p>
-            <div className="pt-1 flex flex-wrap gap-1.5 text-[10px] font-mono text-slate-400">
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">1080p RAW</span>
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">GPS Timestamp</span>
+            <div className="pt-2 flex flex-wrap gap-1.5 text-xs font-mono text-content-secondary">
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">1080p RAW Capture</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">GPS Timestamp</span>
             </div>
           </div>
 
-          {/* MOBILE DOWN CONNECTOR 1 -> 2 (Shown only on mobile/tablet) */}
-          <div className="flex lg:hidden flex-col items-center justify-center py-1 text-slate-400">
-            <span className="text-[10px] font-mono tracking-widest uppercase mb-1">Auto-Upload</span>
-            <div className="w-0.5 h-6 bg-gradient-to-b from-slate-600 to-[#DE5227] relative">
+          {/* CONNECTOR 1 -> 2 */}
+          {/* Desktop Horizontal Connector */}
+          <div className="hidden lg:flex flex-col items-center justify-center px-4 w-36 shrink-0 text-content-secondary space-y-2">
+            <span className="text-xs font-mono tracking-widest text-[#DE5227] font-bold uppercase">
+              Auto-Upload
+            </span>
+            <div className="w-full h-0.5 bg-gradient-to-r from-stone-300 dark:from-slate-600 via-[#DE5227] to-[#DE5227] relative">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-[#DE5227] rotate-45" />
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#DE5227] animate-ping" />
+            </div>
+            <span className="text-xs font-mono text-content-secondary text-center leading-tight">
+              Transcode & Dedupe
+            </span>
+          </div>
+
+          {/* Mobile Vertical Connector */}
+          <div className="flex lg:hidden flex-col items-center justify-center py-2 text-content-secondary">
+            <span className="text-xs font-mono tracking-widest uppercase mb-1 text-[#DE5227] font-bold">
+              Auto-Upload
+            </span>
+            <div className="w-0.5 h-7 bg-gradient-to-b from-slate-400 dark:from-slate-600 to-[#DE5227] relative">
               <ArrowDown className="w-3.5 h-3.5 text-[#DE5227] absolute -bottom-3 -left-1.5" />
             </div>
           </div>
 
-          {/* DESKTOP ARROW 1 -> 2 (Desktop only indicator) */}
-          <div className="hidden lg:flex flex-col items-center justify-center text-slate-500 space-y-1">
-            <span className="text-[10px] font-mono tracking-widest text-[#DE5227] uppercase">Auto-Upload</span>
-            <div className="w-full h-0.5 bg-gradient-to-r from-slate-600 to-[#DE5227] relative">
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-[#DE5227] rotate-45" />
-            </div>
-            <span className="text-[9px] font-mono text-slate-400">Transcode & Deduplicate</span>
-          </div>
-
-          {/* NODE 2: CREATOR STUDIO CONSOLE */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#162032] border border-slate-700/70 space-y-3 relative group hover:border-[#DE5227]/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-[#DE5227]/15 text-[#DE5227] flex items-center justify-center">
-                <Monitor className="w-5 h-5" />
+          {/* NODE 2: CREATOR STUDIO CONSOLE (FEATURED) */}
+          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-surface-elevated border-2 border-[#DE5227]/70 shadow-[0_4px_24px_rgba(222,82,39,0.12)] space-y-4 relative group hover:border-[#DE5227] transition-all duration-200 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-[#DE5227]/10 text-[#DE5227] flex items-center justify-center">
+                  <Monitor className="w-5 h-5" />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase bg-[#DE5227]/10 text-[#DE5227] border border-[#DE5227]/30">
+                  STAGE 02 • DESK
+                </span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-[#DE5227]/20 text-[#DE5227] border border-[#DE5227]/30">
-                STAGE 02 • DESK
-              </span>
+              <h3 className="text-lg sm:text-xl font-bold font-serif text-slate-950 dark:text-white">
+                Nagrik Creator Studio
+              </h3>
+              <p className="text-xs text-content-secondary leading-relaxed font-normal">
+                Curate reports, inspect live audience read analytics, and initiate instant UPI withdrawals.
+              </p>
             </div>
-            <h3 className="text-lg font-bold font-serif text-white">
-              Nagrik Creator Studio
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Curate reports, inspect live audience read analytics, and initiate instant UPI withdrawals.
-            </p>
-            <div className="pt-1 flex flex-wrap gap-1.5 text-[10px] font-mono text-slate-400">
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">$1.50 CPM</span>
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">UPI Disbursals</span>
+            <div className="pt-2 flex flex-wrap gap-1.5 text-xs font-mono text-content-secondary">
+              <span className="px-2.5 py-0.5 rounded-lg bg-orange-50 dark:bg-slate-900 border border-orange-200 dark:border-slate-800 text-[#DE5227] font-bold">₹86 / $1.00 CPM</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">Direct UPI Disbursals</span>
             </div>
           </div>
 
-          {/* MOBILE DOWN CONNECTOR 2 -> 3 (Shown only on mobile/tablet) */}
-          <div className="flex lg:hidden flex-col items-center justify-center py-1 text-slate-400">
-            <span className="text-[10px] font-mono tracking-widest uppercase mb-1">Broadcast</span>
-            <div className="w-0.5 h-6 bg-gradient-to-b from-[#DE5227] to-slate-600 relative">
-              <ArrowDown className="w-3.5 h-3.5 text-slate-400 absolute -bottom-3 -left-1.5" />
+          {/* CONNECTOR 2 -> 3 */}
+          {/* Desktop Horizontal Connector */}
+          <div className="hidden lg:flex flex-col items-center justify-center px-4 w-36 shrink-0 text-content-secondary space-y-2">
+            <span className="text-xs font-mono tracking-widest text-emerald-600 dark:text-emerald-400 font-bold uppercase">
+              Broadcast
+            </span>
+            <div className="w-full h-0.5 bg-gradient-to-r from-[#DE5227] via-emerald-500 to-emerald-500 relative">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-emerald-500 rotate-45" />
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
             </div>
+            <span className="text-xs font-mono text-content-secondary text-center leading-tight">
+              Within 5km Radius
+            </span>
           </div>
 
-          {/* DESKTOP ARROW 2 -> 3 (Desktop only indicator) */}
-          <div className="hidden lg:flex flex-col items-center justify-center text-slate-500 space-y-1">
-            <span className="text-[10px] font-mono tracking-widest text-slate-300 uppercase">Broadcast</span>
-            <div className="w-full h-0.5 bg-gradient-to-r from-[#DE5227] to-slate-600 relative">
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-slate-400 rotate-45" />
+          {/* Mobile Vertical Connector */}
+          <div className="flex lg:hidden flex-col items-center justify-center py-2 text-content-secondary">
+            <span className="text-xs font-mono tracking-widest uppercase mb-1 text-emerald-600 dark:text-emerald-400 font-bold">
+              Broadcast
+            </span>
+            <div className="w-0.5 h-7 bg-gradient-to-b from-[#DE5227] to-emerald-500 relative">
+              <ArrowDown className="w-3.5 h-3.5 text-emerald-500 absolute -bottom-3 -left-1.5" />
             </div>
-            <span className="text-[9px] font-mono text-slate-400">Within 5km Radius</span>
           </div>
 
           {/* NODE 3: LOCAL CITIZEN AUDIENCE */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#162032] border border-slate-700/70 space-y-3 relative group hover:border-slate-500 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center">
-                <Users className="w-5 h-5" />
+          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-surface-elevated border border-stone-200/90 dark:border-slate-700/70 space-y-4 relative group hover:border-stone-300 dark:hover:border-slate-500 transition-all duration-200 flex flex-col justify-between shadow-2xs">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold">
+                  <Users className="w-5 h-5" />
+                </div>
+                <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                  STAGE 03 • AUDIENCE
+                </span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-slate-800 text-slate-300">
-                STAGE 03 • AUDIENCE
-              </span>
+              <h3 className="text-lg sm:text-xl font-bold font-serif text-slate-950 dark:text-white">
+                Neighborhood Residents
+              </h3>
+              <p className="text-xs text-content-secondary leading-relaxed font-normal">
+                Local citizens read verified eyewitness stories, watch short bytes, and verify neighborhood civic truth.
+              </p>
             </div>
-            <h3 className="text-lg font-bold font-serif text-white">
-              Neighborhood Residents
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Local citizens read verified eyewitness stories, watch short bytes, and verify neighborhood civic truth.
-            </p>
-            <div className="pt-1 flex flex-wrap gap-1.5 text-[10px] font-mono text-slate-400">
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">5km Ward Feed</span>
-              <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">Verified Eyewitness</span>
+            <div className="pt-2 flex flex-wrap gap-1.5 text-xs font-mono text-content-secondary">
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">5km Ward Feed</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">Verified Eyewitness</span>
             </div>
           </div>
 
@@ -162,43 +199,50 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         
         {/* Creator Studio Card */}
-        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 shadow-sm space-y-5 sm:space-y-6 text-left">
-          <div className="space-y-2">
-            <span className="text-xs font-mono uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
-              FOR INDEPENDENT JOURNALISTS & STRINGERS
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-black font-serif text-slate-950 dark:text-white">
-              Nagrik Creator Studio
-            </h3>
+        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 space-y-5 sm:space-y-6 text-left flex flex-col justify-between">
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase font-bold text-content-secondary tracking-wider">
+                For Independent Journalists & Stringers
+              </span>
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="text-2xl sm:text-3xl font-black font-serif text-slate-950 dark:text-white">
+                  Nagrik Creator Studio
+                </h3>
+                <span className="font-script text-amber-700 dark:text-amber-300 text-lg font-bold rotate-2 select-none pointer-events-none hidden sm:inline-block animate-scribble-bob">
+                  ~ built for stringers 🎙️
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-content-secondary leading-relaxed font-normal">
+              A web tool for filing stories, reviewing GPS data, tracking readers, and getting paid via UPI.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-medium">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
+                <span>Full 1080p RAW video dropzone</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
+                <span>₹86 / $1.00 CPM per 1k reads</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
+                <span>100% Contributor IP retention</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
+                <span>Direct UPI & Bank withdrawals</span>
+              </div>
+            </div>
           </div>
 
-          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-            A comprehensive web console for filing eyewitness ground stories, reviewing 5km GPS geofencing metadata, tracking verified reader engagement, and receiving automated UPI payouts.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
-              <span>Full 1080p RAW video dropzone</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
-              <span>$1.50 CPM flat rate per 1k views</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
-              <span>100% Contributor IP retention</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
-              <span>Direct UPI & Bank withdrawals</span>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-stone-200/80 dark:border-slate-800/80">
+          <div className="pt-4 border-t border-stone-200/80 dark:border-slate-800/80">
             <Link
               href="/creator"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#DE5227] hover:bg-[#C84318] text-white text-sm font-bold shadow-md shadow-orange-500/20 transition-all hover:-translate-y-0.5"
+              className="btn-primary inline-flex items-center gap-2 shadow-xs hover:shadow-md"
             >
               <span>Launch Creator Studio</span>
               <ArrowRight className="w-4 h-4" />
@@ -207,47 +251,52 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
         </div>
 
         {/* Consumer Mobile App Card */}
-        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 shadow-sm space-y-5 sm:space-y-6 text-left">
-          <div className="space-y-2">
-            <span className="text-xs font-mono uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
-              FOR LOCAL CITIZENS & READERS
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-black font-serif text-slate-950 dark:text-white">
-              Nagrik Citizen Mobile App
-            </h3>
+        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 space-y-5 sm:space-y-6 text-left flex flex-col justify-between">
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase font-bold text-content-secondary tracking-wider">
+                For Local Citizens & Readers
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-black font-serif text-slate-950 dark:text-white">
+                Nagrik Citizen Mobile App
+              </h3>
+            </div>
+
+            <p className="text-sm text-content-secondary leading-relaxed font-normal">
+              A fast mobile app for verified local news within 5km. Get civic alerts, short video reports, and no clickbait.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-medium">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>5km Hyperlocal feed radius</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>Instant civic alert notifications</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>Eyewitness video bytes & reels</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>100% Free • Zero subscription fees</span>
+              </div>
+            </div>
           </div>
 
-          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-            A fast, lightweight mobile app delivering verified local news from within your 5km municipal radius. Real-time civic notifications, short eyewitness video reels, and zero national sensationalism.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" />
-              <span>5km Hyperlocal feed radius</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" />
-              <span>Instant civic alert notifications</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" />
-              <span>Eyewitness video bytes & reels</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" />
-              <span>100% Free • Zero subscription fees</span>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-stone-200/80 dark:border-slate-800/80">
+          <div className="pt-4 border-t border-stone-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
             <button
               onClick={onOpenAppModal}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 text-sm font-bold shadow-md transition-all hover:-translate-y-0.5 cursor-pointer"
+              className="btn-secondary inline-flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-md"
             >
               <span>Download Citizen App (Free)</span>
-              <ArrowRight className="w-4 h-4" />
+              <Download className="w-4 h-4" />
             </button>
+            <span className="font-script text-emerald-600 dark:text-emerald-400 text-lg font-bold -rotate-2 select-none pointer-events-none hidden sm:inline-block animate-scribble-sway">
+              ~ 100% free for neighbors 🏡
+            </span>
           </div>
         </div>
 

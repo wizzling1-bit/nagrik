@@ -145,7 +145,7 @@ export const TermsView: React.FC = () => {
                 className={`px-4 py-2.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-2 cursor-pointer ${
                   isActive
                     ? 'bg-[#DE5227] text-white shadow-md shadow-orange-500/20'
-                    : 'bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 border border-stone-200 dark:border-slate-800'
+                    : 'bg-[#FAF8F5] dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-slate-800 border border-stone-200/90 dark:border-slate-800'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -156,7 +156,7 @@ export const TermsView: React.FC = () => {
         </div>
 
         {/* Content Container */}
-        <div className="bg-white dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 text-left leading-relaxed text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 text-left leading-relaxed text-xs sm:text-sm text-slate-700 dark:text-slate-300">
           
           {/* Dynamic Content from CMS */}
           {activeDoc?.content ? (

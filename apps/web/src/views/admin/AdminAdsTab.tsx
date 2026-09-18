@@ -57,8 +57,8 @@ export const AdminAdsTab: React.FC<AdminAdsTabProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-200">
-      <div className="lg:col-span-5 bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+      <div className="lg:col-span-5 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
           <h3 className="font-black text-slate-900 dark:text-white text-sm">Create Local Ad Campaign</h3>
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] font-bold shadow-2xs">
             <button
@@ -190,7 +190,7 @@ export const AdminAdsTab: React.FC<AdminAdsTabProps> = ({
         </form>
       </div>
 
-      <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
+      <div className="lg:col-span-7 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
         <h3 className="font-black text-slate-900 dark:text-white text-sm">Active Campaigns</h3>
         {ads.length === 0 ? (
           <div className="text-xs text-slate-500 dark:text-slate-400 p-6 bg-slate-50 dark:bg-[#0B0F17] rounded-2xl border border-slate-200 dark:border-slate-800 text-center">

@@ -23,12 +23,22 @@ export const AppDownloadSection: React.FC = () => {
     }
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowQrModal(false);
+    };
+    if (showQrModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showQrModal]);
+
   return (
     <section id="download" className="py-16 sm:py-24 bg-transparent transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Dominant Dark High-Contrast Container */}
-        <div className="bg-[#111827] border border-slate-800/90 rounded-3xl p-8 sm:p-12 lg:p-14 text-white relative overflow-hidden">
+        <div className="bg-[#131A2A] border border-slate-800/90 rounded-3xl p-8 sm:p-12 lg:p-14 text-white relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             
             {/* Left Column: Value Proposition & Store Actions */}
@@ -107,12 +117,15 @@ export const AppDownloadSection: React.FC = () => {
                   {copied ? <Check className="w-4 h-4 text-emerald-400 animate-in zoom-in" /> : <Share2 className="w-4 h-4" />}
                   <span>{copied ? t.downloadLinkCopied : t.downloadCopyLink}</span>
                 </button>
+                <span className="font-script text-emerald-400 text-xl font-semibold rotate-2 select-none pointer-events-none animate-scribble-float-1 hidden sm:inline-block ml-2">
+                  ~ works on 2G & 4G, zero signups ✨
+                </span>
               </div>
             </div>
 
             {/* Right Column: Clean QR Code Card with Laser Scan Animation */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="card-hover-effect bg-[#0B0F17] p-7 rounded-2xl border border-slate-700/80 hover:border-brand-500/50 shadow-xl max-w-xs w-full text-center space-y-4 relative group">
+            <div className="lg:col-span-5 flex flex-col items-center justify-center">
+              <div className="card-hover-effect bg-[#0C1018] p-7 rounded-2xl border border-slate-700/80 hover:border-brand-500/50 shadow-xl max-w-xs w-full text-center space-y-4 relative group">
                 
                 <div>
                   <h3 className="text-base font-bold text-white font-serif">
@@ -168,6 +181,9 @@ export const AppDownloadSection: React.FC = () => {
                   <span>No Login Required • Direct Access</span>
                 </div>
               </div>
+              <span className="font-script text-orange-400 text-2xl font-bold -rotate-6 select-none pointer-events-none animate-scribble-sway block mt-3">
+                ⤹ point your phone camera here! 📸
+              </span>
             </div>
 
           </div>
@@ -177,16 +193,22 @@ export const AppDownloadSection: React.FC = () => {
 
       {/* QR Modal when clicking download buttons */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] rounded-2xl p-6 sm:p-8 max-w-sm w-full space-y-4 text-center shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white relative animate-in zoom-in-95 duration-150">
+        <div
+          onClick={() => setShowQrModal(false)}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-surface-card rounded-2xl p-6 sm:p-7 max-w-sm w-full space-y-4 text-center shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white relative animate-in zoom-in-95 duration-200"
+          >
             <button
               onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold p-1 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
               aria-label="Close modal"
             >
               ✕
             </button>
-            <div className="w-11 h-11 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto">
               <Smartphone className="w-5 h-5" />
             </div>
             <h3 className="text-lg font-bold font-serif">
@@ -197,12 +219,49 @@ export const AppDownloadSection: React.FC = () => {
                 ? 'अपने फोन के कैमरे से इस क्यूआर कोड को स्कैन करें और 100% निःशुल्क ऐप इंस्टॉल करें।'
                 : 'Scan this QR code with your mobile camera to install the 100% free consumer app.'}
             </p>
-            <div className="p-3 bg-slate-50 dark:bg-[#0B0F17] rounded-xl border border-slate-200 dark:border-slate-800">
+
+            {/* Embedded QR Code */}
+            <div className="bg-white p-3 rounded-xl inline-block shadow-sm border border-stone-200/80 relative overflow-hidden">
+              <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-brand-500 to-transparent animate-scan-beam pointer-events-none opacity-80" />
+              <svg className="w-32 h-32" viewBox="0 0 100 100" fill="none">
+                <rect x="5" y="5" width="28" height="28" rx="4" fill="#0F172A" />
+                <rect x="11" y="11" width="16" height="16" rx="2" fill="white" />
+                <rect x="15" y="15" width="8" height="8" rx="1" fill="#DE5227" />
+
+                <rect x="67" y="5" width="28" height="28" rx="4" fill="#0F172A" />
+                <rect x="73" y="11" width="16" height="16" rx="2" fill="white" />
+                <rect x="77" y="15" width="8" height="8" rx="1" fill="#DE5227" />
+
+                <rect x="5" y="67" width="28" height="28" rx="4" fill="#0F172A" />
+                <rect x="11" y="73" width="16" height="16" rx="2" fill="white" />
+                <rect x="15" y="77" width="8" height="8" rx="1" fill="#DE5227" />
+
+                <rect x="38" y="10" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="50" y="10" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="42" y="24" width="6" height="6" rx="1" fill="#0F172A" />
+                <rect x="52" y="24" width="8" height="8" rx="1" fill="#0F172A" />
+                
+                <rect x="10" y="42" width="6" height="6" rx="1" fill="#0F172A" />
+                <rect x="22" y="42" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="36" y="38" width="12" height="12" rx="2" fill="#DE5227" />
+                <rect x="52" y="42" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="68" y="42" width="6" height="6" rx="1" fill="#0F172A" />
+                <rect x="82" y="42" width="8" height="8" rx="1" fill="#0F172A" />
+
+                <rect x="38" y="58" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="52" y="58" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="42" y="72" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="68" y="68" width="8" height="8" rx="1" fill="#0F172A" />
+                <rect x="80" y="76" width="10" height="10" rx="1" fill="#0F172A" />
+              </svg>
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-surface-muted rounded-xl border border-slate-200 dark:border-slate-800">
               <div className="text-xs font-mono font-semibold text-brand-600 dark:text-brand-400">
                 v1.2.0 Production Release
               </div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Direct APK / Google Play / App Store
+                Direct APK • Google Play • App Store
               </div>
             </div>
           </div>

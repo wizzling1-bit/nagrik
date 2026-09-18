@@ -63,3 +63,13 @@ tmp/
 temp/
 __pycache__/
 *.pyc
+apps/web/src/views/fix.js
+
+# Agent configurations
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.opencode/
+.qoder/
