@@ -7,7 +7,7 @@ import 'package:nagrik/core/theme/typography.dart';
 
 /// Builds complete, dedicated [ThemeData] for Light and Dark modes.
 abstract final class NagrikTheme {
-  /// Light Theme.
+  /// Light Theme (Warm Linen Newspaper Editorial Aesthetic).
   static ThemeData light() {
     const colorScheme = ColorScheme(
       brightness: Brightness.light,
@@ -156,7 +156,7 @@ abstract final class NagrikTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: NagrikLightColors.surface,
+        backgroundColor: NagrikLightColors.surfaceElevated,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
@@ -166,7 +166,7 @@ abstract final class NagrikTheme {
     );
   }
 
-  /// Dark Theme (5-Level Tonal Hierarchy).
+  /// Dark Theme (Midnight Obsidian Luxury Editorial Aesthetic).
   static ThemeData dark() {
     const colorScheme = ColorScheme(
       brightness: Brightness.dark,
@@ -208,7 +208,7 @@ abstract final class NagrikTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: NagrikDarkColors.level1Surface,
-        selectedItemColor: NagrikDarkColors.brandBright,
+        selectedItemColor: NagrikDarkColors.brandPrimary,
         unselectedItemColor: NagrikDarkColors.textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -221,13 +221,13 @@ abstract final class NagrikTheme {
         backgroundColor: NagrikDarkColors.level1Surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: NagrikDarkColors.brandPrimary.withValues(alpha: 0.24),
+        indicatorColor: NagrikDarkColors.brandPrimary.withValues(alpha: 0.22),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         height: 64,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(
-              color: NagrikDarkColors.brandBright,
+              color: NagrikDarkColors.brandPrimary,
               size: 24,
             );
           }
@@ -240,7 +240,7 @@ abstract final class NagrikTheme {
           if (states.contains(WidgetState.selected)) {
             return textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: NagrikDarkColors.brandBright,
+              color: NagrikDarkColors.brandPrimary,
             );
           }
           return textTheme.labelSmall?.copyWith(
@@ -283,7 +283,7 @@ abstract final class NagrikTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: NagrikRadii.borderRadiusMd,
           borderSide: const BorderSide(
-            color: NagrikDarkColors.brandBright,
+            color: NagrikDarkColors.brandPrimary,
             width: 1.5,
           ),
         ),
@@ -301,7 +301,7 @@ abstract final class NagrikTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: NagrikDarkColors.level4Muted,
-        selectedColor: NagrikDarkColors.brandPrimary.withValues(alpha: 0.24),
+        selectedColor: NagrikDarkColors.brandPrimary.withValues(alpha: 0.22),
         labelStyle: textTheme.labelMedium,
         shape: RoundedRectangleBorder(
           borderRadius: NagrikRadii.borderRadiusSm,
