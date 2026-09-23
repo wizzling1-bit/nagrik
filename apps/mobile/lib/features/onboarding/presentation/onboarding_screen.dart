@@ -6,6 +6,7 @@ import 'package:nagrik/core/localization/nagrik_localizations.dart';
 import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/widgets/nagrik_button.dart';
+import 'package:nagrik/core/widgets/nagrik_logo.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/home/presentation/widgets/location_switcher_sheet.dart';
 import 'package:nagrik/features/onboarding/data/languages_data.dart';
@@ -228,95 +229,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildHeader(BuildContext context, Color textColor, bool isDark) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // App Crest Emblem
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: context.colorScheme.primary.withValues(alpha: 0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-              width: 1.0,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(13),
-            child: Image.asset(
-              'assets/images/nagrik_logo.png',
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.high,
-            ),
-          ),
+        const NagrikLogo.horizontal(
+          size: NagrikLogoSize.md,
         ),
-        const SizedBox(width: 14),
-
-        // Title and tagline
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Nagrik',
-                    style: context.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.4,
-                      color: textColor,
-                      fontSize: 21,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: context.colorScheme.primary.withValues(
-                          alpha: 0.28,
-                        ),
-                        width: 0.6,
-                      ),
-                    ),
-                    child: Text(
-                      'HYPERLOCAL',
-                      style: TextStyle(
-                        color: context.colorScheme.primary,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              Text(
-                'Hyperlocal news, civic alerts, and community updates.',
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: context.nagrikTheme.textSecondary,
-                  height: 1.25,
-                  fontSize: 12.5,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+        const SizedBox(height: 8),
+        Text(
+          'Hyperlocal news, civic alerts, and community updates.',
+          style: context.textTheme.bodySmall?.copyWith(
+            color: context.nagrikTheme.textSecondary,
+            height: 1.3,
+            fontSize: 12.5,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

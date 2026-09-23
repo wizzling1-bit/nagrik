@@ -318,10 +318,10 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
     final activeBorder =
         context.colorScheme.primary.withValues(alpha: 0.40);
     final inactiveBg =
-        isDark ? context.nagrikTheme.level2Elevated : Colors.white;
+        isDark ? context.nagrikTheme.level2Elevated : context.nagrikTheme.level1Surface;
     final inactiveBorder = isDark
         ? context.nagrikTheme.border.withValues(alpha: 0.7)
-        : const Color(0xFFE2E8F0);
+        : context.nagrikTheme.border;
 
     return Semantics(
       button: true,
