@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nagrik/app/router.dart';
 import 'package:nagrik/core/theme/app_theme.dart';
+import 'package:nagrik/core/widgets/nagrik_logo.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
 void main() {
@@ -36,7 +37,7 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
 
       // Verify HomeScreen content is visible and has positive height
-      final homeAppBarFinder = find.text('Nagrik');
+      final homeAppBarFinder = find.byType(NagrikLogo);
       expect(homeAppBarFinder, findsOneWidget);
       final rect = tester.getRect(homeAppBarFinder);
       expect(rect.width, greaterThan(0));

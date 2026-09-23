@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/typography.dart';
 
 /// Available sizes for [NagrikLogo].
@@ -228,9 +227,6 @@ class NagrikLogoMarkPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-/// Private alias for compatibility with briefs and specs referencing [_NagrikLogoMarkPainter].
-typedef _NagrikLogoMarkPainter = NagrikLogoMarkPainter;
 
 /// Authentic vector brand crest and wordmark widget for Nagrik.
 ///

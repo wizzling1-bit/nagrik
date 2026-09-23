@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nagrik/app/app.dart';
 import 'package:nagrik/core/theme/theme_provider.dart';
+import 'package:nagrik/core/widgets/nagrik_logo.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
 void main() {
@@ -26,7 +27,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Home Screen loaded with Brand Wordmark
-      expect(find.text('Nagrik'), findsOneWidget);
+      expect(find.byType(NagrikLogo), findsOneWidget);
       expect(find.text('Home'), findsOneWidget);
 
       // Verify default System theme mode

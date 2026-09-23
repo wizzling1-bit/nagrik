@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/localization/nagrik_localizations.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/spacing.dart';
+import 'package:nagrik/core/theme/typography.dart';
+import 'package:nagrik/core/widgets/nagrik_logo.dart';
 import 'package:nagrik/features/home/presentation/widgets/location_switcher_sheet.dart';
 import 'package:nagrik/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
-/// Home header: menu, brand + location picker, search, notifications.
+/// Home masthead app bar:
+/// - Settings / quick menu button
+/// - Authentic vector NagrikLogo (`NagrikLogo.horizontal(size: NagrikLogoSize.sm, hideSubtitle: true)`)
+/// - Live ward capsule with pulsing emerald dot, brand orange map pin, and locality text
+/// - Search action button
+/// - Notifications action button with unread count badge counter
 class HomeAppBar extends ConsumerStatefulWidget {
   const HomeAppBar({
     super.key,
@@ -34,13 +43,14 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
   @override
   Widget build(BuildContext context) {
     final location = ref.watch(selectedLocationProvider);
-    final locationText =
-        location?.displayName ??
-        ref.watch(appStringsProvider).selectLocationAction;
+    final strings = ref.watch(appStringsProvider);
+    final locationText = location?.displayName ?? strings.selectLocationAction;
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
 
+    final isDark = context.isDarkMode;
     final textColor = context.colorScheme.onSurface;
     final subtextColor = context.nagrikTheme.textSecondary;
+    final borderColor = isDark ? NagrikDarkColors.border : NagrikLightColors.border;
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -53,10 +63,10 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 1. Brand Crest / Quick Access
+            // 1. Brand Crest / Settings Quick Access
             Semantics(
               button: true,
-              label: ref.watch(appStringsProvider).openSettingsLabel,
+              label: strings.openSettingsLabel,
               child: NagrikSpringPressable(
                 onTap: () {
                   NagrikMotion.lightImpact();
@@ -70,19 +80,19 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: context.isDarkMode
+                    color: isDark
                         ? context.nagrikTheme.level2Elevated
                         : context.colorScheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: context.isDarkMode
-                          ? context.nagrikTheme.border.withValues(alpha: 0.8)
+                      color: isDark
+                          ? borderColor.withValues(alpha: 0.8)
                           : context.colorScheme.primary.withValues(alpha: 0.18),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: context.isDarkMode
+                        color: isDark
                             ? Colors.black.withValues(alpha: 0.25)
                             : context.colorScheme.primary.withValues(alpha: 0.06),
                         blurRadius: 6,
@@ -94,7 +104,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                     child: Icon(
                       Icons.tune_rounded,
                       size: 20,
-                      color: context.isDarkMode
+                      color: isDark
                           ? context.nagrikTheme.brandBright
                           : context.colorScheme.primary,
                     ),
@@ -104,20 +114,15 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
             ),
             const SizedBox(width: NagrikSpacing.space3),
 
-            // 2. Brand title + location picker capsule
+            // 2. Brand identity & Ward location capsule
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Nagrik',
-                    style: context.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                      height: 1.12,
-                      fontSize: 19,
-                    ),
+                  const NagrikLogo.horizontal(
+                    size: NagrikLogoSize.sm,
+                    hideSubtitle: true,
                   ),
                   const SizedBox(height: 3),
                   Semantics(
@@ -138,7 +143,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                           setState(() => _isLocationPressed = false),
                       behavior: HitTestBehavior.opaque,
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 38),
+                        constraints: const BoxConstraints(minHeight: 32),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
                           padding: const EdgeInsets.symmetric(
@@ -147,56 +152,59 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                           ),
                           decoration: BoxDecoration(
                             color: _isLocationPressed
-                                ? (context.isDarkMode
+                                ? (isDark
                                     ? context.nagrikTheme.level3Interactive
                                     : context.nagrikTheme.surfaceInteractive)
-                                : (context.isDarkMode
+                                : (isDark
                                     ? context.nagrikTheme.level4Muted
                                     : context.nagrikTheme.surfaceMuted),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: context.isDarkMode
-                                  ? context.nagrikTheme.border.withValues(alpha: 0.6)
-                                  : context.nagrikTheme.border.withValues(alpha: 0.75),
+                              color: isDark
+                                  ? const Color(0xFF1C2537)
+                                  : const Color(0xFFDDD5C8),
                               width: 0.85,
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // Live emerald indicator (#10B981) with soft glow
                               Container(
-                                width: 6,
-                                height: 6,
+                                width: 6.5,
+                                height: 6.5,
                                 decoration: BoxDecoration(
-                                  color: location != null
-                                      ? const Color(0xFF10B981) // emerald live
-                                      : context.colorScheme.primary,
+                                  color: const Color(0xFF10B981),
                                   shape: BoxShape.circle,
-                                  boxShadow: location != null
-                                      ? [
-                                          BoxShadow(
-                                            color: const Color(0xFF10B981)
-                                                .withValues(alpha: 0.5),
-                                            blurRadius: 4,
-                                          ),
-                                        ]
-                                      : null,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF10B981)
+                                          .withValues(alpha: 0.6),
+                                      blurRadius: 4,
+                                      spreadRadius: 0.5,
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 5),
-                              Icon(
+                              // Brand orange MapPin icon (#DE5227)
+                              const Icon(
                                 Icons.location_on,
                                 size: 13,
-                                color: context.colorScheme.primary,
+                                color: NagrikBrandColors.orangePrimary,
                               ),
                               const SizedBox(width: 4),
+                              // Locality text in Plus Jakarta Sans bold
                               Flexible(
                                 child: Text(
                                   locationText,
-                                  style: context.textTheme.labelMedium?.copyWith(
+                                  style: GoogleFonts.plusJakartaSans(
                                     color: context.colorScheme.onSurface,
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 12.5,
+                                    fontSize: 12.0,
+                                  ).copyWith(
+                                    fontFamilyFallback:
+                                        NagrikTypography.fontFallbacks,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -222,11 +230,12 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                 ],
               ),
             ),
+            const SizedBox(width: NagrikSpacing.space2),
 
             // 3. Search action
             Semantics(
               button: true,
-              label: ref.watch(appStringsProvider).searchStoriesLabel,
+              label: strings.searchStoriesLabel,
               child: NagrikSpringPressable(
                 onTap: () {
                   NagrikMotion.lightImpact();
@@ -241,14 +250,14 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                   height: 40,
                   margin: const EdgeInsets.only(right: 6),
                   decoration: BoxDecoration(
-                    color: context.isDarkMode
+                    color: isDark
                         ? context.nagrikTheme.level2Elevated
                         : context.nagrikTheme.surfaceMuted,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: context.isDarkMode
-                          ? context.nagrikTheme.border.withValues(alpha: 0.6)
-                          : context.nagrikTheme.border.withValues(alpha: 0.7),
+                      color: isDark
+                          ? const Color(0xFF1C2537)
+                          : const Color(0xFFDDD5C8),
                       width: 0.85,
                     ),
                   ),
@@ -263,7 +272,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
               ),
             ),
 
-            // 4. Notifications action with unread dot
+            // 4. Notifications action with unread count badge counter
             Semantics(
               button: true,
               label: unreadCount > 0
@@ -282,14 +291,14 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: context.isDarkMode
+                    color: isDark
                         ? context.nagrikTheme.level2Elevated
                         : context.nagrikTheme.surfaceMuted,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: context.isDarkMode
-                          ? context.nagrikTheme.border.withValues(alpha: 0.6)
-                          : context.nagrikTheme.border.withValues(alpha: 0.7),
+                      color: isDark
+                          ? const Color(0xFF1C2537)
+                          : const Color(0xFFDDD5C8),
                       width: 0.85,
                     ),
                   ),
@@ -297,25 +306,42 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                     alignment: Alignment.center,
                     children: [
                       Icon(
-                        Icons.notifications_none_rounded,
+                        Icons.notifications_outlined,
                         size: 21,
                         color: textColor,
                       ),
                       if (unreadCount > 0)
                         Positioned(
-                          top: 8,
-                          right: 8,
+                          top: 4,
+                          right: 4,
                           child: Container(
-                            width: 7,
-                            height: 7,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
                             decoration: BoxDecoration(
-                              color: context.colorScheme.error,
-                              shape: BoxShape.circle,
+                              color: NagrikBrandColors.crimson,
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: context.isDarkMode
+                                color: isDark
                                     ? context.nagrikTheme.level2Elevated
                                     : Colors.white,
                                 width: 1.2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                unreadCount > 99 ? '99+' : '$unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.0,
+                                ),
                               ),
                             ),
                           ),

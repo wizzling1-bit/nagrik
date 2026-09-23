@@ -69,7 +69,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final searchButton = find.byIcon(Icons.search_rounded);
-      final notifButton = find.byIcon(Icons.notifications_none_rounded);
+      final notifButton = find.byIcon(Icons.notifications_outlined);
 
       expect(searchButton, findsOneWidget);
       expect(notifButton, findsOneWidget);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nagrik/app/app.dart';
+import 'package:nagrik/core/widgets/nagrik_logo.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
 void main() {
@@ -19,7 +20,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Directly lands on Home Feed with Brand Wordmark and NavigationBar
-      expect(find.text('Nagrik'), findsOneWidget);
+      expect(find.byType(NagrikLogo), findsOneWidget);
       expect(find.text('LATEST NEAR YOU'), findsOneWidget);
       expect(find.byType(NavigationBar), findsOneWidget);
     },
