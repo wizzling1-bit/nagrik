@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:nagrik/core/ads/ad_configuration.dart';
+import 'package:nagrik/core/ads/ad_consent_manager.dart';
+import 'package:nagrik/core/ads/ad_placement_policy.dart';
+import 'package:nagrik/core/ads/widgets/nagrik_adaptive_banner.dart';
+import 'package:nagrik/core/ads/widgets/nagrik_native_ad_card.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/localization/nagrik_localizations.dart';
 import 'package:nagrik/core/network/connectivity_provider.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
+import 'package:nagrik/core/theme/typography.dart';
 import 'package:nagrik/core/widgets/empty_state.dart';
 import 'package:nagrik/core/widgets/error_state.dart';
 import 'package:nagrik/core/widgets/feed_skeleton.dart';
@@ -14,22 +22,19 @@ import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/feed/presentation/widgets/cards/advertisement_card.dart';
 import 'package:nagrik/features/feed/presentation/widgets/cards/post_card.dart';
-import 'package:nagrik/core/ads/ad_configuration.dart';
-import 'package:nagrik/core/ads/ad_consent_manager.dart';
-import 'package:nagrik/core/ads/ad_placement_policy.dart';
-import 'package:nagrik/core/ads/widgets/nagrik_adaptive_banner.dart';
-import 'package:nagrik/core/ads/widgets/nagrik_native_ad_card.dart';
 import 'package:nagrik/features/home/presentation/widgets/breaking_hero_card.dart';
 import 'package:nagrik/features/home/presentation/widgets/home_app_bar.dart';
+import 'package:nagrik/features/home/presentation/widgets/trending_topics_bar.dart';
 
 /// The core Luxury Master Home Feed Screen:
 /// 1. Home App Bar (Brand + GPS/Location Switcher + Search + Pulsing Notifications)
 /// 2. Urgent Breaking News Hero Card with specular shine & breathing aura
-/// 3. Section Header: "Latest Near You" with "View all >"
-/// 4. Staggered Entrance Feed Cards (News, Video Reports, and Interleaved Ads)
-/// 5. Shimmer Skeleton Loading & Spring Pull-to-refresh
-/// 6. Floating "Back to Top" pill button on deep scroll
-/// 7. Dynamic Trending Topics derived from live GET /content/categories
+/// 3. Offline warm editorial warning banner when network is down
+/// 4. Dynamic Trending Topics derived from live GET /content/categories
+/// 5. Section Header: "Latest Near You" with "Explore >" and edition date
+/// 6. Staggered Entrance Feed Cards (News, Video Reports, and Interleaved Ads)
+/// 7. Shimmer Skeleton Loading & Spring Pull-to-refresh with brand orange spinner
+/// 8. Sleek floating "Back to Top" pill button on deep scroll (> 500dp)
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -61,9 +66,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   void _onScroll() {
     final offset = _scrollController.offset;
-    if (offset > 600 && !_showBackToTop) {
+    if (offset > 500 && !_showBackToTop) {
       setState(() => _showBackToTop = true);
-    } else if (offset <= 600 && _showBackToTop) {
+    } else if (offset <= 500 && _showBackToTop) {
       setState(() => _showBackToTop = false);
     }
 
@@ -96,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       'Friday', 'Saturday', 'Sunday'
     ];
-    return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+    return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} · Today\'s Ward Edition';
   }
 
   @override
@@ -108,7 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final isDark = context.isDarkMode;
 
     final bgColor = context.nagrikTheme.level0Background;
-    final linkColor = context.colorScheme.primary;
+    const linkColor = NagrikBrandColors.orangePrimary;
 
     int firstContentIndex = -1;
     for (int i = 0; i < feedState.items.length; i++) {
@@ -128,8 +133,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Stack(
               children: [
                 RefreshIndicator(
-                  color: context.colorScheme.primary,
-                  backgroundColor: context.nagrikTheme.level1Surface,
+                  color: NagrikBrandColors.orangePrimary,
+                  backgroundColor: isDark
+                      ? NagrikDarkColors.level1Surface
+                      : NagrikLightColors.surface,
                   displacement: 28,
                   onRefresh: () async {
                     NagrikMotion.lightImpact();
@@ -148,7 +155,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       // 2. Urgent Breaking News Alert (Rendered only if urgent post exists)
                       const SliverToBoxAdapter(child: BreakingHeroCard()),
 
-                      // 3. Section Header: Daily Edition & Live Status
+                      // 3. Offline Editorial Warning Banner
+                      if (!isOnline)
+                        SliverToBoxAdapter(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: NagrikSpacing.space4,
+                              vertical: NagrikSpacing.space2,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: NagrikSpacing.space3,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF1E2416)
+                                  : const Color(0xFFFBF4E6),
+                              borderRadius: NagrikRadii.borderRadiusSm,
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF42371E)
+                                    : const Color(0xFFE4CF9C),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.wifi_off_rounded,
+                                  size: 15,
+                                  color: isDark
+                                      ? const Color(0xFFE5A138)
+                                      : const Color(0xFFB45309),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    strings.offlineDesc,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? const Color(0xFFE5A138)
+                                          : const Color(0xFFB45309),
+                                    ).copyWith(
+                                      fontFamilyFallback:
+                                          NagrikTypography.fontFallbacks,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      // 4. Category Filter Bar (Dynamic Trending Topics)
+                      const SliverToBoxAdapter(child: TrendingTopicsBar()),
+
+                      // 5. Section Header: Daily Edition & Live Status
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(
@@ -161,41 +225,56 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 7,
-                                        height: 7,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF10B981),
-                                          shape: BoxShape.circle,
-                                        ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _formatEditionDate(),
+                                      style: GoogleFonts.jetBrainsMono(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.3,
+                                        color: context.nagrikTheme.textSecondary,
+                                      ).copyWith(
+                                        fontFamilyFallback:
+                                            NagrikTypography.fontFallbacks,
                                       ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        strings.latestNearYou,
-                                        style: context.textTheme.labelSmall?.copyWith(
-                                          color: context.nagrikTheme.textSecondary,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 1.0,
-                                          fontSize: 10.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    _formatEditionDate(),
-                                    style: context.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: -0.2,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            strings.latestNearYou,
+                                            style: GoogleFonts.newsreader(
+                                              fontSize: 22.0,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: -0.2,
+                                              color: context.colorScheme.onSurface,
+                                            ).copyWith(
+                                              fontFamilyFallback:
+                                                  NagrikTypography.fontFallbacks,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          width: 7,
+                                          height: 7,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFF10B981),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               Semantics(
                                 button: true,
                                 label: strings.viewAllStories,
@@ -213,14 +292,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       children: [
                                         Text(
                                           'Explore',
-                                          style: context.textTheme.labelLarge
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                color: linkColor,
-                                              ),
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                            color: linkColor,
+                                          ).copyWith(
+                                            fontFamilyFallback:
+                                                NagrikTypography.fontFallbacks,
+                                          ),
                                         ),
                                         const SizedBox(width: 3),
-                                        Icon(
+                                        const Icon(
                                           Icons.arrow_forward_rounded,
                                           size: 15,
                                           color: linkColor,
@@ -235,7 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                       ),
 
-                      // 5. Feed of Cards / Shimmer Skeleton / Error
+                      // 6. Feed of Cards / Shimmer Skeleton / Error
                       if (feedState.isLoading && feedState.items.isEmpty)
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
@@ -280,7 +362,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           builder: (context) {
                             final adConfig = ref.watch(adConfigurationProvider);
                             final consent = ref.watch(adConsentProvider);
-                            final adsActive = adConfig.nativeEnabled && consent.canRequestAds;
+                            final adsActive =
+                                adConfig.nativeEnabled && consent.canRequestAds;
                             final totalCount = AdPlacementPolicy.getTotalCount(
                               feedState.items.length,
                               frequency: adConfig.nativeFeedFrequency,
@@ -294,7 +377,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   if (adsActive &&
                                       AdPlacementPolicy.isAdIndex(
                                         index,
-                                        frequency: adConfig.nativeFeedFrequency,
+                                        frequency:
+                                            adConfig.nativeFeedFrequency,
                                       )) {
                                     cardWidget = const NagrikNativeAdCard(
                                       templateType: TemplateType.medium,
@@ -303,21 +387,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     final organicIndex = adsActive
                                         ? AdPlacementPolicy.getOrganicIndex(
                                             index,
-                                            frequency: adConfig.nativeFeedFrequency,
+                                            frequency:
+                                                adConfig.nativeFeedFrequency,
                                           )
                                         : index;
                                     if (organicIndex < 0 ||
                                         organicIndex >= feedState.items.length) {
                                       cardWidget = const SizedBox.shrink();
                                     } else {
-                                      final item = feedState.items[organicIndex];
+                                      final item =
+                                          feedState.items[organicIndex];
                                       if (item is ContentFeedItem) {
                                         cardWidget = PostCard(
                                           post: item.post,
-                                          isFeatured: organicIndex == firstContentIndex,
+                                          isFeatured:
+                                              organicIndex == firstContentIndex,
                                         );
                                       } else if (item is AdvertisementFeedItem) {
-                                        cardWidget = AdvertisementCard(ad: item);
+                                        cardWidget =
+                                            AdvertisementCard(ad: item);
                                       } else {
                                         cardWidget = const SizedBox.shrink();
                                       }
@@ -345,9 +433,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                       // Loading More Shimmer / Spinner
                       if (feedState.isLoadingMore)
-                        SliverToBoxAdapter(
+                        const SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            padding: EdgeInsets.symmetric(vertical: 20),
                             child: Center(
                               child: SizedBox(
                                 width: 24,
@@ -355,7 +443,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.2,
                                   valueColor: AlwaysStoppedAnimation(
-                                    context.colorScheme.primary,
+                                    NagrikBrandColors.orangePrimary,
                                   ),
                                 ),
                               ),
@@ -382,64 +470,88 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
 
-                // 6. Floating "Back to Top" button
+                // 7. Sleek Floating "Back to Top" Button
                 if (_showBackToTop)
                   Positioned(
                     bottom: 24,
                     right: 20,
-                    child: NagrikFadeIn(
-                      duration: const Duration(milliseconds: 200),
-                      child: Semantics(
-                        button: true,
-                        label: strings.backToTop,
-                        child: NagrikSpringPressable(
-                          onTap: _scrollToTop,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              minHeight: 48,
-                              minWidth: 48,
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 9,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.8, end: 1.0),
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutBack,
+                      builder: (context, scale, child) => Transform.scale(
+                        scale: scale,
+                        child: child,
+                      ),
+                      child: NagrikFadeIn(
+                        duration: const Duration(milliseconds: 200),
+                        child: Semantics(
+                          button: true,
+                          label: strings.backToTop,
+                          child: NagrikSpringPressable(
+                            onTap: _scrollToTop,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minHeight: 48,
+                                minWidth: 48,
                               ),
-                              decoration: BoxDecoration(
-                                color: context.nagrikTheme.level1Surface,
-                                borderRadius: NagrikRadii.borderRadiusPill,
-                                border: Border.all(
-                                  color: context.nagrikTheme.border,
-                                  width: 1.0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 9,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(
-                                      alpha: isDark ? 0.45 : 0.12,
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? NagrikDarkColors.level1Surface
+                                      : NagrikLightColors.surfaceElevated,
+                                  borderRadius: NagrikRadii.borderRadiusPill,
+                                  border: Border.all(
+                                    color: NagrikBrandColors.orangePrimary.withValues(
+                                      alpha: isDark ? 0.45 : 0.35,
                                     ),
-                                    blurRadius: 14,
-                                    offset: const Offset(0, 4),
+                                    width: 1.0,
                                   ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.arrow_upward_rounded,
-                                    size: 16,
-                                    color: context.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    'Top',
-                                    style: context.textTheme.labelLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: context.colorScheme.onSurface,
-                                        ),
-                                  ),
-                                ],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: NagrikBrandColors.orangePrimary
+                                          .withValues(alpha: 0.20),
+                                      blurRadius: 14,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: isDark ? 0.45 : 0.08,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 16,
+                                      color: NagrikBrandColors.orangePrimary,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Top',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        color: isDark
+                                            ? Colors.white
+                                            : NagrikLightColors.textPrimary,
+                                      ).copyWith(
+                                        fontFamilyFallback:
+                                            NagrikTypography.fontFallbacks,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

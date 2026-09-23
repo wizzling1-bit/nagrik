@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nagrik/core/network/connectivity_provider.dart';
 import 'package:nagrik/core/theme/app_theme.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
+import 'package:nagrik/features/feed/data/models/api_models.dart';
+import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/feed/presentation/widgets/cards/post_card.dart';
 import 'package:nagrik/features/home/presentation/home_screen.dart';
 import 'package:nagrik/features/home/presentation/widgets/breaking_hero_card.dart';
 import 'package:nagrik/features/home/presentation/widgets/home_app_bar.dart';
+import 'package:nagrik/features/home/presentation/widgets/trending_topics_bar.dart';
 import 'package:nagrik/features/onboarding/domain/models/location_item.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
-import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import '../../../fixtures/mock_feed_data.dart';
 
 class _TestFeedStateNotifier extends FeedStateNotifier {
@@ -40,6 +44,11 @@ class _TestFeedStateNotifier extends FeedStateNotifier {
   }
 }
 
+class _TestOfflineNotifier extends ConnectivityStatusNotifier {
+  @override
+  bool build() => false;
+}
+
 void main() {
   Widget buildApp(Widget child, [ProviderContainer? container]) {
     final c = container ??
@@ -52,6 +61,7 @@ void main() {
       container: c,
       child: MaterialApp(
         theme: NagrikTheme.light(),
+        darkTheme: NagrikTheme.dark(),
         home: child,
       ),
     );
@@ -80,6 +90,8 @@ void main() {
       expect(find.byType(HomeAppBar), findsOneWidget);
       expect(find.byType(BreakingHeroCard), findsOneWidget);
       expect(find.text('LATEST NEAR YOU'), findsOneWidget);
+      expect(find.text('Explore'), findsOneWidget);
+      expect(find.textContaining('Today\'s Ward Edition'), findsOneWidget);
       expect(find.byType(PostCard), findsWidgets);
     });
 
@@ -119,6 +131,117 @@ void main() {
       final posts = container.read(feedPostsProvider);
       expect(posts.any((p) => p.city == 'Patna'), isTrue);
     });
+
+    testWidgets('shows floating Back to Top button on deep scroll (> 500dp) and scrolling to top hides it',
+        (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          feedStateProvider.overrideWith(_TestFeedStateNotifier.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(buildApp(const HomeScreen(), container));
+      await tester.pumpAndSettle();
+
+      // Initially at top: Back to top button is not visible
+      expect(find.text('Top'), findsNothing);
+
+      // Deep scroll down (> 500dp)
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+      await tester.pumpAndSettle();
+
+      // Floating button should now appear
+      expect(find.text('Top'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_upward_rounded), findsOneWidget);
+
+      // Tap Back to top button
+      await tester.tap(find.text('Top'));
+      await tester.pumpAndSettle();
+
+      // Scroll position returns to top and button disappears
+      expect(find.text('Top'), findsNothing);
+    });
+
+    testWidgets('renders TrendingTopicsBar when categories are provided', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const categories = [
+        CategoryModel(id: 'c1', name: 'Politics', slug: 'politics', displayOrder: 1),
+        CategoryModel(id: 'c2', name: 'Civic Issues', slug: 'civic-issues', displayOrder: 2),
+      ];
+
+      final container = ProviderContainer(
+        overrides: [
+          feedStateProvider.overrideWith(_TestFeedStateNotifier.new),
+          apiCategoriesProvider.overrideWith((ref) => Future.value(categories)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(buildApp(const HomeScreen(), container));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TrendingTopicsBar), findsOneWidget);
+      expect(find.text('Trending Topics'), findsOneWidget);
+      expect(find.text('Politics'), findsOneWidget);
+      expect(find.text('Civic Issues'), findsOneWidget);
+    });
+
+    testWidgets('renders offline warning banner when device is offline', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          feedStateProvider.overrideWith(_TestFeedStateNotifier.new),
+          connectivityStatusProvider.overrideWith(_TestOfflineNotifier.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(buildApp(const HomeScreen(), container));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+    });
+
+    testWidgets('pull to refresh indicator uses brand orange color', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          feedStateProvider.overrideWith(_TestFeedStateNotifier.new),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(buildApp(const HomeScreen(), container));
+      await tester.pumpAndSettle();
+
+      final refreshIndicator = tester.widget<RefreshIndicator>(find.byType(RefreshIndicator));
+      expect(refreshIndicator.color, NagrikBrandColors.orangePrimary);
+    });
   });
 }
-
