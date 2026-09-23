@@ -1,20 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
 
-enum NagrikButtonVariant { primary, secondary, tertiary, destructive }
+/// Available visual hierarchy variants for [NagrikButton].
+enum NagrikButtonVariant {
+  primary,
+  secondary,
+  tertiary,
+  ghost,
+  destructive,
+}
 
-enum NagrikButtonSize { small, medium, large }
+/// Available standardized touch target heights for [NagrikButton].
+enum NagrikButtonSize {
+  small,
+  medium,
+  large,
+}
 
-/// Design-system button component.
+/// Standardized 4-tier design system button component.
 ///
 /// Features:
-/// - Four variants: `primary`, `secondary`, `tertiary`, `destructive`
-/// - Three sizes: `small` (44dp), `medium` (48dp), `large` (56dp)
-/// - Spring tap recoil physics with tactile haptic feedback
-/// - Full accessibility semantics and WCAG AAA/AA contrast compliance
+/// - 4 visual hierarchy tiers:
+///   - `primary`: Solid `#C84318` brand accessible CTA
+///   - `secondary`: Clean neutral card outline (`#FAF8F5` light / `#1A2236` dark)
+///   - `ghost` / `tertiary`: Borderless transparent action
+///   - `destructive`: Error red action
+/// - 3 standard sizes:
+///   - `small`: 44dp (meets WCAG touch target guideline)
+///   - `medium`: 48dp (standard interactive controls)
+///   - `large`: 56dp (primary hero / full-width CTA)
+/// - 12dp standardized border radius ([NagrikRadii.borderRadiusMd])
+/// - Tactile spring recoil physics (`active:scale(0.97)`) with [Curves.easeOutCubic]
+/// - Full accessibility semantics and WCAG AAA contrast compliance
 class NagrikButton extends StatefulWidget {
   const NagrikButton({
     super.key,
@@ -92,18 +113,20 @@ class _NagrikButtonState extends State<NagrikButton> {
     final (bgColor, fgColor, borderSide) = switch (widget.variant) {
       NagrikButtonVariant.primary => (
           _isDisabled
-              ? colors.primary.withValues(alpha: 0.38)
-              : colors.primary,
-          colors.onPrimary,
+              ? NagrikBrandColors.orangeAccessible.withValues(alpha: 0.38)
+              : NagrikBrandColors.orangeAccessible,
+          Colors.white,
           BorderSide.none,
         ),
       NagrikButtonVariant.secondary => (
           isDark
-              ? context.nagrikTheme.level2Elevated
-              : context.nagrikTheme.surfaceMuted,
+              ? const Color(0xFF1A2236)
+              : const Color(0xFFFAF8F5),
           _isDisabled
               ? context.nagrikTheme.textTertiary
-              : colors.onSurface,
+              : (isDark
+                  ? NagrikDarkColors.textPrimary
+                  : NagrikLightColors.textPrimary),
           BorderSide(
             color: _isDisabled
                 ? context.nagrikTheme.border.withValues(alpha: 0.38)
@@ -111,13 +134,13 @@ class _NagrikButtonState extends State<NagrikButton> {
             width: 1.0,
           ),
         ),
-      NagrikButtonVariant.tertiary => (
+      NagrikButtonVariant.tertiary || NagrikButtonVariant.ghost => (
           Colors.transparent,
           _isDisabled
               ? context.nagrikTheme.textTertiary
               : (isDark
                   ? context.nagrikTheme.brandBright
-                  : colors.primary),
+                  : NagrikBrandColors.orangeAccessible),
           BorderSide.none,
         ),
       NagrikButtonVariant.destructive => (
@@ -166,26 +189,26 @@ class _NagrikButtonState extends State<NagrikButton> {
       enabled: !_isDisabled,
       label: widget.label,
       child: AnimatedScale(
-        scale: _isPressed ? 0.95 : 1.0,
-        duration: const Duration(milliseconds: 110),
-        curve: _isPressed ? Curves.easeInOutCubic : Curves.easeOutBack,
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
         child: Container(
           width: widget.fullWidth ? double.infinity : null,
           height: _height,
           decoration: const BoxDecoration(),
           child: Material(
             color: bgColor,
-            borderRadius: NagrikRadii.borderRadiusSm,
+            borderRadius: NagrikRadii.borderRadiusMd,
             child: InkWell(
               onTap: _isDisabled ? null : _handleTap,
               onTapDown: _handleTapDown,
               onTapUp: _handleTapUp,
               onTapCancel: _handleTapCancel,
-              borderRadius: NagrikRadii.borderRadiusSm,
+              borderRadius: NagrikRadii.borderRadiusMd,
               child: Ink(
                 decoration: BoxDecoration(
                   color: bgColor,
-                  borderRadius: NagrikRadii.borderRadiusSm,
+                  borderRadius: NagrikRadii.borderRadiusMd,
                   border: borderSide != BorderSide.none
                       ? Border.fromBorderSide(borderSide)
                       : null,
