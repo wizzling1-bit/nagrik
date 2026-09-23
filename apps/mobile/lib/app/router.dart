@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/localization/nagrik_localizations.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
+import 'package:nagrik/core/theme/typography.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 import 'package:nagrik/features/feed/presentation/screens/content_detail_screen.dart';
 import 'package:nagrik/features/home/presentation/home_screen.dart';
@@ -237,9 +240,14 @@ class _ScaffoldWithNavBarState extends ConsumerState<_ScaffoldWithNavBar> {
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
-    final navBarBg = context.nagrikTheme.level1Surface;
-    final activeColor = context.colorScheme.primary;
+    final navBarBg = isDark
+        ? NagrikDarkColors.level1Surface
+        : NagrikLightColors.surface;
+    const brandOrange = NagrikBrandColors.orangePrimary;
     final inactiveColor = context.nagrikTheme.textSecondary;
+    final borderColor = isDark
+        ? NagrikDarkColors.border
+        : NagrikLightColors.border;
 
     final strings = ref.watch(appStringsProvider);
 
@@ -268,7 +276,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<_ScaffoldWithNavBar> {
               color: navBarBg,
               border: Border(
                 top: BorderSide(
-                  color: context.nagrikTheme.border,
+                  color: borderColor,
                   width: 0.85,
                 ),
               ),
@@ -291,14 +299,14 @@ class _ScaffoldWithNavBarState extends ConsumerState<_ScaffoldWithNavBar> {
                   child: NavigationBarTheme(
                     data: NavigationBarThemeData(
                       indicatorColor:
-                          activeColor.withValues(alpha: isDark ? 0.22 : 0.10),
+                          brandOrange.withValues(alpha: isDark ? 0.22 : 0.12),
                       indicatorShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       iconTheme: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
-                          return IconThemeData(
-                            color: activeColor,
+                          return const IconThemeData(
+                            color: brandOrange,
                             size: 24,
                           );
                         }
@@ -309,18 +317,22 @@ class _ScaffoldWithNavBarState extends ConsumerState<_ScaffoldWithNavBar> {
                       }),
                       labelTextStyle: WidgetStateProperty.resolveWith((states) {
                         if (states.contains(WidgetState.selected)) {
-                          return TextStyle(
-                            color: activeColor,
+                          return GoogleFonts.plusJakartaSans(
+                            color: brandOrange,
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.15,
+                          ).copyWith(
+                            fontFamilyFallback: NagrikTypography.fontFallbacks,
                           );
                         }
-                        return TextStyle(
+                        return GoogleFonts.plusJakartaSans(
                           color: inactiveColor,
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           letterSpacing: -0.1,
+                        ).copyWith(
+                          fontFamilyFallback: NagrikTypography.fontFallbacks,
                         );
                       }),
                     ),

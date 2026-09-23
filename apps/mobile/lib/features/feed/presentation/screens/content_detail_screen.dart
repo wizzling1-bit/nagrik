@@ -2,14 +2,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/localization/nagrik_localizations.dart';
 import 'package:nagrik/core/network/connectivity_provider.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
+import 'package:nagrik/core/theme/typography.dart';
 import 'package:nagrik/core/widgets/error_state.dart';
 import 'package:nagrik/core/widgets/glass_card.dart';
+import 'package:nagrik/core/widgets/nagrik_avatar.dart';
+import 'package:nagrik/core/widgets/verification_badge.dart';
 import 'package:nagrik/features/feed/data/repositories/content_repository.dart';
 import 'package:nagrik/features/feed/domain/models/comment.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
@@ -17,7 +22,6 @@ import 'package:nagrik/features/feed/domain/models/post_author.dart';
 import 'package:nagrik/features/feed/domain/models/post_type.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/feed/presentation/widgets/engagement_action_bar.dart';
-import 'package:nagrik/features/feed/presentation/widgets/post_author_header.dart';
 import 'package:nagrik/features/feed/presentation/widgets/report_content_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/share_bottom_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/video/nagrik_video_player.dart';
@@ -530,172 +534,27 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Category & Reading Time Meta Row
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: context.colorScheme.primary
-                                        .withValues(
-                                          alpha: isDark ? 0.22 : 0.12,
-                                        ),
-                                    borderRadius: NagrikRadii.borderRadiusXs,
-                                    border: Border.all(
-                                      color: context.colorScheme.primary
-                                          .withValues(alpha: 0.35),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              context.nagrikTheme.brandBright,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        post.category.label.toUpperCase(),
-                                        style: TextStyle(
-                                          color:
-                                              context.nagrikTheme.brandBright,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.8,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: NagrikSpacing.space2),
-                                // Reading time estimate badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? context.nagrikTheme.level2Elevated
-                                        : context.nagrikTheme.surfaceMuted,
-                                    borderRadius: NagrikRadii.borderRadiusXs,
-                                    border: Border.all(
-                                      color: context.nagrikTheme.border
-                                          .withValues(alpha: 0.4),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.schedule_rounded,
-                                        size: 13,
-                                        color:
-                                            context.nagrikTheme.textSecondary,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        post.type == PostType.video
-                                            ? 'Video coverage'
-                                            : '${_calculateReadingTime(post.body)} min read',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              context.nagrikTheme.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                            // Category & Geofence Meta Row
+                            _buildMetaRow(context, post, isDark),
                             const SizedBox(height: NagrikSpacing.space3),
 
-                            // Main Headline
+                            // Main Headline in Newsreader bold serif (26-28dp, line-height 1.25)
                             Text(
                               post.title,
-                              style: context.textTheme.headlineSmall?.copyWith(
+                              style: GoogleFonts.newsreader(
+                                fontSize: 27.0,
                                 fontWeight: FontWeight.w800,
-                                height: 1.28,
-                                letterSpacing: -0.3,
+                                height: 1.25,
+                                letterSpacing: -0.25,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ).copyWith(
+                                fontFamilyFallback: NagrikTypography.fontFallbacks,
                               ),
                             ),
                             const SizedBox(height: NagrikSpacing.space3),
 
-                            // Author Meta Header with verified badge
-                            PostAuthorHeader.fromPost(
-                              post,
-                              showCategory: false,
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: context.nagrikTheme.level2Elevated,
-                                      borderRadius:
-                                          NagrikRadii.borderRadiusPill,
-                                      border: Border.all(
-                                        color: context.nagrikTheme.border
-                                            .withValues(alpha: 0.4),
-                                        width: 0.8,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.verified_rounded,
-                                          size: 12,
-                                          color:
-                                              context.nagrikTheme.brandBright,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'Verified Source',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                            color: context
-                                                .nagrikTheme
-                                                .textSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.flag_outlined,
-                                      size: 18,
-                                    ),
-                                    tooltip: 'Report story',
-                                    color: context.nagrikTheme.textTertiary,
-                                    onPressed: () {
-                                      showReportContentSheet(
-                                        context,
-                                        contentId: post.id,
-                                        contentTitle: post.title,
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
+                            // Verified Author Byline Card
+                            _buildAuthorCard(context, post, isDark),
                             const SizedBox(height: NagrikSpacing.space2),
 
                             // Location & Proximity Pill
@@ -718,20 +577,22 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.location_on_outlined,
                                     size: 14,
-                                    color: context.nagrikTheme.brandBright,
+                                    color: NagrikBrandColors.orangePrimary,
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
                                     post.locality.isNotEmpty
                                         ? '${post.locality}, ${post.city}'
                                         : post.city,
-                                    style: TextStyle(
+                                    style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: context.nagrikTheme.textSecondary,
+                                    ).copyWith(
+                                      fontFamilyFallback: NagrikTypography.fontFallbacks,
                                     ),
                                   ),
                                 ],
@@ -754,12 +615,17 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                             ),
                             const SizedBox(height: NagrikSpacing.space4),
 
-                            // 5. Full Article Body with Editorial Typography
+                            // 5. Full Article Body with Editorial Typography (16dp, 1.6 line height)
                             Text(
                               post.body,
-                              style: context.textTheme.bodyLarge?.copyWith(
-                                height: 1.72,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w400,
+                                height: 1.60,
                                 letterSpacing: 0.15,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ).copyWith(
+                                fontFamilyFallback: NagrikTypography.fontFallbacks,
                               ),
                             ),
                             const SizedBox(height: NagrikSpacing.space4),
@@ -778,7 +644,16 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                                 horizontal: NagrikSpacing.space3,
                                 vertical: NagrikSpacing.space2,
                               ),
-                              child: EngagementActionBar(post: post),
+                              child: EngagementActionBar(
+                                post: post,
+                                onReportPressed: () {
+                                  showReportContentSheet(
+                                    context,
+                                    contentId: post.id,
+                                    contentTitle: post.title,
+                                  );
+                                },
+                              ),
                             ),
                             const SizedBox(height: NagrikSpacing.space4),
 
@@ -826,10 +701,10 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                 opacity: _showFloatingBar ? 1.0 : 0.0,
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
+                    constraints: const BoxConstraints(maxWidth: 460),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
+                        horizontal: 14,
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
@@ -838,7 +713,9 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                             : Colors.white.withValues(alpha: 0.96),
                         borderRadius: BorderRadius.circular(NagrikRadii.pill),
                         border: Border.all(
-                          color: context.nagrikTheme.border.withValues(alpha: 0.75),
+                          color: isDark
+                              ? NagrikDarkColors.border
+                              : NagrikLightColors.border,
                           width: 0.85,
                         ),
                         boxShadow: [
@@ -850,8 +727,8 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                             offset: const Offset(0, 8),
                           ),
                           BoxShadow(
-                            color: context.colorScheme.primary.withValues(
-                              alpha: isDark ? 0.06 : 0.03,
+                            color: NagrikBrandColors.orangePrimary.withValues(
+                              alpha: isDark ? 0.08 : 0.04,
                             ),
                             blurRadius: 16,
                             offset: const Offset(0, 2),
@@ -877,67 +754,156 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                                 );
                               });
                             },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  post.isLiked
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  size: 20,
-                                  color: post.isLiked
-                                      ? context.colorScheme.error
-                                      : context.nagrikTheme.textSecondary,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${post.likesCount}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13,
-                                    color: post.isLiked
-                                        ? context.colorScheme.error
-                                        : context.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Comment action with open discussion
-                          NagrikSpringPressable(
-                            onTap: () => _showCommentsSheet(context, post),
-                            child: Semantics(
-                              label: '${post.commentsCount} comments',
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.chat_bubble_outline_rounded,
-                                    size: 19,
-                                    color: context.nagrikTheme.textSecondary,
+                                    post.isLiked
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
+                                    size: 20,
+                                    color: post.isLiked
+                                        ? context.colorScheme.error
+                                        : context.nagrikTheme.textSecondary,
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    '${post.commentsCount}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
+                                    '${post.likesCount}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w700,
                                       fontSize: 13,
-                                      color: context.colorScheme.onSurface,
+                                      color: post.isLiked
+                                          ? context.colorScheme.error
+                                          : context.colorScheme.onSurface,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
+                          // Comment action with open discussion
+                          NagrikSpringPressable(
+                            onTap: () {
+                              NagrikMotion.lightImpact();
+                              _showCommentsSheet(context, post);
+                            },
+                            child: Semantics(
+                              label: '${post.commentsCount} comments',
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.chat_bubble_outline_rounded,
+                                      size: 19,
+                                      color: context.nagrikTheme.textSecondary,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '${post.commentsCount}',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        color: context.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Bookmark action with active brand orange toggle
+                          NagrikSpringPressable(
+                            onTap: () {
+                              NagrikMotion.lightImpact();
+                              ref.read(feedPostsProvider.notifier).toggleBookmark(post.id);
+                              final updatedBookmarked = !post.isBookmarked;
+                              setState(() {
+                                _post = (_post ?? post).copyWith(
+                                  isBookmarked: updatedBookmarked,
+                                );
+                              });
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    updatedBookmarked
+                                        ? 'Saved to bookmarks'
+                                        : 'Removed from bookmarks',
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Icon(
+                                post.isBookmarked
+                                    ? Icons.bookmark_rounded
+                                    : Icons.bookmark_outline_rounded,
+                                size: 20,
+                                color: post.isBookmarked
+                                    ? NagrikBrandColors.orangePrimary
+                                    : context.nagrikTheme.textSecondary,
+                              ),
+                            ),
+                          ),
                           // Share action
-                          IconButton(
-                            icon: const Icon(Icons.share_outlined, size: 20),
-                            tooltip: 'Share',
-                            onPressed: () => showShareSheet(context, post),
+                          NagrikSpringPressable(
+                            onTap: () {
+                              NagrikMotion.lightImpact();
+                              showShareSheet(context, post);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Icon(
+                                Icons.share_outlined,
+                                size: 20,
+                                color: context.nagrikTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                          // Report action sheet
+                          NagrikSpringPressable(
+                            onTap: () {
+                              NagrikMotion.lightImpact();
+                              showReportContentSheet(
+                                context,
+                                contentId: post.id,
+                                contentTitle: post.title,
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Icon(
+                                Icons.flag_outlined,
+                                size: 19,
+                                color: context.nagrikTheme.textSecondary,
+                              ),
+                            ),
                           ),
                           // Scroll to top button
                           NagrikSpringPressable(
                             onTap: () {
+                              NagrikMotion.lightImpact();
                               _scrollController.animateTo(
                                 0,
                                 duration: const Duration(milliseconds: 400),
@@ -946,11 +912,11 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
+                                horizontal: 9,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: context.colorScheme.primary.withValues(
+                                color: NagrikBrandColors.orangePrimary.withValues(
                                   alpha: 0.12,
                                 ),
                                 borderRadius: BorderRadius.circular(
@@ -960,18 +926,18 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.arrow_upward_rounded,
-                                    size: 14,
-                                    color: context.nagrikTheme.brandBright,
+                                    size: 13,
+                                    color: NagrikBrandColors.orangePrimary,
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 3),
                                   Text(
                                     'Top',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: context.nagrikTheme.brandBright,
+                                      color: NagrikBrandColors.orangePrimary,
                                     ),
                                   ),
                                 ],
@@ -1001,11 +967,11 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
       child: FractionallySizedBox(
         widthFactor: _readingProgress,
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                context.colorScheme.primary,
-                context.nagrikTheme.brandBright,
+                NagrikBrandColors.orangePrimary,
+                NagrikBrandColors.orangeBright,
               ],
             ),
           ),
@@ -1019,76 +985,84 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
     if (post.type == PostType.video &&
         post.videoUrl != null &&
         post.videoUrl!.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: NagrikSpacing.space4,
-          vertical: NagrikSpacing.space2,
-        ),
-        child: Hero(
-          tag: 'post-media-${widget.contentId}',
-          child: NagrikVideoPlayer(
-            videoUrl: post.videoUrl!,
-            postId: post.id,
-            thumbnailUrl:
-                post.thumbnailUrl ??
-                (post.mediaUrls.isNotEmpty ? post.mediaUrls.first : null),
-            autoPlay: true,
+      return Hero(
+        tag: 'post-media-${widget.contentId}',
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: NagrikVideoPlayer(
+              videoUrl: post.videoUrl!,
+              postId: post.id,
+              thumbnailUrl:
+                  post.thumbnailUrl ??
+                  (post.mediaUrls.isNotEmpty ? post.mediaUrls.first : null),
+              autoPlay: true,
+            ),
           ),
         ),
       );
     } else if (post.mediaUrls.isNotEmpty) {
       return Hero(
         tag: 'post-media-${widget.contentId}',
-        child: SizedBox(
-          height: 260,
-          width: double.infinity,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              CachedNetworkImage(
-                imageUrl: post.mediaUrls.first,
-                memCacheWidth: 800,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: isDark
-                      ? context.nagrikTheme.level4Muted
-                      : context.nagrikTheme.surfaceMuted,
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: isDark
-                      ? context.nagrikTheme.level4Muted
-                      : context.nagrikTheme.surfaceMuted,
-                  child: const Center(
-                    child: Icon(Icons.image_outlined, size: 48),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: post.mediaUrls.first,
+                  memCacheWidth: 1080,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: isDark
+                        ? context.nagrikTheme.level4Muted
+                        : context.nagrikTheme.surfaceMuted,
                   ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 80,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.55),
-                      ],
+                  errorWidget: (context, url, error) => Container(
+                    color: isDark
+                        ? context.nagrikTheme.level4Muted
+                        : context.nagrikTheme.surfaceMuted,
+                    child: const Center(
+                      child: Icon(Icons.image_outlined, size: 48),
                     ),
                   ),
                 ),
-              ),
-            ],
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.15),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.65),
+                        ],
+                        stops: const [0.0, 0.45, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 14,
+                  left: 16,
+                  child: _buildGeofenceBadge(),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
 
-    // Editorial topic hero banner for text-first articles. Single brand
-    // treatment: icons vary by category, color never does.
+    // Editorial topic hero banner for text-first articles.
     IconData categoryIcon;
     switch (post.category.label.toLowerCase()) {
       case 'traffic':
@@ -1107,7 +1081,7 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
       default:
         categoryIcon = Icons.account_balance_rounded;
     }
-    final accentColor = context.colorScheme.primary;
+    const accentColor = NagrikBrandColors.orangePrimary;
 
     return Container(
       width: double.infinity,
@@ -1118,7 +1092,9 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
       padding: const EdgeInsets.all(NagrikSpacing.space4),
       decoration: BoxDecoration(
         color: accentColor.withValues(alpha: 0.08),
-        borderRadius: NagrikRadii.borderRadiusCard,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(16),
+        ),
         border: Border.all(
           color: accentColor.withValues(alpha: 0.30),
           width: 1,
@@ -1126,7 +1102,6 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
       ),
       child: Stack(
         children: [
-          // Background geometric watermark icon
           Positioned(
             right: -10,
             bottom: -15,
@@ -1151,12 +1126,16 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'LOCAL JOURNALISM • DISPATCH',
-                    style: TextStyle(
+                    post.type == PostType.video
+                        ? 'VIDEO REPORT • FIELD DESK'
+                        : 'LOCAL JOURNALISM • DISPATCH',
+                    style: GoogleFonts.jetBrainsMono(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
                       color: accentColor,
+                    ).copyWith(
+                      fontFamilyFallback: NagrikTypography.fontFallbacks,
                     ),
                   ),
                 ],
@@ -1164,14 +1143,338 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
               const SizedBox(height: 10),
               Text(
                 'Comprehensive verified coverage from ${post.locality.isNotEmpty ? post.locality : post.city} field desk.',
-                style: TextStyle(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   height: 1.4,
                   color: context.nagrikTheme.textSecondary,
+                ).copyWith(
+                  fontFamilyFallback: NagrikTypography.fontFallbacks,
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeofenceBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.72),
+        borderRadius: NagrikRadii.borderRadiusPill,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.20),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.location_on_rounded,
+            color: NagrikBrandColors.orangePrimary,
+            size: 13,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '5KM RADIUS',
+            style: GoogleFonts.jetBrainsMono(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ).copyWith(
+              fontFamilyFallback: NagrikTypography.fontFallbacks,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(BuildContext context, Post post, bool isDark) {
+    return Row(
+      children: [
+        // Category Tag
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: NagrikBrandColors.orangePrimary.withValues(
+              alpha: isDark ? 0.22 : 0.12,
+            ),
+            borderRadius: NagrikRadii.borderRadiusXs,
+            border: Border.all(
+              color: NagrikBrandColors.orangePrimary.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: NagrikBrandColors.orangePrimary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                post.category.label.toUpperCase(),
+                style: GoogleFonts.jetBrainsMono(
+                  color: NagrikBrandColors.orangePrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ).copyWith(
+                  fontFamilyFallback: NagrikTypography.fontFallbacks,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: NagrikSpacing.space2),
+        // 5KM Geofence Pill
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: isDark
+                ? context.nagrikTheme.level2Elevated
+                : context.nagrikTheme.surfaceMuted,
+            borderRadius: NagrikRadii.borderRadiusXs,
+            border: Border.all(
+              color: context.nagrikTheme.border.withValues(alpha: 0.4),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.location_on_rounded,
+                size: 13,
+                color: NagrikBrandColors.orangePrimary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '5KM RADIUS',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: context.colorScheme.onSurface,
+                ).copyWith(
+                  fontFamilyFallback: NagrikTypography.fontFallbacks,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: NagrikSpacing.space2),
+        // Reading time estimate badge
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: isDark
+                ? context.nagrikTheme.level2Elevated
+                : context.nagrikTheme.surfaceMuted,
+            borderRadius: NagrikRadii.borderRadiusXs,
+            border: Border.all(
+              color: context.nagrikTheme.border.withValues(alpha: 0.4),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.schedule_rounded,
+                size: 13,
+                color: context.nagrikTheme.textSecondary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                post.type == PostType.video
+                    ? 'Video coverage'
+                    : '${_calculateReadingTime(post.body)} min read',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: context.nagrikTheme.textSecondary,
+                ).copyWith(
+                  fontFamilyFallback: NagrikTypography.fontFallbacks,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAuthorCard(BuildContext context, Post post, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? context.nagrikTheme.level1Surface
+            : context.nagrikTheme.surfaceMuted,
+        borderRadius: NagrikRadii.borderRadiusCard,
+        border: Border.all(
+          color: context.nagrikTheme.border.withValues(alpha: 0.5),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        children: [
+          NagrikAvatar(
+            name: post.author.name,
+            imageUrl: post.author.avatarUrl,
+            size: NagrikAvatarSize.md,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        post.author.name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ).copyWith(
+                          fontFamilyFallback: NagrikTypography.fontFallbacks,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (post.author.isVerified) ...[
+                      const SizedBox(width: 5),
+                      VerificationBadge(
+                        size: 14,
+                        color: isDark
+                            ? NagrikDarkColors.success
+                            : NagrikLightColors.success,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      post.timeAgo,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: context.nagrikTheme.textSecondary,
+                      ).copyWith(
+                        fontFamilyFallback: NagrikTypography.fontFallbacks,
+                      ),
+                    ),
+                    if (post.locality.isNotEmpty || post.city.isNotEmpty) ...[
+                      Text(
+                        ' • ',
+                        style: TextStyle(
+                          color: context.nagrikTheme.textTertiary,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                      Flexible(
+                        child: Text(
+                          post.locality.isNotEmpty
+                              ? '${post.locality}, ${post.city}'
+                              : post.city,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: context.nagrikTheme.textSecondary,
+                          ).copyWith(
+                            fontFamilyFallback: NagrikTypography.fontFallbacks,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+            decoration: BoxDecoration(
+              color: (isDark
+                      ? NagrikDarkColors.success
+                      : NagrikLightColors.success)
+                  .withValues(alpha: 0.12),
+              borderRadius: NagrikRadii.borderRadiusPill,
+              border: Border.all(
+                color: (isDark
+                        ? NagrikDarkColors.success
+                        : NagrikLightColors.success)
+                    .withValues(alpha: 0.35),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.verified_user_rounded,
+                  size: 12,
+                  color: isDark
+                      ? NagrikDarkColors.success
+                      : NagrikLightColors.success,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Verified',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                    color: isDark
+                        ? NagrikDarkColors.success
+                        : NagrikLightColors.success,
+                  ).copyWith(
+                    fontFamilyFallback: NagrikTypography.fontFallbacks,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1195,83 +1498,89 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
     if (bullets.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(NagrikSpacing.space4),
       decoration: BoxDecoration(
         color: isDark
             ? context.nagrikTheme.level1Surface
             : context.nagrikTheme.surfaceMuted,
         borderRadius: NagrikRadii.borderRadiusCard,
-        border: Border(
-          left: BorderSide(
-            color: context.nagrikTheme.brandBright,
-            width: 3.5,
-          ),
-          top: BorderSide(
-            color: context.nagrikTheme.border.withValues(alpha: 0.4),
-            width: 0.8,
-          ),
-          right: BorderSide(
-            color: context.nagrikTheme.border.withValues(alpha: 0.4),
-            width: 0.8,
-          ),
-          bottom: BorderSide(
-            color: context.nagrikTheme.border.withValues(alpha: 0.4),
-            width: 0.8,
-          ),
+        border: Border.all(
+          color: context.nagrikTheme.border.withValues(alpha: 0.4),
+          width: 0.8,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.bolt_rounded,
-                size: 18,
-                color: context.nagrikTheme.brandBright,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'KEY HIGHLIGHTS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.7,
-                  color: context.nagrikTheme.brandBright,
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 3.5,
+              color: context.nagrikTheme.brandBright,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(NagrikSpacing.space4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.bolt_rounded,
+                          size: 18,
+                          color: NagrikBrandColors.orangePrimary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'KEY HIGHLIGHTS',
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.7,
+                            color: NagrikBrandColors.orangePrimary,
+                          ).copyWith(
+                            fontFamilyFallback: NagrikTypography.fontFallbacks,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: NagrikSpacing.space2),
+                    for (final bullet in bullets)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '• ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                color: NagrikBrandColors.orangePrimary,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                bullet.trim(),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  height: 1.45,
+                                  color: isDark
+                                      ? const Color(0xFFCBD5E1)
+                                      : const Color(0xFF334155),
+                                ).copyWith(
+                                  fontFamilyFallback: NagrikTypography.fontFallbacks,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          for (final bullet in bullets)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '• ',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: context.nagrikTheme.brandBright,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      bullet.trim(),
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        height: 1.45,
-                        color: isDark
-                            ? const Color(0xFFCBD5E1)
-                            : const Color(0xFF334155),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1374,9 +1683,9 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
               color: context.colorScheme.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.location_on_outlined,
-              color: context.nagrikTheme.brandBright,
+              color: NagrikBrandColors.orangePrimary,
               size: 20,
             ),
           ),

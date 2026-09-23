@@ -51,6 +51,83 @@ void main() {
       expect(navBarRect.height, inInclusiveRange(50.0, 80.0));
       expect(navBarRect.bottom, equals(600.0));
       expect(navBarRect.top, greaterThan(500.0));
+
+      // Verify NavigationBarTheme uses brand orange indicator
+      final themeFinder = find.byType(NavigationBarTheme);
+      expect(themeFinder, findsOneWidget);
+      final navBarTheme = tester.widget<NavigationBarTheme>(themeFinder);
+      expect(
+        navBarTheme.data.indicatorColor,
+        const Color(0xFFDE5227).withValues(alpha: 0.12),
+      );
+    });
+
+    testWidgets('Renders docked navigation bar in dark mode with dark border and indicator', (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          hasCompletedOnboardingProvider.overrideWithValue(true),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final router = container.read(routerProvider);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            theme: NagrikTheme.dark(),
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final themeFinder = find.byType(NavigationBarTheme);
+      expect(themeFinder, findsOneWidget);
+      final navBarTheme = tester.widget<NavigationBarTheme>(themeFinder);
+      expect(
+        navBarTheme.data.indicatorColor,
+        const Color(0xFFDE5227).withValues(alpha: 0.22),
+      );
+    });
+
+    testWidgets('Tapping Search and Saved navigates between tabs smoothly', (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          hasCompletedOnboardingProvider.overrideWithValue(true),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final router = container.read(routerProvider);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            theme: NagrikTheme.light(),
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap Search
+      await tester.tap(find.text('Search'));
+      await tester.pumpAndSettle();
+
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar.selectedIndex, 1);
+
+      // Tap Saved
+      await tester.tap(find.text('Saved'));
+      await tester.pumpAndSettle();
+
+      final navBar2 = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar2.selectedIndex, 2);
     });
   });
 }

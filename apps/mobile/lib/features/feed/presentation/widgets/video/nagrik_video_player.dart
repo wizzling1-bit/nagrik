@@ -224,7 +224,9 @@ class _NagrikVideoPlayerState extends ConsumerState<NagrikVideoPlayer> {
   }
 
   void _disposeController() {
-    ref.read(adFrequencyManagerProvider.notifier).setVideoPlaying(false);
+    try {
+      ref.read(adFrequencyManagerProvider.notifier).setVideoPlaying(false);
+    } catch (_) {}
     _cancelHideControls();
     _seekResetTimer?.cancel();
     final controller = _controller;
