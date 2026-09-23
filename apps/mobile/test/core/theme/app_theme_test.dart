@@ -20,7 +20,7 @@ void main() {
       expect(theme.brightness, Brightness.light);
     });
 
-    test('primary color is blue600', () {
+    test('primary color is brandPrimary (signature orange)', () {
       expect(theme.colorScheme.primary, NagrikLightColors.brandPrimary);
     });
 
@@ -58,7 +58,7 @@ void main() {
       expect(theme.brightness, Brightness.dark);
     });
 
-    test('primary color is blue500', () {
+    test('primary color is brandPrimary (signature orange)', () {
       expect(theme.colorScheme.primary, NagrikDarkColors.brandPrimary);
     });
 

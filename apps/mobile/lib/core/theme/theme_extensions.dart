@@ -16,9 +16,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
     required this.surfaceInteractive,
     required this.textSecondary,
     required this.textTertiary,
+    required this.brandPrimary,
     required this.brandSecondary,
     required this.brandBright,
     required this.border,
+    required this.borderStrong,
     required this.divider,
     required this.success,
     required this.successContainer,
@@ -43,9 +45,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
         surfaceInteractive: NagrikLightColors.surfaceInteractive,
         textSecondary: NagrikLightColors.textSecondary,
         textTertiary: NagrikLightColors.textTertiary,
+        brandPrimary: NagrikLightColors.brandPrimary,
         brandSecondary: NagrikLightColors.brandSecondary,
         brandBright: NagrikLightColors.brandBright,
         border: NagrikLightColors.border,
+        borderStrong: NagrikLightColors.borderStrong,
         divider: NagrikLightColors.divider,
         success: NagrikLightColors.success,
         successContainer: NagrikLightColors.successContainer,
@@ -70,9 +74,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
         surfaceInteractive: NagrikDarkColors.level3Interactive,
         textSecondary: NagrikDarkColors.textSecondary,
         textTertiary: NagrikDarkColors.textTertiary,
+        brandPrimary: NagrikDarkColors.brandPrimary,
         brandSecondary: NagrikDarkColors.brandSecondary,
         brandBright: NagrikDarkColors.brandBright,
         border: NagrikDarkColors.border,
+        borderStrong: NagrikDarkColors.borderStrong,
         divider: NagrikDarkColors.divider,
         success: NagrikDarkColors.success,
         successContainer: NagrikDarkColors.successContainer,
@@ -96,9 +102,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
   final Color surfaceInteractive;
   final Color textSecondary;
   final Color textTertiary;
+  final Color brandPrimary;
   final Color brandSecondary;
   final Color brandBright;
   final Color border;
+  final Color borderStrong;
   final Color divider;
   final Color success;
   final Color successContainer;
@@ -122,9 +130,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
     Color? surfaceInteractive,
     Color? textSecondary,
     Color? textTertiary,
+    Color? brandPrimary,
     Color? brandSecondary,
     Color? brandBright,
     Color? border,
+    Color? borderStrong,
     Color? divider,
     Color? success,
     Color? successContainer,
@@ -147,9 +157,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
       surfaceInteractive: surfaceInteractive ?? this.surfaceInteractive,
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
+      brandPrimary: brandPrimary ?? this.brandPrimary,
       brandSecondary: brandSecondary ?? this.brandSecondary,
       brandBright: brandBright ?? this.brandBright,
       border: border ?? this.border,
+      borderStrong: borderStrong ?? this.borderStrong,
       divider: divider ?? this.divider,
       success: success ?? this.success,
       successContainer: successContainer ?? this.successContainer,
@@ -183,9 +195,11 @@ class NagrikThemeExtension extends ThemeExtension<NagrikThemeExtension> {
           Color.lerp(surfaceInteractive, other.surfaceInteractive, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
+      brandPrimary: Color.lerp(brandPrimary, other.brandPrimary, t)!,
       brandSecondary: Color.lerp(brandSecondary, other.brandSecondary, t)!,
       brandBright: Color.lerp(brandBright, other.brandBright, t)!,
       border: Color.lerp(border, other.border, t)!,
+      borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
       success: Color.lerp(success, other.success, t)!,
       successContainer:
