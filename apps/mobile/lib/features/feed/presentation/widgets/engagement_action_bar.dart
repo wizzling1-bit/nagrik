@@ -12,9 +12,14 @@ import 'package:nagrik/features/feed/presentation/widgets/share_bottom_sheet.dar
 /// Numeric engagement action bar: ❤ 142  💬 29  ↗ 88  🔖
 /// Clean, compact layout showing counts with heart pop bounce, ribbon tuck, and number roll transitions.
 class EngagementActionBar extends ConsumerWidget {
-  const EngagementActionBar({super.key, required this.post});
+  const EngagementActionBar({
+    super.key,
+    required this.post,
+    this.onReportPressed,
+  });
 
   final Post post;
+  final VoidCallback? onReportPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,86 +42,123 @@ class EngagementActionBar extends ConsumerWidget {
     return Row(
       children: [
         // ❤ Like with heart-pop spring bounce and animated number roll
-        NagrikPressable(
-          onTap: () {
-            NagrikMotion.lightImpact();
-            notifier.toggleLike(post.id);
-          },
-          scaleFactor: 0.92,
-          child: _NumericAction(
-            icon: isLiked ? Icons.favorite : Icons.favorite_border,
-            iconColor: isLiked ? context.colorScheme.error : mutedColor,
-            count: currentPost.likesCount,
-            countColor: isLiked
-                ? context.colorScheme.error
-                : context.nagrikTheme.textSecondary,
-            isActive: isLiked,
+        Semantics(
+          button: true,
+          label: isLiked ? 'Unlike post' : 'Like post',
+          child: NagrikPressable(
+            onTap: () {
+              NagrikMotion.lightImpact();
+              notifier.toggleLike(post.id);
+            },
+            scaleFactor: 0.92,
+            child: _NumericAction(
+              icon: isLiked ? Icons.favorite : Icons.favorite_border,
+              iconColor: isLiked ? context.colorScheme.error : mutedColor,
+              count: currentPost.likesCount,
+              countColor: isLiked
+                  ? context.colorScheme.error
+                  : context.nagrikTheme.textSecondary,
+              isActive: isLiked,
+            ),
           ),
         ),
         const SizedBox(width: NagrikSpacing.space4),
 
         // 💬 Comment count with tap to open story discussion
-        NagrikPressable(
-          onTap: () {
-            NagrikMotion.lightImpact();
-            context.push('/content/${post.id}', extra: post);
-          },
-          scaleFactor: 0.92,
-          child: _NumericAction(
-            icon: Icons.chat_bubble_outline_rounded,
-            iconColor: mutedColor,
-            count: currentPost.commentsCount,
-            countColor: context.nagrikTheme.textSecondary,
+        Semantics(
+          button: true,
+          label: 'Comments: ${currentPost.commentsCount}',
+          child: NagrikPressable(
+            onTap: () {
+              NagrikMotion.lightImpact();
+              context.push('/content/${post.id}', extra: post);
+            },
+            scaleFactor: 0.92,
+            child: _NumericAction(
+              icon: Icons.chat_bubble_outline_rounded,
+              iconColor: mutedColor,
+              count: currentPost.commentsCount,
+              countColor: context.nagrikTheme.textSecondary,
+            ),
           ),
         ),
         const SizedBox(width: NagrikSpacing.space4),
 
         // ↗ Share count with tactile spring bounce
-        NagrikPressable(
-          onTap: () => showShareSheet(context, post),
-          scaleFactor: 0.92,
-          child: _NumericAction(
-            icon: Icons.arrow_outward_rounded,
-            iconColor: mutedColor,
-            count: currentPost.sharesCount,
-            countColor: context.nagrikTheme.textSecondary,
+        Semantics(
+          button: true,
+          label: 'Share post',
+          child: NagrikPressable(
+            onTap: () => showShareSheet(context, post),
+            scaleFactor: 0.92,
+            child: _NumericAction(
+              icon: Icons.arrow_outward_rounded,
+              iconColor: mutedColor,
+              count: currentPost.sharesCount,
+              countColor: context.nagrikTheme.textSecondary,
+            ),
           ),
         ),
 
         const Spacer(),
 
         // 🔖 Bookmark with ribbon tuck-in spring animation
-        NagrikPressable(
-          onTap: () {
-            NagrikMotion.lightImpact();
-            notifier.toggleBookmark(post.id);
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  isBookmarked
-                      ? strings.removedFromSaved
-                      : strings.savedToBookmarks,
+        Semantics(
+          button: true,
+          label: isBookmarked ? 'Remove bookmark' : 'Bookmark post',
+          child: NagrikPressable(
+            onTap: () {
+              NagrikMotion.lightImpact();
+              notifier.toggleBookmark(post.id);
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isBookmarked
+                        ? strings.removedFromSaved
+                        : strings.savedToBookmarks,
+                  ),
+                  duration: const Duration(seconds: 2),
                 ),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          },
-          scaleFactor: 0.90,
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: AnimatedScale(
-              scale: isBookmarked ? 1.15 : 1.0,
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutBack,
-              child: Icon(
-                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                color: isBookmarked ? brandColor : mutedColor,
-                size: 21,
+              );
+            },
+            scaleFactor: 0.90,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: AnimatedScale(
+                scale: isBookmarked ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked ? brandColor : mutedColor,
+                  size: 21,
+                ),
               ),
             ),
           ),
         ),
+
+        // 🚩 Flag/Report action
+        if (onReportPressed != null) ...[
+          const SizedBox(width: NagrikSpacing.space1),
+          Semantics(
+            button: true,
+            label: 'Report story',
+            child: NagrikPressable(
+              onTap: onReportPressed,
+              scaleFactor: 0.90,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(
+                  Icons.flag_outlined,
+                  color: mutedColor,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

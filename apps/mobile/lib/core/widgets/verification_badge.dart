@@ -8,14 +8,17 @@ class VerificationBadge extends StatelessWidget {
     super.key,
     this.label,
     this.size = 15,
+    this.color,
   });
 
   final String? label;
   final double size;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = context.colorScheme.primary;
+    // Verified badge token: #047857 in light mode / #34D399 in dark mode
+    final badgeColor = color ?? context.nagrikTheme.success;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -1,16 +1,33 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
+import 'package:nagrik/core/theme/color_tokens.dart';
+import 'package:nagrik/core/theme/motion.dart';
+import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
+import 'package:nagrik/core/theme/typography.dart';
 import 'package:nagrik/core/widgets/glass_card.dart';
+import 'package:nagrik/core/widgets/nagrik_avatar.dart';
+import 'package:nagrik/core/widgets/verification_badge.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 import 'package:nagrik/features/feed/presentation/widgets/engagement_action_bar.dart';
-import 'package:nagrik/features/feed/presentation/widgets/post_author_header.dart';
 import 'package:nagrik/features/feed/presentation/widgets/report_content_sheet.dart';
 
-/// Editorial News Post — high-performance card with side-thumbnail layout and Hero transition.
-/// Layout: Author header → [Headline + Body excerpt | Thumbnail with frosted category badge] → Engagement bar.
+/// Streamlined Luxury Editorial News Post Card.
+///
+/// Features:
+/// - 16:9 media ratio with 14dp rounded corners (`NagrikRadii.borderRadiusCard`).
+/// - Dark glassmorphic geofence pill at top-left: MapPin in `#DE5227` + `5KM RADIUS` in `JetBrains Mono` bold.
+/// - Metadata row: `CATEGORY · WARD · TIME` in letterspaced uppercase `JetBrains Mono`.
+/// - Category tag in uppercase brand orange monospace.
+/// - Dominant headline in `Newsreader` bold serif (`fontSize: 18-21`).
+/// - Summary excerpt in `Plus Jakarta Sans` regular (`bodyMedium`).
+/// - Author byline with avatar, verified badge (`#047857` light / `#34D399` dark), and publication time.
+/// - Bottom action row: Bookmark button with active toggle, Share, and Flag/Report actions.
+/// - Prominent layout and typography scale when [isFeatured] is true.
+/// - Tactile spring press and semantic accessibility labels.
 class NewsCard extends StatelessWidget {
   const NewsCard({
     super.key,
@@ -23,321 +40,376 @@ class NewsCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isFeatured;
 
-  Widget _buildFeaturedCard(BuildContext context, bool isDark) {
-    return GlassCard(
-      margin: const EdgeInsets.symmetric(
-        horizontal: NagrikSpacing.space4,
-        vertical: NagrikSpacing.space2,
-      ),
-      padding: const EdgeInsets.all(NagrikSpacing.space3),
-      onTap: onTap ?? () => context.push('/content/${post.id}', extra: post),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1. Author & Metadata Header
-          PostAuthorHeader.fromPost(
-            post,
-            showCategory: false,
-            onMorePressed: () {
-              showReportContentSheet(
-                context,
-                contentId: post.id,
-                contentTitle: post.title,
-              );
-            },
-          ),
-          const SizedBox(height: NagrikSpacing.space3),
+  void _handleCardTap(BuildContext context) {
+    NagrikMotion.lightImpact();
+    if (onTap != null) {
+      onTap!();
+    } else {
+      context.push('/content/${post.id}', extra: post);
+    }
+  }
 
-          // 2. Full-Width 16:9 Cinematic Hero Image with Category Badge & Gradient Scrim
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Hero(
-                    tag: 'post-media-${post.id}',
-                    child: CachedNetworkImage(
-                      imageUrl: post.mediaUrls.first,
-                      memCacheWidth: 800,
-                      fit: BoxFit.cover,
-                      fadeInDuration: const Duration(milliseconds: 150),
-                      placeholder: (context, url) => Container(
-                        color: isDark
-                            ? context.nagrikTheme.level4Muted
-                            : context.nagrikTheme.surfaceMuted,
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: isDark
-                            ? context.nagrikTheme.level4Muted
-                            : context.nagrikTheme.surfaceMuted,
-                        child: Center(
-                          child: Icon(
-                            Icons.image_outlined,
-                            size: 32,
-                            color: context.nagrikTheme.textTertiary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Subtle bottom vignette scrim
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.10),
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.70),
-                          ],
-                          stops: const [0.0, 0.4, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Floating Category Pill in the corner
-                  Positioned(
-                    bottom: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.78),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: context.colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            post.category.label.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: NagrikSpacing.space3),
-
-          // 3. Main Headline in Bold Editorial Scale
-          Text(
-            post.title,
-            style: context.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              fontSize: 18,
-              height: 1.30,
-              letterSpacing: -0.25,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (post.body.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              post.body,
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: context.nagrikTheme.textSecondary,
-                height: 1.42,
-                fontSize: 13.5,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          const SizedBox(height: NagrikSpacing.space3),
-
-          // 4. Engagement Bar
-          EngagementActionBar(post: post),
-        ],
-      ),
+  void _handleReportTap(BuildContext context) {
+    showReportContentSheet(
+      context,
+      contentId: post.id,
+      contentTitle: post.title,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
-    final hasThumbnail = post.mediaUrls.isNotEmpty;
 
-    if (isFeatured && hasThumbnail) {
-      return _buildFeaturedCard(context, isDark);
-    }
-
-    return GlassCard(
-      margin: const EdgeInsets.symmetric(
-        horizontal: NagrikSpacing.space4,
-        vertical: NagrikSpacing.space2,
-      ),
-      padding: const EdgeInsets.all(NagrikSpacing.space3),
-      onTap: onTap ?? () => context.push('/content/${post.id}', extra: post),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1. Source, Locality & Timestamp Meta Row
-          PostAuthorHeader.fromPost(
-            post,
-            showCategory: !hasThumbnail,
-            onMorePressed: () {
-              showReportContentSheet(
-                context,
-                contentId: post.id,
-                contentTitle: post.title,
-              );
-            },
+    return Semantics(
+      button: true,
+      label: 'News article: ${post.title}',
+      child: NagrikSpringPressable(
+        onTap: () => _handleCardTap(context),
+        scaleFactor: 0.985,
+        child: GlassCard(
+          margin: const EdgeInsets.symmetric(
+            horizontal: NagrikSpacing.space4,
+            vertical: NagrikSpacing.space2,
           ),
-          const SizedBox(height: NagrikSpacing.space3),
-
-          // 2. Content Row: Headline + Body on left, Thumbnail on right
-          Row(
+          padding: const EdgeInsets.all(NagrikSpacing.space3),
+          borderRadius: NagrikRadii.borderRadiusCard,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Text content (headline + body excerpt)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      post.title,
-                      style: context.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16.5,
-                        height: 1.32,
-                        letterSpacing: -0.2,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      maxLines: hasThumbnail ? 3 : 4,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      post.body,
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.nagrikTheme.textSecondary,
-                        height: 1.42,
-                        fontSize: 13.5,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
+              // 1. 16:9 Cinematic Media with Geofence Badge & Scrim
+              _buildMedia(context, isDark),
+              const SizedBox(height: NagrikSpacing.space3),
 
-              // Thumbnail with frosted category badge overlay and Hero support
-              if (hasThumbnail) ...[
-                const SizedBox(width: NagrikSpacing.space3),
-                SizedBox(
-                  width: 104,
-                  height: 104,
-                  child: Stack(
-                    children: [
-                      // Hero Cached Thumbnail
-                      Hero(
-                        tag: 'post-media-${post.id}',
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: SizedBox.expand(
-                            child: CachedNetworkImage(
-                              imageUrl: post.mediaUrls.first,
-                              memCacheWidth: 320,
-                              memCacheHeight: 320,
-                              fit: BoxFit.cover,
-                              fadeInDuration: const Duration(milliseconds: 150),
-                              placeholder: (context, url) => Container(
-                                color: isDark
-                                    ? context.nagrikTheme.level4Muted
-                                    : context.nagrikTheme.surfaceMuted,
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? context.nagrikTheme.level4Muted
-                                      : context.nagrikTheme.surfaceMuted,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.image_outlined,
-                                    size: 28,
-                                    color: context.nagrikTheme.textTertiary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+              // 2. Metadata row: CATEGORY · WARD · TIME in JetBrains Mono
+              _buildMetadataRow(context),
+              const SizedBox(height: NagrikSpacing.space2),
 
-                      // Category badge overlay
-                      Positioned(
-                        bottom: 6,
-                        left: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6.5,
-                            vertical: 2.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.76),
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.22),
-                              width: 0.6,
-                            ),
-                          ),
-                          child: Text(
-                            post.category.label.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.0,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // 3. Headline rendered in Newsreader bold serif
+              _buildHeadline(context),
+
+              // 4. Summary excerpt in Plus Jakarta Sans
+              if (post.body.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                _buildExcerpt(context),
               ],
+              const SizedBox(height: NagrikSpacing.space3),
+
+              // 5. Author byline with avatar and verified badge (#047857 / #34D399)
+              _buildAuthorByline(context, isDark),
+              const SizedBox(height: NagrikSpacing.space2),
+
+              // 6. Bottom action row: Bookmark, Share, Flag/Report, and Engagement counts
+              EngagementActionBar(
+                post: post,
+                onReportPressed: () => _handleReportTap(context),
+              ),
             ],
           ),
-          const SizedBox(height: NagrikSpacing.space3),
+        ),
+      ),
+    );
+  }
 
-          // 3. Compact Numeric Engagement Bar: ❤ 142  💬 29  ↗ 88  🔖
-          EngagementActionBar(post: post),
+  Widget _buildMedia(BuildContext context, bool isDark) {
+    final hasImage = post.mediaUrls.isNotEmpty;
+
+    return ClipRRect(
+      borderRadius: NagrikRadii.borderRadiusCard,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Hero Media or Warm Placeholder
+            if (hasImage)
+              Hero(
+                tag: 'post-media-${post.id}',
+                child: CachedNetworkImage(
+                  imageUrl: post.mediaUrls.first,
+                  memCacheWidth: 800,
+                  fit: BoxFit.cover,
+                  fadeInDuration: const Duration(milliseconds: 150),
+                  placeholder: (context, url) => _imagePlaceholder(context, isDark),
+                  errorWidget: (context, url, error) => _imageErrorFallback(context, isDark),
+                ),
+              )
+            else
+              _imagePlaceholder(context, isDark),
+
+            // Cinematic vignette gradient scrim
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.15),
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.65),
+                    ],
+                    stops: const [0.0, 0.45, 1.0],
+                  ),
+                ),
+              ),
+            ),
+
+            // Floating dark glassmorphic 5KM RADIUS Geofence Badge at top-left
+            Positioned(
+              top: 10,
+              left: 10,
+              child: _buildGeofenceBadge(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeofenceBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.72),
+        borderRadius: NagrikRadii.borderRadiusPill,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.20),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.location_on_rounded,
+            color: NagrikBrandColors.orangePrimary, // #DE5227
+            size: 13,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '5KM RADIUS',
+            style: GoogleFonts.jetBrainsMono(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ).copyWith(
+              fontFamilyFallback: NagrikTypography.fontFallbacks,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadataRow(BuildContext context) {
+    final categoryText = post.category.label.toUpperCase();
+    final wardText = (post.locality.isNotEmpty ? post.locality : post.city).toUpperCase();
+    final timeText = post.timeAgo.toUpperCase();
+
+    return Row(
+      children: [
+        // Category tag in uppercase brand orange monospace
+        Text(
+          categoryText,
+          style: GoogleFonts.jetBrainsMono(
+            color: NagrikBrandColors.orangePrimary, // #DE5227
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ).copyWith(
+            fontFamilyFallback: NagrikTypography.fontFallbacks,
+          ),
+        ),
+        if (wardText.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Text(
+              '·',
+              style: GoogleFonts.jetBrainsMono(
+                color: context.nagrikTheme.textTertiary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Flexible(
+            child: Text(
+              wardText,
+              style: GoogleFonts.jetBrainsMono(
+                color: context.nagrikTheme.textTertiary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.6,
+              ).copyWith(
+                fontFamilyFallback: NagrikTypography.fontFallbacks,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+        if (timeText.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Text(
+              '·',
+              style: GoogleFonts.jetBrainsMono(
+                color: context.nagrikTheme.textTertiary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Text(
+            timeText,
+            style: GoogleFonts.jetBrainsMono(
+              color: context.nagrikTheme.textTertiary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.6,
+            ).copyWith(
+              fontFamilyFallback: NagrikTypography.fontFallbacks,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildHeadline(BuildContext context) {
+    return Text(
+      post.title,
+      style: GoogleFonts.newsreader(
+        fontSize: isFeatured ? 20.0 : 17.5,
+        fontWeight: isFeatured ? FontWeight.w800 : FontWeight.w700,
+        height: 1.28,
+        letterSpacing: -0.15,
+        color: Theme.of(context).colorScheme.onSurface,
+      ).copyWith(
+        fontFamilyFallback: NagrikTypography.fontFallbacks,
+      ),
+      maxLines: isFeatured ? 3 : 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildExcerpt(BuildContext context) {
+    return Text(
+      post.body,
+      style: GoogleFonts.plusJakartaSans(
+        fontSize: isFeatured ? 14.0 : 13.5,
+        fontWeight: FontWeight.w400,
+        height: 1.45,
+        color: context.nagrikTheme.textSecondary,
+      ).copyWith(
+        fontFamilyFallback: NagrikTypography.fontFallbacks,
+      ),
+      maxLines: isFeatured ? 3 : 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildAuthorByline(BuildContext context, bool isDark) {
+    final hasDistance = post.author.formattedDistance != null;
+    final secondaryText = post.author.badgeTitle != null && post.author.badgeTitle!.isNotEmpty
+        ? post.author.badgeTitle!
+        : (hasDistance ? post.author.formattedDistance! : post.timeAgo);
+
+    return Row(
+      children: [
+        NagrikAvatar(
+          name: post.author.name,
+          imageUrl: post.author.avatarUrl,
+          size: NagrikAvatarSize.xs,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      post.author.name,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        letterSpacing: -0.1,
+                      ).copyWith(
+                        fontFamilyFallback: NagrikTypography.fontFallbacks,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (post.author.isVerified) ...[
+                    const SizedBox(width: 4),
+                    const VerificationBadge(size: 13),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 1),
+              Text(
+                secondaryText,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                  color: context.nagrikTheme.textSecondary,
+                ).copyWith(
+                  fontFamilyFallback: NagrikTypography.fontFallbacks,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _imagePlaceholder(BuildContext context, bool isDark) {
+    return Container(
+      color: isDark
+          ? context.nagrikTheme.level4Muted
+          : context.nagrikTheme.surfaceMuted,
+      child: Center(
+        child: Icon(
+          Icons.newspaper_outlined,
+          size: 32,
+          color: context.nagrikTheme.textTertiary.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _imageErrorFallback(BuildContext context, bool isDark) {
+    return Container(
+      color: isDark
+          ? context.nagrikTheme.level4Muted
+          : context.nagrikTheme.surfaceMuted,
+      child: Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          size: 32,
+          color: context.nagrikTheme.textTertiary.withValues(alpha: 0.5),
+        ),
       ),
     );
   }

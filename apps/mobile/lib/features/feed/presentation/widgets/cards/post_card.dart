@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 import 'package:nagrik/features/feed/domain/models/post_type.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
@@ -38,7 +38,7 @@ class _PostCardState extends ConsumerState<PostCard>
       duration: const Duration(milliseconds: 500),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.4, end: 1.2).animate(
+    _scaleAnimation = Tween<double>(begin: 0.4, end: 1.25).animate(
       CurvedAnimation(
         parent: _heartAnimController,
         curve: const Interval(0.0, 0.7, curve: Curves.elasticOut),
@@ -60,7 +60,7 @@ class _PostCardState extends ConsumerState<PostCard>
   }
 
   void _handleDoubleTap() {
-    HapticFeedback.lightImpact();
+    NagrikMotion.lightImpact();
     ref.read(feedPostsProvider.notifier).toggleLike(widget.post.id);
     _heartAnimController.forward(from: 0.0);
   }
@@ -93,15 +93,22 @@ class _PostCardState extends ConsumerState<PostCard>
                 child: Transform.scale(
                   scale: _scaleAnimation.value,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
+                      color: Colors.black.withValues(alpha: 0.55),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withValues(alpha: 0.4),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: const Icon(
-                      Icons.favorite,
+                      Icons.favorite_rounded,
                       color: Colors.redAccent,
-                      size: 48,
+                      size: 52,
                     ),
                   ),
                 ),
