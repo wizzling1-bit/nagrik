@@ -2,28 +2,23 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nagrik/core/extensions/theme_extensions.dart';
-import 'package:nagrik/core/localization/nagrik_localizations.dart';
 import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/ads/managers/app_open_ad_manager.dart';
 
-/// Premium animated brand introduction (~3000 ms) with a 5-act cinematic
-/// narrative that tells the Nagrik hyperlocal identity story:
+/// Premium animated brand introduction (~3 s).
 ///
-/// 1. **Signal Origin** (0–600 ms)  – A single point of sapphire light pulses
-///    to life on a deep navy void, like a local signal awakening.
-/// 2. **Location Beacon** (400–1200 ms) – Concentric signal rings propagate
-///    outward; subtle editorial line fragments drift near the rings.
-/// 3. **Brand Reveal** (1000–2000 ms) – The Nagrik "N-pin" emblem emerges
-///    from the signal energy with a luminous glow.
-/// 4. **Identity Settle** (1800–2600 ms) – The wordmark and tagline appear
-///    with a confirmation pulse.
-/// 5. **Handoff** (2500–3000 ms) – Subtle scale and fade toward the Home
-///    screen with zero blank frames.
+/// Five clean phases over a solid midnight-navy backdrop:
 ///
-/// The animation runs in parallel with app initialization. If the app is
-/// ready before the animation ends, it transitions immediately after
-/// completion. Users can skip at any time.
+/// 1. **Background** (0.0–0.14)  — Deep navy with barely-visible editorial
+///    contour lines drifting slowly, almost imperceptibly.
+/// 2. **Logo Entrance** (0.10–0.36) — Nagrik logo fades in + scales 0.94→1.0.
+/// 3. **Brand Name** (0.25–0.46) — `nagrik.news` slides in horizontally.
+/// 4. **Platform Label** (0.36–0.57) — `CITIZEN JOURNALISM PLATFORM` fades in.
+/// 5. **Tagline** (0.46–0.68) — `Your City. Your News.` fades in.
+/// 6. **Hold + Exit** (0.68–1.0) — Brief hold, then fade to midnight.
+///
+/// The animation runs in parallel with app initialisation. Users can skip
+/// at any time by tapping anywhere or pressing the Skip button.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({
     super.key,
@@ -54,9 +49,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _finish();
-      }
+      if (status == AnimationStatus.completed) _finish();
     });
 
     _controller.forward();
@@ -101,11 +94,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           backgroundColor: bgColor,
           body: Semantics(
             label: 'Nagrik — Your City. Your News.',
-            child: const Center(
-              child: _StaticBrandIdentity(
-                tagline: 'Your city. Your updates.',
-              ),
-            ),
+            child: const Center(child: _StaticBrandIdentity()),
           ),
         ),
       );
@@ -125,20 +114,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Act 1+2: Signal field + location beacon rings
+                  // Subtle editorial contour ambience
                   CustomPaint(
-                    painter: _SignalFieldPainter(progress: t),
+                    painter: _AmbiencePainter(progress: t),
                     size: Size.infinite,
                   ),
 
-                  // Act 3+4: Brand emblem, wordmark, tagline
-                  _BrandRevealLayer(
-                    progress: t,
-                    tagline: 'Your city. Your updates.',
-                  ),
+                  // Brand reveal
+                  _BrandRevealLayer(progress: t),
 
-                  // Act 5: Exit overlay (fade out the entire scene)
-                  if (t > 0.83)
+                  // Exit overlay — seamless fade to midnight
+                  if (t > 0.80)
                     Positioned.fill(
                       child: IgnorePointer(
                         child: ColoredBox(
@@ -149,17 +135,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ),
 
-                  // Skip affordance — always available
+                  // Skip affordance
                   Positioned(
                     right: 12,
                     bottom: 24,
                     child: TextButton(
                       onPressed: _skip,
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.65),
+                        foregroundColor: Colors.white.withValues(alpha: 0.4),
                         minimumSize: const Size(48, 44),
                       ),
-                      child: Text(ref.watch(appStringsProvider).skipAction),
+                      child: const Text('Skip'),
                     ),
                   ),
                 ],
@@ -171,10 +157,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  /// Act 5 exit: ramps from 0 → 1 over the final 17% of the timeline.
+  /// Exit: ramps from 0 → 1 over the final 20% of the timeline.
   double _exitOpacity(double t) {
     return Curves.easeInCubic.transform(
-      ((t - 0.83) / 0.17).clamp(0.0, 1.0),
+      ((t - 0.80) / 0.20).clamp(0.0, 1.0),
     );
   }
 }
@@ -184,51 +170,55 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 // ---------------------------------------------------------------------------
 
 class _StaticBrandIdentity extends StatelessWidget {
-  const _StaticBrandIdentity({required this.tagline});
-
-  final String tagline;
+  const _StaticBrandIdentity();
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Logo emblem
           const _LogoEmblem(opacity: 1.0, scale: 1.0),
-          const SizedBox(height: 18),
-          // Wordmark
+          const SizedBox(height: 24),
           Text(
-            'Nagrik',
-            style: context.textTheme.displayMedium?.copyWith(
-              fontWeight: FontWeight.w900,
+            'nagrik.news',
+            style: tt.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
               color: Colors.white,
-              letterSpacing: -0.5,
-              height: 1.1,
+              letterSpacing: -0.3,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
-          // Sub-wordmark
           Text(
-            'N A G R I K',
-            style: context.textTheme.labelMedium?.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 6.0,
-              color: Colors.white.withValues(alpha: 0.9),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          // Tagline
-          Text(
-            tagline,
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.85),
+            'CITIZEN JOURNALISM PLATFORM',
+            style: tt.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
+              letterSpacing: 2.5,
+              color: Colors.white.withValues(alpha: 0.45),
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Your City. ',
+                  style: tt.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                TextSpan(
+                  text: 'Your News.',
+                  style: tt.bodyMedium?.copyWith(
+                    color: NagrikBrandColors.orangePrimary.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
             textAlign: TextAlign.center,
           ),
@@ -239,7 +229,7 @@ class _StaticBrandIdentity extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// LOGO EMBLEM WIDGET
+// LOGO EMBLEM
 // ---------------------------------------------------------------------------
 
 class _LogoEmblem extends StatelessWidget {
@@ -255,29 +245,20 @@ class _LogoEmblem extends StatelessWidget {
       child: Transform.scale(
         scale: scale,
         child: Container(
-          width: 88,
-          height: 88,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.45),
+                color: Colors.black.withValues(alpha: 0.5),
                 blurRadius: 28,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: NagrikBrandColors.sapphireGlow.withValues(alpha: 0.35),
-                blurRadius: 32,
-                spreadRadius: 2,
+                offset: const Offset(0, 6),
               ),
             ],
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.20),
-              width: 1.2,
-            ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(21),
+            borderRadius: BorderRadius.circular(20),
             child: Image.asset(
               'assets/images/nagrik_logo.png',
               fit: BoxFit.cover,
@@ -291,108 +272,109 @@ class _LogoEmblem extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// BRAND REVEAL LAYER (Acts 3–4)
+// BRAND REVEAL LAYER
 // ---------------------------------------------------------------------------
 
 class _BrandRevealLayer extends StatelessWidget {
-  const _BrandRevealLayer({
-    required this.progress,
-    required this.tagline,
-  });
+  const _BrandRevealLayer({required this.progress});
 
   final double progress;
-  final String tagline;
 
   @override
   Widget build(BuildContext context) {
-    // Act 3: Emblem reveal (0.33 – 0.56)
-    final emblemAppear = _interval(progress, 0.33, 0.50);
-    final emblemOpacity = Curves.easeOutCubic.transform(emblemAppear);
-    final emblemScale = 0.6 + (0.4 * Curves.easeOutCubic.transform(emblemAppear));
+    final tt = Theme.of(context).textTheme;
 
-    // Act 4: Wordmark (0.52 – 0.68)
-    final wordmarkAppear = _interval(progress, 0.52, 0.66);
-    final wordmarkOpacity = Curves.easeOut.transform(wordmarkAppear);
-    final wordmarkSlide = 8.0 * (1.0 - Curves.easeOutCubic.transform(wordmarkAppear));
+    // Phase 1: Logo entrance (0.10 – 0.36)
+    final logoT = _interval(progress, 0.10, 0.36);
+    final logoOpacity = Curves.easeOutCubic.transform(logoT);
+    final logoScale = 0.94 + (0.06 * Curves.easeOutCubic.transform(logoT));
 
-    // Act 4: Tagline (0.62 – 0.76)
-    final taglineAppear = _interval(progress, 0.62, 0.76);
-    final taglineOpacity = Curves.easeOut.transform(taglineAppear);
-    final taglineSlide = 6.0 * (1.0 - Curves.easeOutCubic.transform(taglineAppear));
+    // Phase 2: nagrik.news — horizontal slide + fade (0.25 – 0.46)
+    final nameT = _interval(progress, 0.25, 0.46);
+    final nameOpacity = Curves.easeOut.transform(nameT);
+    final nameSlideX = 12.0 * (1.0 - Curves.easeOutCubic.transform(nameT));
 
-    // Act 4: Confirmation pulse (0.72 – 0.82)
-    final pulseAppear = _interval(progress, 0.72, 0.82);
+    // Phase 3: CITIZEN JOURNALISM PLATFORM (0.36 – 0.57)
+    final labelT = _interval(progress, 0.36, 0.57);
+    final labelOpacity = Curves.easeOut.transform(labelT);
 
-    // Act 5: Gentle scale-up of entire brand group during exit
-    final exitProgress = _interval(progress, 0.83, 1.0);
-    final exitScale = 1.0 + (0.03 * Curves.easeInCubic.transform(exitProgress));
+    // Phase 4: Your City. Your News. (0.46 – 0.68)
+    final tagT = _interval(progress, 0.46, 0.68);
+    final tagOpacity = Curves.easeOut.transform(tagT);
+    final tagSlide = 5.0 * (1.0 - Curves.easeOutCubic.transform(tagT));
+
+    // Exit: gentle scale-up
+    final exitT = _interval(progress, 0.80, 1.0);
+    final exitScale = 1.0 + (0.015 * Curves.easeInCubic.transform(exitT));
 
     return Center(
       child: Transform.scale(
         scale: exitScale,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Confirmation pulse ring (behind emblem)
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (pulseAppear > 0.0)
-                    _ConfirmationPulse(progress: pulseAppear),
-                  _LogoEmblem(
-                    opacity: emblemOpacity,
-                    scale: emblemScale,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              // Wordmark
+              // Logo
+              _LogoEmblem(opacity: logoOpacity, scale: logoScale),
+              const SizedBox(height: 24),
+
+              // nagrik.news — horizontal slide
               Opacity(
-                opacity: wordmarkOpacity.clamp(0.0, 1.0),
+                opacity: nameOpacity.clamp(0.0, 1.0),
                 child: Transform.translate(
-                  offset: Offset(0, wordmarkSlide),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      'Nagrik',
-                      style: context.textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
-                        height: 1.1,
-                      ),
+                  offset: Offset(nameSlideX, 0),
+                  child: Text(
+                    'nagrik.news',
+                    style: tt.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 6),
-              // Tracked Sub-Wordmark
+
+              // CITIZEN JOURNALISM PLATFORM
               Opacity(
-                opacity: wordmarkOpacity.clamp(0.0, 1.0),
+                opacity: (labelOpacity * 0.45).clamp(0.0, 1.0),
                 child: Text(
-                  'N A G R I K',
-                  style: context.textTheme.labelMedium?.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 6.0,
-                    color: Colors.white.withValues(alpha: 0.9),
+                  'CITIZEN JOURNALISM PLATFORM',
+                  style: tt.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 2.5,
+                    color: Colors.white,
+                    fontSize: 10,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              // Tagline
+              const SizedBox(height: 18),
+
+              // Your City. Your News.
               Opacity(
-                opacity: taglineOpacity.clamp(0.0, 1.0),
+                opacity: tagOpacity.clamp(0.0, 1.0),
                 child: Transform.translate(
-                  offset: Offset(0, taglineSlide),
-                  child: Text(
-                    tagline,
-                    style: context.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
+                  offset: Offset(0, tagSlide),
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Your City. ',
+                          style: tt.bodyMedium?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'Your News.',
+                          style: tt.bodyMedium?.copyWith(
+                            color: NagrikBrandColors.orangePrimary
+                                .withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -407,184 +389,56 @@ class _BrandRevealLayer extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// CONFIRMATION PULSE (Act 4)
+// AMBIENCE PAINTER — barely-visible editorial contour lines
 // ---------------------------------------------------------------------------
 
-class _ConfirmationPulse extends StatelessWidget {
-  const _ConfirmationPulse({required this.progress});
-
-  final double progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final scale = 1.0 + (0.6 * Curves.easeOut.transform(progress));
-    final opacity = (1.0 - Curves.easeInCubic.transform(progress)) * 0.35;
-
-    return Opacity(
-      opacity: opacity.clamp(0.0, 1.0),
-      child: Transform.scale(
-        scale: scale,
-        child: Container(
-          width: 88,
-          height: 88,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: NagrikBrandColors.sapphireGlow,
-              width: 1.5,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// SIGNAL FIELD PAINTER (Acts 1–2)
-// ---------------------------------------------------------------------------
-
-/// Custom painter for the hyperlocal signal field animation:
-/// - Act 1 (0–0.20): A central point of light breathes to life.
-/// - Act 2 (0.13–0.40): Concentric signal rings propagate outward.
-/// - Editorial line fragments drift near the rings (0.20–0.38).
-/// - The entire field fades out as the brand reveal takes over (0.38–0.55).
-class _SignalFieldPainter extends CustomPainter {
-  const _SignalFieldPainter({required this.progress});
+/// Paints 5 slow-drifting topographic/editorial contour lines at ~6% opacity.
+/// Almost imperceptible movement — civic map geometry feel.
+class _AmbiencePainter extends CustomPainter {
+  const _AmbiencePainter({required this.progress});
 
   final double progress;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
+    // Fade in gently over first 30%, hold, then fade with exit
+    final fadeIn = _interval(progress, 0.0, 0.30);
+    final fadeOut = _interval(progress, 0.75, 1.0);
+    final alpha =
+        (Curves.easeOut.transform(fadeIn) * (1.0 - Curves.easeIn.transform(fadeOut))) * 0.06;
+    if (alpha < 0.005) return;
 
-    // ----- Global fade-out (signal field dissolves as brand reveals) -----
-    final fadeOut = _interval(progress, 0.40, 0.58);
-    final globalAlpha = 1.0 - Curves.easeInCubic.transform(fadeOut);
-    if (globalAlpha <= 0.01) return;
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: alpha)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.6
+      ..strokeCap = StrokeCap.round;
 
-    // ----- Act 1: Origin glow -----
-    final originAppear = _interval(progress, 0.0, 0.15);
-    final originBreath = math.sin(progress * math.pi * 3.5);
-    final originRadius = 4.0 + (12.0 * Curves.easeOutCubic.transform(originAppear));
-    final originAlpha = (0.5 + 0.3 * originBreath) *
-        Curves.easeOutCubic.transform(originAppear) *
-        globalAlpha;
+    final w = size.width;
+    final h = size.height;
 
-    if (originAlpha > 0.01) {
-      final originPaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            NagrikBrandColors.sapphireGlow.withValues(alpha: originAlpha),
-            NagrikBrandColors.sapphireGlow.withValues(alpha: originAlpha * 0.3),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ).createShader(
-          Rect.fromCircle(center: center, radius: originRadius * 3),
-        );
-      canvas.drawCircle(center, originRadius * 3, originPaint);
+    // Very slow horizontal drift based on progress
+    final drift = progress * 18.0;
 
-      // Solid core dot
-      final corePaint = Paint()
-        ..color = NagrikBrandColors.sapphireGlow.withValues(
-          alpha: (originAlpha * 1.2).clamp(0.0, 1.0),
-        )
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(center, originRadius * 0.35, corePaint);
-    }
+    // 5 contour lines — gentle sine curves at different vertical positions
+    for (int i = 0; i < 5; i++) {
+      final yBase = h * (0.25 + i * 0.12);
+      final amplitude = 8.0 + i * 3.0;
+      final frequency = 0.008 + i * 0.002;
+      final phase = i * 1.2 + drift;
 
-    // ----- Act 2: Signal rings -----
-    const ringCount = 3;
-    for (int i = 0; i < ringCount; i++) {
-      final ringDelay = 0.10 + (i * 0.07);
-      final ringProgress = _interval(progress, ringDelay, ringDelay + 0.28);
-      if (ringProgress <= 0.0) continue;
-
-      final maxDim = math.max(size.width, size.height);
-      final maxRadius = maxDim * 0.38;
-      final ringRadius = maxRadius * Curves.easeOutCubic.transform(ringProgress);
-
-      // Rings fade in then out
-      double ringAlpha;
-      if (ringProgress < 0.3) {
-        ringAlpha = ringProgress / 0.3;
-      } else {
-        ringAlpha = 1.0 - ((ringProgress - 0.3) / 0.7);
+      final path = Path();
+      path.moveTo(-20, yBase + amplitude * math.sin(phase));
+      for (double x = 0; x <= w + 20; x += 12) {
+        final y = yBase + amplitude * math.sin(x * frequency + phase);
+        path.lineTo(x, y);
       }
-      ringAlpha = (ringAlpha * 0.28 * globalAlpha).clamp(0.0, 1.0);
-
-      if (ringAlpha > 0.01) {
-        final ringPaint = Paint()
-          ..color = NagrikBrandColors.sapphireGlow.withValues(alpha: ringAlpha)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2 - (i * 0.2);
-        canvas.drawCircle(center, ringRadius, ringPaint);
-      }
-    }
-
-    // ----- Act 2b: Editorial line fragments (subtle information cues) -----
-    final linesAppear = _interval(progress, 0.22, 0.32);
-    final linesFade = _interval(progress, 0.34, 0.44);
-    final linesAlpha = (Curves.easeOut.transform(linesAppear) *
-            (1.0 - Curves.easeIn.transform(linesFade)) *
-            0.22 *
-            globalAlpha)
-        .clamp(0.0, 1.0);
-
-    if (linesAlpha > 0.01) {
-      final linePaint = Paint()
-        ..color = Colors.white.withValues(alpha: linesAlpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0
-        ..strokeCap = StrokeCap.round;
-
-      // Four short editorial lines arranged around center
-      const lineOffsets = [
-        _EditorialLine(dx: -60, dy: -35, length: 28, angle: 0),
-        _EditorialLine(dx: 45, dy: -20, length: 22, angle: 0),
-        _EditorialLine(dx: -50, dy: 30, length: 18, angle: 0),
-        _EditorialLine(dx: 55, dy: 40, length: 24, angle: 0),
-      ];
-
-      final lineSlide = 6.0 * (1.0 - Curves.easeOutCubic.transform(linesAppear));
-
-      for (final line in lineOffsets) {
-        final start = Offset(
-          center.dx + line.dx,
-          center.dy + line.dy + lineSlide,
-        );
-        final end = Offset(
-          start.dx + line.length * math.cos(line.angle),
-          start.dy + line.length * math.sin(line.angle),
-        );
-        canvas.drawLine(start, end, linePaint);
-      }
-
-      // A tiny play-triangle (video cue) near bottom-right
-      final playAlpha = linesAlpha * 0.8;
-      if (playAlpha > 0.01) {
-        final playPaint = Paint()
-          ..color = Colors.white.withValues(alpha: playAlpha)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round;
-
-        final playCenter = Offset(center.dx + 38, center.dy + 12 + lineSlide);
-        const playSize = 6.0;
-        final path = Path()
-          ..moveTo(playCenter.dx - playSize * 0.4, playCenter.dy - playSize * 0.5)
-          ..lineTo(playCenter.dx + playSize * 0.6, playCenter.dy)
-          ..lineTo(playCenter.dx - playSize * 0.4, playCenter.dy + playSize * 0.5)
-          ..close();
-        canvas.drawPath(path, playPaint);
-      }
+      canvas.drawPath(path, paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _SignalFieldPainter old) =>
+  bool shouldRepaint(covariant _AmbiencePainter old) =>
       old.progress != progress;
 }
 
@@ -592,22 +446,7 @@ class _SignalFieldPainter extends CustomPainter {
 // HELPERS
 // ---------------------------------------------------------------------------
 
-/// Normalized progress within [begin, end], clamped to [0, 1].
+/// Normalised progress within [begin, end], clamped to [0, 1].
 double _interval(double t, double begin, double end) {
   return ((t - begin) / (end - begin)).clamp(0.0, 1.0);
-}
-
-/// Metadata for an editorial line fragment in the signal field.
-class _EditorialLine {
-  const _EditorialLine({
-    required this.dx,
-    required this.dy,
-    required this.length,
-    required this.angle,
-  });
-
-  final double dx;
-  final double dy;
-  final double length;
-  final double angle;
 }

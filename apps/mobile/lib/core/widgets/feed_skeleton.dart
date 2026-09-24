@@ -28,13 +28,15 @@ class FeedCardSkeleton extends StatelessWidget {
         borderRadius: NagrikRadii.borderRadiusMd,
         side: BorderSide(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
+              ? context.nagrikTheme.border.withValues(alpha: 0.5)
               : context.nagrikTheme.border,
         ),
       ),
-      color: isDark ? const Color(0xFF111927) : context.colorScheme.surface,
+      color: context.nagrikTheme.level1Surface,
       child: NagrikShimmer(
-        highlightColor: isDark ? const Color(0xFF1E2D4A) : const Color(0xFFFFFFFF),
+        highlightColor: isDark
+            ? context.nagrikTheme.level3Interactive
+            : context.nagrikTheme.level2Elevated,
         child: Padding(
           padding: const EdgeInsets.all(NagrikSpacing.space4),
           child: Column(

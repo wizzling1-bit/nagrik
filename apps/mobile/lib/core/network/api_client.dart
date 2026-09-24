@@ -35,9 +35,14 @@ class ApiClient {
 
   Future<Map<String, String>> _buildHeaders({Map<String, String>? extra}) async {
     final deviceId = await _deviceIdService.getDeviceId();
+    final isSupabase = ApiConstants.isSupabase;
     return {
       ApiConstants.headerContentType: ApiConstants.jsonContentType,
       ApiConstants.headerDeviceId: deviceId,
+      if (isSupabase) ...{
+        'apikey': ApiConstants.supabaseAnonKey,
+        'Authorization': 'Bearer ${ApiConstants.supabaseAnonKey}',
+      },
       ...?extra,
     };
   }

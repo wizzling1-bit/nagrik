@@ -29,6 +29,9 @@ void main() {
       sharesCount: 12,
       isLiked: false,
       isBookmarked: false,
+      relevanceScore: 112.5,
+      locationTier: 'LOCAL_AREA',
+      distanceKm: 1.45,
     );
 
     test('instantiates with all attributes properly', () {
@@ -39,6 +42,9 @@ void main() {
       expect(post.author.isVerified, isTrue);
       expect(post.author.distanceKm, 1.2);
       expect(post.likesCount, 42);
+      expect(post.relevanceScore, 112.5);
+      expect(post.locationTier, 'LOCAL_AREA');
+      expect(post.distanceKm, 1.45);
     });
 
     test('copyWith updates isLiked and isBookmarked optimistically', () {
@@ -46,10 +52,35 @@ void main() {
       expect(likedPost.isLiked, isTrue);
       expect(likedPost.likesCount, 43);
       expect(likedPost.isBookmarked, isFalse);
+      expect(likedPost.relevanceScore, 112.5);
+      expect(likedPost.locationTier, 'LOCAL_AREA');
+      expect(likedPost.distanceKm, 1.45);
 
       final bookmarkedPost = likedPost.copyWith(isBookmarked: true);
       expect(bookmarkedPost.isBookmarked, isTrue);
       expect(bookmarkedPost.isLiked, isTrue);
+
+      final updatedPost = post.copyWith(
+        relevanceScore: 95.0,
+        locationTier: 'SUB_DISTRICT',
+        distanceKm: 4.8,
+      );
+      expect(updatedPost.relevanceScore, 95.0);
+      expect(updatedPost.locationTier, 'SUB_DISTRICT');
+      expect(updatedPost.distanceKm, 4.8);
+    });
+
+    test('fromJson and toJson roundtrips relevanceScore, locationTier, distanceKm', () {
+      final json = post.toJson();
+      expect(json['relevanceScore'], 112.5);
+      expect(json['locationTier'], 'LOCAL_AREA');
+      expect(json['distanceKm'], 1.45);
+
+      final revived = Post.fromJson(json);
+      expect(revived.id, post.id);
+      expect(revived.relevanceScore, 112.5);
+      expect(revived.locationTier, 'LOCAL_AREA');
+      expect(revived.distanceKm, 1.45);
     });
   });
 }

@@ -105,6 +105,8 @@ class LocationModel {
       district: city,
       state: state,
       isCurrentLocation: isCurrentLocation,
+      latitude: coordinates?.latitude,
+      longitude: coordinates?.longitude,
     );
   }
 
@@ -182,8 +184,12 @@ class ViewRegistrationResponse {
   factory ViewRegistrationResponse.fromJson(Map<String, dynamic> json) {
     return ViewRegistrationResponse(
       success: json['success'] == true,
-      isEligibleView: json['isEligibleView'] == true,
-      currentCountedViews: (json['currentCountedViews'] as num?)?.toInt() ?? 0,
+      isEligibleView: json['isEligibleView'] == true ||
+          json['counted_as_monetized'] == true,
+      currentCountedViews: ((json['currentCountedViews'] ??
+              json['counted_views_for_viewer']) as num?)
+              ?.toInt() ??
+          0,
       totalViews: (json['totalViews'] as num?)?.toInt() ?? 0,
       eligibleViews: (json['eligibleViews'] as num?)?.toInt() ?? 0,
     );

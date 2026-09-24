@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/localization/nagrik_localizations.dart';
 import 'package:nagrik/core/theme/spacing.dart';
+import 'package:nagrik/core/theme/typography.dart';
 import 'package:nagrik/core/widgets/glass_card.dart';
 import 'package:nagrik/features/notifications/domain/models/app_notification.dart';
 import 'package:nagrik/features/notifications/domain/models/notification_type.dart';
@@ -77,20 +79,22 @@ class NotificationCard extends ConsumerWidget {
                     if (isUrgent) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1.5,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: error,
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           strings.breakingTag,
-                          style: const TextStyle(
+                          style: GoogleFonts.jetBrainsMono(
                             color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10.5,
                             letterSpacing: 0.5,
+                          ).copyWith(
+                            fontFamilyFallback: NagrikTypography.fontFallbacks,
                           ),
                         ),
                       ),

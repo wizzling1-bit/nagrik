@@ -36,6 +36,9 @@ class Post {
     this.eligibleViews,
     this.savesCount = 0,
     this.categorySlug,
+    this.relevanceScore,
+    this.locationTier,
+    this.distanceKm,
   });
 
   final String id;
@@ -70,6 +73,9 @@ class Post {
   /// verbatim so feed/search filtering can use the server taxonomy instead
   /// of the lossy local [PostCategory] enum mapping.
   final String? categorySlug;
+  final double? relevanceScore;
+  final String? locationTier;
+  final double? distanceKm;
 
   String get timeAgo {
     final diff = DateTime.now().difference(createdAt);
@@ -110,6 +116,9 @@ class Post {
     List<Comment>? comments,
     String? creatorId,
     String? categorySlug,
+    double? relevanceScore,
+    String? locationTier,
+    double? distanceKm,
   }) {
     return Post(
       id: id ?? this.id,
@@ -141,6 +150,9 @@ class Post {
       comments: comments ?? this.comments,
       creatorId: creatorId ?? this.creatorId,
       categorySlug: categorySlug ?? this.categorySlug,
+      relevanceScore: relevanceScore ?? this.relevanceScore,
+      locationTier: locationTier ?? this.locationTier,
+      distanceKm: distanceKm ?? this.distanceKm,
     );
   }
 
@@ -317,6 +329,9 @@ class Post {
       ),
       creatorId: creatorId,
       categorySlug: rawSlug,
+      relevanceScore: (sourceJson['relevanceScore'] as num?)?.toDouble(),
+      locationTier: _readNullableString(sourceJson, const ['locationTier', 'location_tier']),
+      distanceKm: (sourceJson['distanceKm'] as num?)?.toDouble(),
     );
   }
 
@@ -355,6 +370,9 @@ class Post {
       'isLiked': isLiked,
       'isSaved': isBookmarked,
       if (creatorId != null) 'creatorId': creatorId,
+      if (relevanceScore != null) 'relevanceScore': relevanceScore,
+      if (locationTier != null) 'locationTier': locationTier,
+      if (distanceKm != null) 'distanceKm': distanceKm,
     };
   }
 }

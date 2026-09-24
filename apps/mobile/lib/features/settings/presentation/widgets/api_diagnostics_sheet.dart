@@ -228,7 +228,7 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                             color: textColor,
                           ),
                         ),
-                        if (ApiConstants.baseUrl != ApiConstants.liveStagingBaseUrl)
+                        if (ApiConstants.baseUrl != ApiConstants.prodBaseUrl)
                           GestureDetector(
                             onTap: () async {
                               await ApiConstants.resetBaseUrl();
@@ -255,24 +255,17 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                       runSpacing: 6,
                       children: [
                         ChoiceChip(
-                          label: const Text('PC Wi-Fi (10.201.28.237)', style: TextStyle(fontSize: 11)),
-                          selected: ApiConstants.baseUrl == ApiConstants.localWifiBaseUrl,
+                          label: const Text('Production Supabase (Live)', style: TextStyle(fontSize: 11)),
+                          selected: ApiConstants.baseUrl == ApiConstants.prodBaseUrl,
                           onSelected: (selected) {
-                            if (selected) _applyServerUrl(ApiConstants.localWifiBaseUrl);
+                            if (selected) _applyServerUrl(ApiConstants.prodBaseUrl);
                           },
                         ),
                         ChoiceChip(
-                          label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 11)),
-                          selected: ApiConstants.baseUrl == ApiConstants.localEmulatorBaseUrl,
+                          label: const Text('Local Dev (10.0.2.2:5000)', style: TextStyle(fontSize: 11)),
+                          selected: ApiConstants.baseUrl == 'http://10.0.2.2:5000/api/v1',
                           onSelected: (selected) {
-                            if (selected) _applyServerUrl(ApiConstants.localEmulatorBaseUrl);
-                          },
-                        ),
-                        ChoiceChip(
-                          label: const Text('Render Live Cloud', style: TextStyle(fontSize: 11)),
-                          selected: ApiConstants.baseUrl == ApiConstants.liveStagingBaseUrl,
-                          onSelected: (selected) {
-                            if (selected) _applyServerUrl(ApiConstants.liveStagingBaseUrl);
+                            if (selected) _applyServerUrl('http://10.0.2.2:5000/api/v1');
                           },
                         ),
                       ],
@@ -440,6 +433,56 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                         fontSize: 12,
                         color: context.nagrikTheme.brandBright,
                         fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Cloudflare R2 & PostGIS Status Card
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? context.nagrikTheme.level3Interactive
+                      : context.nagrikTheme.surfaceMuted,
+                  borderRadius: NagrikRadii.borderRadiusCard,
+                  border: Border.all(color: context.nagrikTheme.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.bolt_rounded, size: 16, color: success),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Cloudflare R2 Media & PostGIS Spatial',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'R2 CDN: ${ApiConstants.r2PublicBaseUrl}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: context.nagrikTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'PostGIS: 8-tier LGD Administrative Ranking Enabled',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: context.nagrikTheme.textSecondary,
                       ),
                     ),
                   ],

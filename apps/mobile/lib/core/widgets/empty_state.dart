@@ -75,7 +75,7 @@ class NagrikEmptyState extends StatelessWidget {
               child: Text(
                 title,
                 style: context.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   fontSize: 18,
                   letterSpacing: -0.2,
                 ),

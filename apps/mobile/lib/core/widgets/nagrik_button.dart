@@ -120,8 +120,8 @@ class _NagrikButtonState extends State<NagrikButton> {
         ),
       NagrikButtonVariant.secondary => (
           isDark
-              ? const Color(0xFF1A2236)
-              : const Color(0xFFFAF8F5),
+              ? context.nagrikTheme.level2Elevated
+              : context.nagrikTheme.level1Surface,
           _isDisabled
               ? context.nagrikTheme.textTertiary
               : (isDark

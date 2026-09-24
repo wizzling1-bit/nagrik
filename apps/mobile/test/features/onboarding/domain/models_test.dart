@@ -58,6 +58,29 @@ void main() {
       expect(location.matchesQuery('karnataka'), isTrue);
       expect(location.matchesQuery('delhi'), isFalse);
     });
+
+    test('toJson and fromJson preserves latitude and longitude', () {
+      const location = LocationItem(
+        id: 'loc_geo_1',
+        locality: 'Andheri West',
+        city: 'Mumbai',
+        district: 'Mumbai Suburban',
+        state: 'Maharashtra',
+        pincode: '400053',
+        latitude: 19.1363,
+        longitude: 72.8277,
+      );
+
+      final json = location.toJson();
+      expect(json['latitude'], 19.1363);
+      expect(json['longitude'], 72.8277);
+
+      final fromJson = LocationItem.fromJson(json);
+      expect(fromJson.id, 'loc_geo_1');
+      expect(fromJson.latitude, 19.1363);
+      expect(fromJson.longitude, 72.8277);
+      expect(fromJson.pincode, '400053');
+    });
   });
 
   group('NotificationPreferences', () {

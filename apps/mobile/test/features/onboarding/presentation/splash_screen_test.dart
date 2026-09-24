@@ -16,27 +16,55 @@ void main() {
   }
 
   group('SplashScreen', () {
-    testWidgets('renders brand emblem, English wordmark, sub-wordmark, and tagline', (tester) async {
+    testWidgets('renders logo, brand name, platform label, and tagline',
+        (tester) async {
       await tester.pumpWidget(buildApp());
-      await tester.pump(const Duration(milliseconds: 200));
-
-      expect(find.text('Nagrik'), findsOneWidget);
-      expect(find.text('N A G R I K'), findsOneWidget);
-      expect(find.text('Your city. Your updates.'), findsOneWidget);
-
+      // Advance past all reveal phases
       await tester.pump(const Duration(milliseconds: 2000));
-      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.text('nagrik.news'), findsOneWidget);
+      expect(find.text('CITIZEN JOURNALISM PLATFORM'), findsOneWidget);
+      expect(find.textContaining('Your City.'), findsOneWidget);
+      expect(find.textContaining('Your News.'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 1500));
     });
 
-    testWidgets('calls onInitialized after animation completes', (tester) async {
+    testWidgets('calls onInitialized after animation completes',
+        (tester) async {
       var initialized = false;
-      await tester.pumpWidget(buildApp(onInitialized: () => initialized = true));
+      await tester
+          .pumpWidget(buildApp(onInitialized: () => initialized = true));
 
       await tester.pump(const Duration(milliseconds: 3100));
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(initialized, isTrue);
     });
+
+    testWidgets('skip button fires onInitialized immediately', (tester) async {
+      var initialized = false;
+      await tester
+          .pumpWidget(buildApp(onInitialized: () => initialized = true));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.tap(find.text('Skip'));
+      await tester.pump();
+
+      expect(initialized, isTrue);
+    });
+
+    testWidgets('tap anywhere skips splash', (tester) async {
+      var initialized = false;
+      await tester
+          .pumpWidget(buildApp(onInitialized: () => initialized = true));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Tap the center of the screen (GestureDetector wraps everything)
+      await tester.tapAt(const Offset(200, 400));
+      await tester.pump();
+
+      expect(initialized, isTrue);
+    });
   });
 }
-

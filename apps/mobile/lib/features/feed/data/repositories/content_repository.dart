@@ -6,6 +6,7 @@ import 'package:nagrik/features/feed/data/datasources/content_remote_data_source
 import 'package:nagrik/features/feed/data/models/api_models.dart';
 import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
+import 'package:nagrik/features/onboarding/data/locations_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Repository managing content synchronization with stale-while-revalidate caching.
@@ -59,22 +60,48 @@ class ContentRepository {
   Future<({List<FeedItem> items, FeedPagination pagination})> getFeedWithItems({
     String? city,
     String? area,
+    String? district,
+    String? subdistrict,
+    String? village,
+    String? pincode,
+    double? lat,
+    double? lng,
+    int? stateCode,
+    int? districtCode,
+    int? subdistrictCode,
+    int? localBodyCode,
     String? state,
     String? country,
     String? contentType,
+    String? categoryId,
+    String? categorySlug,
     int page = 1,
     int limit = 20,
+    String? cursor,
   }) async {
     AppError? remoteError;
     try {
       final result = await remoteDataSource.getFeed(
         city: city,
         area: area,
+        district: district,
+        subdistrict: subdistrict,
+        village: village,
+        pincode: pincode,
+        lat: lat,
+        lng: lng,
+        stateCode: stateCode,
+        districtCode: districtCode,
+        subdistrictCode: subdistrictCode,
+        localBodyCode: localBodyCode,
         state: state,
         country: country,
         contentType: contentType,
+        categoryId: categoryId,
+        categorySlug: categorySlug,
         page: page,
         limit: limit,
+        cursor: cursor,
       );
 
       if (result.items.isNotEmpty || page > 1) {
@@ -113,20 +140,46 @@ class ContentRepository {
   Future<List<Post>> getFeed({
     String? city,
     String? area,
+    String? district,
+    String? subdistrict,
+    String? village,
+    String? pincode,
+    double? lat,
+    double? lng,
+    int? stateCode,
+    int? districtCode,
+    int? subdistrictCode,
+    int? localBodyCode,
     String? state,
     String? country,
     String? contentType,
+    String? categoryId,
+    String? categorySlug,
     int page = 1,
     int limit = 20,
+    String? cursor,
   }) async {
     final result = await getFeedWithItems(
       city: city,
       area: area,
+      district: district,
+      subdistrict: subdistrict,
+      village: village,
+      pincode: pincode,
+      lat: lat,
+      lng: lng,
+      stateCode: stateCode,
+      districtCode: districtCode,
+      subdistrictCode: subdistrictCode,
+      localBodyCode: localBodyCode,
       state: state,
       country: country,
       contentType: contentType,
+      categoryId: categoryId,
+      categorySlug: categorySlug,
       page: page,
       limit: limit,
+      cursor: cursor,
     );
     return result.items.whereType<ContentFeedItem>().map((i) => i.post).toList();
   }
@@ -206,16 +259,22 @@ class ContentRepository {
   /// Retrieves available locations, with cache and fallback.
   Future<List<LocationModel>> getLocations() async {
     try {
-      final locations = await remoteDataSource.getLocations();
-      if (locations.isNotEmpty) {
-        await _cacheLocations(locations);
-        return locations;
+      final remoteLocations = await remoteDataSource.getLocations();
+      if (remoteLocations.isNotEmpty) {
+        final combined = _mergeLocations(remoteLocations, _getBuiltInLocations());
+        await _cacheLocations(combined);
+        return combined;
       }
     } catch (e) {
       _log('ContentRepository: Remote locations fetch failed (${mapToAppError(e).message}).');
     }
 
-    return _getCachedLocations();
+    final cached = await _getCachedLocations();
+    if (cached.isNotEmpty) {
+      return _mergeLocations(cached, _getBuiltInLocations());
+    }
+
+    return _getBuiltInLocations();
   }
 
   static final _uuidRegex = RegExp(
@@ -400,18 +459,45 @@ class ContentRepository {
       if (raw != null && raw.isNotEmpty) {
         final decoded = jsonDecode(raw);
         if (decoded is List) {
-          return decoded
+          final list = decoded
               .map((item) => LocationModel.fromJson((item as Map).cast<String, dynamic>()))
               .toList();
+          if (list.isNotEmpty) return list;
         }
       }
     } catch (_) {}
-    return const [
-      LocationModel(country: 'India', state: 'Bihar', city: 'Patna', area: 'Boring Road'),
-      LocationModel(country: 'India', state: 'Bihar', city: 'Patna', area: 'Kankarbagh'),
-      LocationModel(country: 'India', state: 'Bihar', city: 'Patna', area: 'Patna Sahib'),
-      LocationModel(country: 'India', state: 'Bihar', city: 'Gaya', area: 'Bodhgaya'),
-    ];
+    return _getBuiltInLocations();
+  }
+
+  static List<LocationModel> _getBuiltInLocations() {
+    return kIndianLocations.map((item) {
+      return LocationModel(
+        country: 'India',
+        state: item.state,
+        city: item.city,
+        area: item.locality,
+        coordinates: item.latitude != null && item.longitude != null
+            ? LocationCoordinates(latitude: item.latitude!, longitude: item.longitude!)
+            : null,
+      );
+    }).toList();
+  }
+
+  static List<LocationModel> _mergeLocations(
+    List<LocationModel> primary,
+    List<LocationModel> secondary,
+  ) {
+    final seen = <String>{};
+    final result = <LocationModel>[];
+    for (final loc in primary) {
+      final key = '${loc.city.trim().toLowerCase()}_${loc.area.trim().toLowerCase()}';
+      if (seen.add(key)) result.add(loc);
+    }
+    for (final loc in secondary) {
+      final key = '${loc.city.trim().toLowerCase()}_${loc.area.trim().toLowerCase()}';
+      if (seen.add(key)) result.add(loc);
+    }
+    return result;
   }
 }
 

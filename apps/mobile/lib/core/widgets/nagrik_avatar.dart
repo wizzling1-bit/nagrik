@@ -107,7 +107,9 @@ class NagrikAvatar extends StatelessWidget {
                       : NagrikLightColors.success,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDark ? const Color(0xFF080D1A) : Colors.white,
+                    color: isDark
+                        ? context.nagrikTheme.level0Background
+                        : context.nagrikTheme.level2Elevated,
                     width: 2,
                   ),
                 ),

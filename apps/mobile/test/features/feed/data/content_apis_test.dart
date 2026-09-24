@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nagrik/core/network/api_client.dart';
+import 'package:nagrik/core/network/api_constants.dart';
 import 'package:nagrik/core/network/device_id_service.dart';
 import 'package:nagrik/features/feed/data/datasources/content_remote_data_source.dart';
 import 'package:nagrik/features/feed/data/repositories/content_repository.dart';
+import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 import 'package:nagrik/features/feed/domain/models/post_type.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +24,11 @@ void main() {
       prefs = await SharedPreferences.getInstance();
       deviceIdService = DeviceIdService(prefs: prefs);
       await deviceIdService.setDeviceId('flutter-device-test-123');
+      ApiConstants.setBaseUrl('http://api.naagrik.news/api/v1');
+    });
+
+    tearDown(() {
+      ApiConstants.resetBaseUrl();
     });
 
     test('1. GET /content/feed parses feed items and pagination exactly from APIs.md sample', () async {
@@ -365,6 +372,432 @@ void main() {
 
       final feed = await repo.getFeed();
       expect(feed.isNotEmpty, isTrue);
+    });
+
+    test('10. GET /content/feed sends spatial and LGD parameters and parses ranking metadata', () async {
+      final sampleFeedJson = {
+        'success': true,
+        'items': [
+          {
+            'itemType': 'CONTENT',
+            'data': {
+              'id': 'post-local-1',
+              'type': 'ARTICLE',
+              'title': 'Kalyani IT Park Groundbreaking',
+              'description': 'Chief Minister inaugurates phase 1 of technology park.',
+              'city': 'Kalyani',
+              'area': 'Block B',
+              'relevanceScore': 114.2,
+              'locationTier': 'LOCAL_AREA',
+              'distanceKm': 0.85,
+              'location': {
+                'country': 'India',
+                'state': 'West Bengal',
+                'district': 'Nadia',
+                'subdistrict': 'Kalyani',
+                'city': 'Kalyani',
+                'area': 'Block B',
+                'pincode': '741235',
+                'stateCode': 19,
+                'districtCode': 316,
+                'subdistrictCode': 2145,
+                'localBodyCode': 250112,
+                'coordinates': {
+                  'latitude': 22.9751,
+                  'longitude': 88.4345
+                }
+              }
+            }
+          }
+        ],
+        'pagination': {
+          'page': 1,
+          'limit': 20,
+          'totalItems': 1,
+          'totalPages': 1
+        }
+      };
+
+      final client = MockClient((request) async {
+        expect(request.url.path, endsWith('/content/feed'));
+        expect(request.url.queryParameters['district'], 'Nadia');
+        expect(request.url.queryParameters['subdistrict'], 'Kalyani');
+        expect(request.url.queryParameters['village'], 'Block B');
+        expect(request.url.queryParameters['pincode'], '741235');
+        expect(request.url.queryParameters['lat'], '22.9751');
+        expect(request.url.queryParameters['lng'], '88.4345');
+        expect(request.url.queryParameters['districtCode'], '316');
+        expect(request.url.queryParameters['subdistrictCode'], '2145');
+        expect(request.url.queryParameters['localBodyCode'], '250112');
+        return http.Response(jsonEncode(sampleFeedJson), 200);
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final result = await dataSource.getFeed(
+        district: 'Nadia',
+        subdistrict: 'Kalyani',
+        village: 'Block B',
+        pincode: '741235',
+        lat: 22.9751,
+        lng: 88.4345,
+        districtCode: 316,
+        subdistrictCode: 2145,
+        localBodyCode: 250112,
+      );
+
+      expect(result.posts.length, 1);
+      final post = result.posts.first;
+      expect(post.id, 'post-local-1');
+      expect(post.title, 'Kalyani IT Park Groundbreaking');
+      expect(post.relevanceScore, 114.2);
+      expect(post.locationTier, 'LOCAL_AREA');
+      expect(post.distanceKm, 0.85);
+    });
+
+    test('11. ContentRepository forwards spatial and LGD parameters in getFeedWithItems', () async {
+      final sampleFeedJson = {
+        'success': true,
+        'items': [
+          {
+            'itemType': 'CONTENT',
+            'data': {
+              'id': 'post-subdist-1',
+              'type': 'ARTICLE',
+              'title': 'Sub-district hospital upgrade',
+              'relevanceScore': 87.5,
+              'locationTier': 'SUB_DISTRICT',
+              'distanceKm': 3.2
+            }
+          }
+        ],
+        'pagination': {'page': 1, 'limit': 20, 'totalItems': 1, 'totalPages': 1}
+      };
+
+      final client = MockClient((request) async {
+        expect(request.url.queryParameters['district'], 'Nadia');
+        expect(request.url.queryParameters['lat'], '22.98');
+        expect(request.url.queryParameters['lng'], '88.44');
+        return http.Response(jsonEncode(sampleFeedJson), 200);
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+      final repo = ContentRepository(remoteDataSource: dataSource, prefs: prefs);
+
+      final result = await repo.getFeedWithItems(
+        district: 'Nadia',
+        lat: 22.98,
+        lng: 88.44,
+      );
+
+      expect(result.items.length, 1);
+      final post = (result.items.first as ContentFeedItem).post;
+      expect(post.relevanceScore, 87.5);
+      expect(post.locationTier, 'SUB_DISTRICT');
+      expect(post.distanceKm, 3.2);
+    });
+  });
+
+  group('Supabase Direct RPC & PostgREST Integration', () {
+    late SharedPreferences prefs;
+    late DeviceIdService deviceIdService;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      deviceIdService = DeviceIdService(prefs: prefs);
+      await deviceIdService.setDeviceId('supabase-test-device-uuid');
+      ApiConstants.resetBaseUrl(); // Ensures ApiConstants.isSupabase is true
+    });
+
+    tearDown(() {
+      ApiConstants.resetBaseUrl();
+    });
+
+    test('1. Supabase getFeed calls get_personalized_feed RPC with auth headers and p_ params', () async {
+      final sampleRpcResponse = {
+        'success': true,
+        'items': [
+          {
+            'itemType': 'CONTENT',
+            'data': {
+              'id': 'sb-post-1',
+              'type': 'VIDEO',
+              'title': 'Pune Smart City Metro Phase 3',
+              'description': 'Underground line inaugurated today.',
+              'mediaUrl': '${ApiConstants.prodR2PublicBaseUrl}/media/metro.mp4',
+              'thumbnailUrl': '${ApiConstants.prodR2PublicBaseUrl}/thumbnails/metro.png',
+              'relevanceScore': 98.5,
+              'locationTier': 'LOCAL_AREA',
+              'distanceKm': 1.25,
+              'publishedAt': '2026-09-23T12:00:00Z',
+              'location': {
+                'country': 'India',
+                'state': 'Maharashtra',
+                'city': 'Pune',
+                'area': 'Shivajinagar'
+              },
+              'creator': {
+                'id': 'cr-pune-1',
+                'name': 'Maharashtra Ground Desk',
+                'profileImage': null,
+                'verificationStatus': 'VERIFIED'
+              }
+            }
+          }
+        ],
+        'pagination': {
+          'page': 1,
+          'limit': 10,
+          'totalItems': 1,
+          'totalPages': 1,
+          'cursor': '10'
+        }
+      };
+
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(jsonEncode(sampleRpcResponse), 200);
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final result = await dataSource.getFeed(
+        city: 'Pune',
+        area: 'Shivajinagar',
+        lat: 18.5308,
+        lng: 73.8475,
+        limit: 10,
+      );
+
+      expect(captured.url.path, endsWith(ApiConstants.feedRpc));
+      expect(captured.headers['apikey'], ApiConstants.prodSupabaseAnonKey);
+      expect(captured.headers['Authorization'], 'Bearer ${ApiConstants.prodSupabaseAnonKey}');
+      expect(captured.headers['x-device-id'], 'supabase-test-device-uuid');
+
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['p_city'], 'Pune');
+      expect(body['p_area'], 'Shivajinagar');
+      expect(body['p_lat'], 18.5308);
+      expect(body['p_lng'], 73.8475);
+      expect(body['p_limit'], 10);
+
+      expect(result.posts.length, 1);
+      final post = result.posts.first;
+      expect(post.id, 'sb-post-1');
+      expect(post.relevanceScore, 98.5);
+      expect(post.locationTier, 'LOCAL_AREA');
+      expect(post.distanceKm, 1.25);
+      expect(post.videoUrl, '${ApiConstants.prodR2PublicBaseUrl}/media/metro.mp4');
+    });
+
+    test('2. Supabase search calls search_content RPC', () async {
+      final sampleRpcResponse = {
+        'success': true,
+        'contents': [
+          {
+            'id': 'sb-search-1',
+            'type': 'ARTICLE',
+            'title': 'Solar Energy Drive in Kothrud',
+            'description': 'Over 500 rooftops converted to solar power.',
+            'city': 'Pune',
+            'area': 'Kothrud',
+            'publishedAt': '2026-09-23T10:00:00Z',
+          }
+        ]
+      };
+
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(jsonEncode(sampleRpcResponse), 200);
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final results = await dataSource.search(query: 'solar', city: 'Pune');
+
+      expect(captured.url.path, endsWith(ApiConstants.searchRpc));
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['p_query'], 'solar');
+      expect(body['p_city'], 'Pune');
+      expect(results.length, 1);
+      expect(results.first.title, 'Solar Energy Drive in Kothrud');
+    });
+
+    test('3. Supabase getCategories calls PostgREST categories table returning JSON list', () async {
+      final sampleCategories = [
+        {
+          'id': 'cat-1',
+          'name': 'Civic Issues',
+          'slug': 'civic-issues',
+          'display_order': 1,
+          'status': 'ACTIVE'
+        },
+        {
+          'id': 'cat-2',
+          'name': 'Environment',
+          'slug': 'environment',
+          'display_order': 2,
+          'status': 'ACTIVE'
+        }
+      ];
+
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(jsonEncode(sampleCategories), 200);
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final categories = await dataSource.getCategories();
+
+      expect(captured.url.path, contains('/categories'));
+      expect(categories.length, 2);
+      expect(categories[0].name, 'Civic Issues');
+      expect(categories[1].name, 'Environment');
+    });
+
+    test('4. Supabase getLocations calls PostgREST locations table returning JSON list', () async {
+      final sampleLocations = [
+        {
+          'country': 'India',
+          'state': 'Maharashtra',
+          'city': 'Pune',
+          'area': 'Kothrud',
+          'coordinates': {'latitude': 18.5074, 'longitude': 73.8077}
+        }
+      ];
+
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(jsonEncode(sampleLocations), 200);
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final locations = await dataSource.getLocations();
+
+      expect(captured.url.path, contains('/locations'));
+      expect(locations.length, 1);
+      expect(locations.first.city, 'Pune');
+      expect(locations.first.area, 'Kothrud');
+      expect(locations.first.coordinates?.latitude, 18.5074);
+    });
+
+    test('5. Supabase toggleLike calls toggle_content_like RPC', () async {
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(
+          jsonEncode({'success': true, 'isLiked': true, 'likes': 42}),
+          200,
+        );
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final result = await dataSource.toggleLike('content-uuid-1');
+
+      expect(captured.url.path, endsWith(ApiConstants.likeRpc));
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['p_content_id'], 'content-uuid-1');
+      expect(result.success, isTrue);
+      expect(result.isLiked, isTrue);
+      expect(result.likes, 42);
+    });
+
+    test('6. Supabase toggleSave calls toggle_content_save RPC with device ID', () async {
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(
+          jsonEncode({'success': true, 'isSaved': true, 'saves': 15}),
+          200,
+        );
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final result = await dataSource.toggleSave('content-uuid-2');
+
+      expect(captured.url.path, endsWith(ApiConstants.saveRpc));
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['p_content_id'], 'content-uuid-2');
+      expect(body['p_device_id'], 'supabase-test-device-uuid');
+      expect(result.success, isTrue);
+      expect(result.isSaved, isTrue);
+    });
+
+    test('7. Supabase reportContent calls report_content RPC with device ID', () async {
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'message': 'Report submitted for review.',
+            'reportId': 'rep-uuid-1'
+          }),
+          200,
+        );
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final result = await dataSource.reportContent(
+        id: 'content-uuid-3',
+        reason: 'Misleading headline',
+      );
+
+      expect(captured.url.path, endsWith(ApiConstants.reportRpc));
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['p_content_id'], 'content-uuid-3');
+      expect(body['p_reason'], 'Misleading headline');
+      expect(body['p_device_id'], 'supabase-test-device-uuid');
+      expect(result.success, isTrue);
+    });
+
+    test('8. Supabase registerView calls track_video_view RPC and respects monetization ceiling', () async {
+      late http.Request captured;
+      final client = MockClient((request) async {
+        captured = request;
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'counted_as_monetized': true,
+            'counted_views_for_viewer': 1,
+            'max_allowed': 3,
+            'accrual_usd': 0.001500
+          }),
+          200,
+        );
+      });
+
+      final apiClient = ApiClient(client: client, deviceIdService: deviceIdService);
+      final dataSource = ContentRemoteDataSource(apiClient: apiClient, deviceIdService: deviceIdService);
+
+      final result = await dataSource.registerView(videoId: 'video-uuid-1');
+
+      expect(captured.url.path, endsWith(ApiConstants.viewsRpc));
+      final body = jsonDecode(captured.body) as Map<String, dynamic>;
+      expect(body['p_video_id'], 'video-uuid-1');
+      expect(body['p_device_id'], 'supabase-test-device-uuid');
+      expect(result.success, isTrue);
+      expect(result.isEligibleView, isTrue);
+      expect(result.currentCountedViews, 1);
     });
   });
 }

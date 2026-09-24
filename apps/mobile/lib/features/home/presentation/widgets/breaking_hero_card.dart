@@ -122,8 +122,8 @@ class BreakingHeroCard extends ConsumerWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2.5,
+                          horizontal: 8,
+                          vertical: 3.5,
                         ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
@@ -137,8 +137,8 @@ class BreakingHeroCard extends ConsumerWidget {
                               : '${strings.breakingTag} ALERT',
                           style: GoogleFonts.jetBrainsMono(
                             color: Colors.white,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.w700,
                             letterSpacing: 0.8,
                           ).copyWith(
                             fontFamilyFallback: NagrikTypography.fontFallbacks,

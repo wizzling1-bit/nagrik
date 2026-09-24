@@ -68,8 +68,9 @@ class NagrikErrorState extends StatelessWidget {
               child: Text(
                 message,
                 style: context.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  letterSpacing: -0.2,
                 ),
                 textAlign: TextAlign.center,
               ),

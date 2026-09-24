@@ -168,14 +168,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E2416)
-                                  : const Color(0xFFFBF4E6),
+                              color: context.nagrikTheme.warningContainer,
                               borderRadius: NagrikRadii.borderRadiusSm,
                               border: Border.all(
-                                color: isDark
-                                    ? const Color(0xFF42371E)
-                                    : const Color(0xFFE4CF9C),
+                                color: context.nagrikTheme.warning.withValues(
+                                  alpha: isDark ? 0.35 : 0.45,
+                                ),
                                 width: 1.0,
                               ),
                             ),
@@ -184,9 +182,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 Icon(
                                   Icons.wifi_off_rounded,
                                   size: 15,
-                                  color: isDark
-                                      ? const Color(0xFFE5A138)
-                                      : const Color(0xFFB45309),
+                                  color: context.nagrikTheme.warning,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -195,9 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12.0,
                                       fontWeight: FontWeight.w500,
-                                      color: isDark
-                                          ? const Color(0xFFE5A138)
-                                          : const Color(0xFFB45309),
+                                      color: context.nagrikTheme.warning,
                                     ).copyWith(
                                       fontFamilyFallback:
                                           NagrikTypography.fontFallbacks,
@@ -264,8 +258,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                         Container(
                                           width: 7,
                                           height: 7,
-                                          decoration: const BoxDecoration(
-                                            color: Color(0xFF10B981),
+                                          decoration: BoxDecoration(
+                                            color: context.nagrikTheme.success,
                                             shape: BoxShape.circle,
                                           ),
                                         ),

@@ -244,64 +244,81 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
 
               // Search Content Body
               Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (searchState.query.trim().isEmpty) {
-                      return _buildIdleView(
+                child: RefreshIndicator(
+                  color: context.colorScheme.primary,
+                  backgroundColor: isDark
+                      ? context.nagrikTheme.level2Elevated
+                      : context.nagrikTheme.level2Elevated,
+                  onRefresh: () async {
+                    NagrikMotion.lightImpact();
+                    if (searchState.query.trim().isNotEmpty) {
+                      ref
+                          .read(searchStateProvider.notifier)
+                          .executeImmediate();
+                    } else {
+                      await ref.read(feedStateProvider.notifier).refreshFeed();
+                      ref.invalidate(apiCategoriesProvider);
+                    }
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      if (searchState.query.trim().isEmpty) {
+                        return _buildIdleView(
+                          context,
+                          recentSearches,
+                          isDark,
+                          strings,
+                        );
+                      }
+
+                      if (searchState.isLoading && searchState.results.isEmpty) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: NagrikSpacing.space3,
+                          ),
+                          itemCount: 4,
+                          itemBuilder: (_, _) => const FeedCardSkeleton(),
+                        );
+                      }
+
+                      if (searchState.errorMessage != null &&
+                          searchState.results.isEmpty) {
+                        final isOnline = ref.watch(connectivityStatusProvider);
+                        return NagrikErrorState(
+                          message: isOnline
+                              ? strings.searchLoadError
+                              : strings.offlineTitle,
+                          description: isOnline
+                              ? searchState.errorMessage
+                              : strings.offlineDesc,
+                          onRetry: () {
+                            ref
+                                .read(searchStateProvider.notifier)
+                                .executeImmediate();
+                          },
+                        );
+                      }
+
+                      if (searchState.results.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(NagrikSpacing.space6),
+                            child: NagrikEmptyState(
+                              icon: Icons.search_off_rounded,
+                              title: strings.noNewsFound,
+                              description: strings.noNewsFoundDesc,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return _buildCategorizedResults(
                         context,
-                        recentSearches,
-                        isDark,
+                        searchState.results,
                         strings,
                       );
-                    }
-
-                    if (searchState.isLoading && searchState.results.isEmpty) {
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: NagrikSpacing.space3,
-                        ),
-                        itemCount: 4,
-                        itemBuilder: (_, _) => const FeedCardSkeleton(),
-                      );
-                    }
-
-                    if (searchState.errorMessage != null &&
-                        searchState.results.isEmpty) {
-                      final isOnline = ref.watch(connectivityStatusProvider);
-                      return NagrikErrorState(
-                        message: isOnline
-                            ? strings.searchLoadError
-                            : strings.offlineTitle,
-                        description: isOnline
-                            ? searchState.errorMessage
-                            : strings.offlineDesc,
-                        onRetry: () {
-                          ref
-                              .read(searchStateProvider.notifier)
-                              .executeImmediate();
-                        },
-                      );
-                    }
-
-                    if (searchState.results.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(NagrikSpacing.space6),
-                          child: NagrikEmptyState(
-                            icon: Icons.search_off_rounded,
-                            title: strings.noNewsFound,
-                            description: strings.noNewsFoundDesc,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return _buildCategorizedResults(
-                      context,
-                      searchState.results,
-                      strings,
-                    );
-                  },
+                    },
+                  ),
                 ),
               ),
             ],
@@ -325,6 +342,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
 
     return CustomScrollView(
       key: const PageStorageKey<String>('search_results_scroll_view'),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       slivers: [
         if (newsResults.isNotEmpty) ...[
           SliverToBoxAdapter(
@@ -486,6 +506,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
 
     return CustomScrollView(
       key: const PageStorageKey<String>('search_idle_scroll_view'),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       slivers: [
         SliverToBoxAdapter(
           child: Padding(

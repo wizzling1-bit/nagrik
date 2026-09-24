@@ -350,8 +350,7 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
           ),
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: context.textTheme.labelMedium?.copyWith(
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected
                   ? context.colorScheme.primary

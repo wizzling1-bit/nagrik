@@ -137,7 +137,13 @@ class FeedStateNotifier extends Notifier<FeedState> {
   @override
   FeedState build() {
     ref.listen(selectedLocationProvider, (prev, next) {
-      if (prev?.city != next?.city || prev?.locality != next?.locality) {
+      if (prev?.id != next?.id ||
+          prev?.locality != next?.locality ||
+          prev?.city != next?.city ||
+          prev?.district != next?.district ||
+          prev?.pincode != next?.pincode ||
+          prev?.latitude != next?.latitude ||
+          prev?.longitude != next?.longitude) {
         refreshFeed();
       }
     });
@@ -183,6 +189,10 @@ class FeedStateNotifier extends Notifier<FeedState> {
       final result = await repo.getFeedWithItems(
         city: location?.city,
         area: location?.locality,
+        district: location?.district,
+        pincode: location?.pincode,
+        lat: location?.latitude,
+        lng: location?.longitude,
         state: location?.state,
         contentType: _contentTypeForTab(tab),
         page: 1,
@@ -222,6 +232,10 @@ class FeedStateNotifier extends Notifier<FeedState> {
       final result = await repo.getFeedWithItems(
         city: location?.city,
         area: location?.locality,
+        district: location?.district,
+        pincode: location?.pincode,
+        lat: location?.latitude,
+        lng: location?.longitude,
         state: location?.state,
         contentType: _contentTypeForTab(tab),
         page: 1,
@@ -266,6 +280,10 @@ class FeedStateNotifier extends Notifier<FeedState> {
       final result = await repo.getFeedWithItems(
         city: location?.city,
         area: location?.locality,
+        district: location?.district,
+        pincode: location?.pincode,
+        lat: location?.latitude,
+        lng: location?.longitude,
         state: location?.state,
         contentType: _contentTypeForTab(tab),
         page: nextPage,

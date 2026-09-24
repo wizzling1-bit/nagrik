@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nagrik/features/videos/presentation/providers/videos_provider.dart';
-import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 
 void main() {
   test('videosFeedProvider initializes with loading state and empty items', () {

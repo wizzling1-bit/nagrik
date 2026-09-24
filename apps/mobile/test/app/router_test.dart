@@ -32,6 +32,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Videos'), findsOneWidget);
       expect(find.text('Search'), findsOneWidget);
       expect(find.text('Saved'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
@@ -115,19 +116,29 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      // Tap Videos
+      await tester.tap(find.text('Videos'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final navBarVideos = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBarVideos.selectedIndex, 1);
+
       // Tap Search
       await tester.tap(find.text('Search'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 1);
+      expect(navBar.selectedIndex, 2);
 
       // Tap Saved
       await tester.tap(find.text('Saved'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       final navBar2 = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar2.selectedIndex, 2);
+      expect(navBar2.selectedIndex, 3);
     });
   });
 }

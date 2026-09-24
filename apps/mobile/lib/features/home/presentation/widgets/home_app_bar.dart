@@ -296,9 +296,7 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                         : context.nagrikTheme.surfaceMuted,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF1C2537)
-                          : const Color(0xFFDDD5C8),
+                      color: context.nagrikTheme.border,
                       width: 0.85,
                     ),
                   ),
@@ -312,16 +310,16 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                       ),
                       if (unreadCount > 0)
                         Positioned(
-                          top: 4,
-                          right: 4,
+                          top: 2,
+                          right: 2,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 1,
+                              horizontal: 4.5,
+                              vertical: 1.5,
                             ),
                             constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
+                              minWidth: 18,
+                              minHeight: 18,
                             ),
                             decoration: BoxDecoration(
                               color: NagrikBrandColors.crimson,
@@ -338,8 +336,8 @@ class _HomeAppBarState extends ConsumerState<HomeAppBar> {
                                 unreadCount > 99 ? '99+' : '$unreadCount',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
                                   height: 1.0,
                                 ),
                               ),

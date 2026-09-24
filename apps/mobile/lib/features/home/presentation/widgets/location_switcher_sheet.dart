@@ -10,6 +10,7 @@ import 'package:nagrik/core/widgets/error_state.dart';
 import 'package:nagrik/features/feed/data/models/api_models.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/onboarding/data/location_service.dart';
+import 'package:nagrik/features/onboarding/data/locations_data.dart';
 import 'package:nagrik/features/onboarding/domain/models/location_item.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
@@ -317,6 +318,41 @@ class _LocationSwitcherSheetState extends ConsumerState<LocationSwitcherSheet> {
     );
   }
 
+  static List<LocationModel> _mergeLocationsWithBuiltIn(
+    List<LocationModel>? remote,
+  ) {
+    final builtIn = kIndianLocations.map((item) {
+      return LocationModel(
+        country: 'India',
+        state: item.state,
+        city: item.city,
+        area: item.locality,
+        coordinates: item.latitude != null && item.longitude != null
+            ? LocationCoordinates(
+                latitude: item.latitude!,
+                longitude: item.longitude!,
+              )
+            : null,
+      );
+    }).toList();
+
+    if (remote == null || remote.isEmpty) {
+      return builtIn;
+    }
+
+    final seen = <String>{};
+    final result = <LocationModel>[];
+    for (final loc in remote) {
+      final key = '${loc.city.trim().toLowerCase()}_${loc.area.trim().toLowerCase()}';
+      if (seen.add(key)) result.add(loc);
+    }
+    for (final loc in builtIn) {
+      final key = '${loc.city.trim().toLowerCase()}_${loc.area.trim().toLowerCase()}';
+      if (seen.add(key)) result.add(loc);
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedLocation = ref.watch(selectedLocationProvider);
@@ -328,7 +364,7 @@ class _LocationSwitcherSheetState extends ConsumerState<LocationSwitcherSheet> {
         : context.colorScheme.primary;
 
     final supportedLocations =
-        apiLocationsAsync.valueOrNull ?? const <LocationModel>[];
+        _mergeLocationsWithBuiltIn(apiLocationsAsync.valueOrNull);
 
     // Extract unique city names for filter pills
     final availableCities = <String>{};
@@ -361,22 +397,25 @@ class _LocationSwitcherSheetState extends ConsumerState<LocationSwitcherSheet> {
       maxChildSize: 0.94,
       expand: false,
       builder: (context, scrollController) {
-        return Material(
-          color: isDark
-              ? context.nagrikTheme.level2Elevated
-              : context.colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            side: BorderSide(
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Material(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: 0.06),
-              width: 1.5,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+                  ? context.nagrikTheme.level2Elevated
+                  : context.colorScheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                side: BorderSide(
+                  color: isDark
+                      ? context.nagrikTheme.border.withValues(alpha: 0.6)
+                      : context.nagrikTheme.border,
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               const SizedBox(height: 10),
 
               // 1. Drag Handle
@@ -861,29 +900,32 @@ class _LocationSwitcherSheetState extends ConsumerState<LocationSwitcherSheet> {
 
               // 7. Supported Locations List
               Expanded(
-                child: apiLocationsAsync.when(
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(strokeWidth: 2.5),
-                    ),
-                  ),
-                  error: (err, _) {
-                    final isOnline = ref.watch(connectivityStatusProvider);
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(NagrikSpacing.space4),
-                        child: NagrikErrorState(
-                          message: isOnline
-                              ? strings.locationsLoadError
-                              : strings.offlineTitle,
-                          description: isOnline ? null : strings.offlineDesc,
-                          onRetry: () => ref.invalidate(apiLocationsProvider),
+                child: Builder(
+                  builder: (context) {
+                    if (apiLocationsAsync.isLoading && supportedLocations.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
                         ),
-                      ),
-                    );
-                  },
-                  data: (_) {
+                      );
+                    }
+                    if (apiLocationsAsync.hasError && supportedLocations.isEmpty) {
+                      final isOnline = ref.watch(connectivityStatusProvider);
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(NagrikSpacing.space4),
+                          child: NagrikErrorState(
+                            message: isOnline
+                                ? strings.locationsLoadError
+                                : strings.offlineTitle,
+                            description: isOnline ? null : strings.offlineDesc,
+                            onRetry: () => ref.invalidate(apiLocationsProvider),
+                          ),
+                        ),
+                      );
+                    }
+
                     if (filtered.isEmpty) {
                       return Center(
                         child: Padding(
@@ -1141,10 +1183,12 @@ class _LocationSwitcherSheetState extends ConsumerState<LocationSwitcherSheet> {
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
-  }
+  },
+);
+}
 
   Widget _buildFilterChip({
     required String label,

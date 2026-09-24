@@ -8,6 +8,8 @@ class LocationItem {
     required this.state,
     this.pincode,
     this.isCurrentLocation = false,
+    this.latitude,
+    this.longitude,
   });
 
   final String id;
@@ -17,6 +19,8 @@ class LocationItem {
   final String state;
   final String? pincode;
   final bool isCurrentLocation;
+  final double? latitude;
+  final double? longitude;
 
   String get displayName => locality.isNotEmpty ? '$locality, $city' : '$city, $state';
 
@@ -49,6 +53,8 @@ class LocationItem {
         'state': state,
         'pincode': pincode,
         'isCurrentLocation': isCurrentLocation,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
       };
 
   factory LocationItem.fromJson(Map<String, dynamic> json) => LocationItem(
@@ -59,6 +65,8 @@ class LocationItem {
         state: json['state'] as String? ?? '',
         pincode: json['pincode'] as String?,
         isCurrentLocation: json['isCurrentLocation'] as bool? ?? false,
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
       );
 
   @override

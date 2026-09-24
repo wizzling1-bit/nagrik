@@ -7,6 +7,7 @@ import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
 import 'package:nagrik/core/widgets/empty_state.dart';
+import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/notifications/domain/models/app_notification.dart';
 import 'package:nagrik/features/notifications/presentation/providers/notifications_providers.dart';
 import 'package:nagrik/features/notifications/presentation/widgets/notification_card.dart';
@@ -82,50 +83,87 @@ class NotificationsScreen extends ConsumerWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 680),
           child: notifications.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(NagrikSpacing.space6),
-                    child: NagrikEmptyState(
-                      icon: Icons.notifications_none_outlined,
-                      title: strings.noNotificationsTitle,
-                      description: strings.noNotificationsDesc,
-                      actionLabel: strings.notificationSettingsAction,
-                      onAction: () => context.go('/settings'),
-                    ),
-                  ),
+              ? LayoutBuilder(
+                  builder: (context, constraints) {
+                    return RefreshIndicator(
+                      color: context.colorScheme.primary,
+                      backgroundColor: isDark
+                          ? context.nagrikTheme.level2Elevated
+                          : context.nagrikTheme.level2Elevated,
+                      onRefresh: () async {
+                        NagrikMotion.lightImpact();
+                        await ref.read(feedStateProvider.notifier).refreshFeed();
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(NagrikSpacing.space6),
+                              child: NagrikEmptyState(
+                                icon: Icons.notifications_none_outlined,
+                                title: strings.noNotificationsTitle,
+                                description: strings.noNotificationsDesc,
+                                actionLabel: strings.notificationSettingsAction,
+                                onAction: () => context.go('/settings'),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 )
-              : ListView(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: NagrikSpacing.space2,
+              : RefreshIndicator(
+                  color: context.colorScheme.primary,
+                  backgroundColor: isDark
+                      ? context.nagrikTheme.level2Elevated
+                      : context.nagrikTheme.level2Elevated,
+                  onRefresh: () async {
+                    NagrikMotion.lightImpact();
+                    await ref.read(feedStateProvider.notifier).refreshFeed();
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: NagrikSpacing.space2,
+                    ),
+                    children: [
+                      if (todayList.isNotEmpty) ...[
+                        _buildSectionHeader(
+                          context,
+                          strings.todaySection,
+                          hasUnread: todayList.any((n) => !n.isRead),
+                        ),
+                        ...todayList.asMap().entries.map(
+                          (entry) => NagrikStaggeredEntrance(
+                            index: entry.key < 5 ? entry.key : 0,
+                            child: _buildItem(context, entry.value, notifier),
+                          ),
+                        ),
+                      ],
+                      if (earlierList.isNotEmpty) ...[
+                        _buildSectionHeader(
+                          context,
+                          strings.earlierSection,
+                          hasUnread: false,
+                        ),
+                        ...earlierList.asMap().entries.map(
+                          (entry) => NagrikStaggeredEntrance(
+                            index: entry.key < 5 ? entry.key : 0,
+                            child: _buildItem(context, entry.value, notifier),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  children: [
-                    if (todayList.isNotEmpty) ...[
-                      _buildSectionHeader(
-                        context,
-                        strings.todaySection,
-                        hasUnread: todayList.any((n) => !n.isRead),
-                      ),
-                      ...todayList.asMap().entries.map(
-                        (entry) => NagrikStaggeredEntrance(
-                          index: entry.key < 5 ? entry.key : 0,
-                          child: _buildItem(context, entry.value, notifier),
-                        ),
-                      ),
-                    ],
-                    if (earlierList.isNotEmpty) ...[
-                      _buildSectionHeader(
-                        context,
-                        strings.earlierSection,
-                        hasUnread: false,
-                      ),
-                      ...earlierList.asMap().entries.map(
-                        (entry) => NagrikStaggeredEntrance(
-                          index: entry.key < 5 ? entry.key : 0,
-                          child: _buildItem(context, entry.value, notifier),
-                        ),
-                      ),
-                    ],
-                  ],
                 ),
         ),
       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
-import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
@@ -270,7 +269,7 @@ class _VerticalVideoOverlayState extends ConsumerState<VerticalVideoOverlay> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${post.locality.isNotEmpty ? post.locality : post.city}',
+                          post.locality.isNotEmpty ? post.locality : post.city,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,

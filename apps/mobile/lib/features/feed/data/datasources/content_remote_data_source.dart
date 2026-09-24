@@ -7,6 +7,7 @@ import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 
 /// Contract and remote implementation for all Public Content APIs in APIs.md.
+/// Seamlessly operates against Production Supabase RPCs / PostgREST and standard REST API Gateway.
 class ContentRemoteDataSource {
   ContentRemoteDataSource({
     required this.apiClient,
@@ -16,31 +17,85 @@ class ContentRemoteDataSource {
   final ApiClient apiClient;
   final DeviceIdService _deviceIdService;
 
-  /// 1. GET /content/feed
-  /// Retrieves location-prioritized news & video feed with pagination and interleaved ads.
+  /// 1. GET /content/feed OR RPC /rpc/get_personalized_feed
+  /// Retrieves location-prioritized news & video feed with PostGIS radar, LGD hierarchy, and interleaved ads.
   Future<({List<FeedItem> items, List<Post> posts, FeedPagination pagination})> getFeed({
     String? city,
     String? area,
+    String? district,
+    String? subdistrict,
+    String? village,
+    String? pincode,
+    double? lat,
+    double? lng,
+    int? stateCode,
+    int? districtCode,
+    int? subdistrictCode,
+    int? localBodyCode,
     String? state,
     String? country,
     String? contentType,
+    String? categoryId,
+    String? categorySlug,
     int page = 1,
     int limit = 20,
+    String? cursor,
   }) async {
-    final queryParams = <String, dynamic>{
-      if (city != null && city.isNotEmpty) 'city': city,
-      if (area != null && area.isNotEmpty) 'area': area,
-      if (state != null && state.isNotEmpty) 'state': state,
-      if (country != null && country.isNotEmpty) 'country': country,
-      if (contentType != null && contentType.isNotEmpty) 'contentType': contentType,
-      'page': page,
-      'limit': limit,
-    };
+    final dynamic response;
 
-    final response = await apiClient.get(
-      ApiConstants.feed,
-      queryParameters: queryParams,
-    );
+    if (ApiConstants.isSupabase) {
+      final rpcBody = <String, dynamic>{
+        'p_lat': ?lat,
+        'p_lng': ?lng,
+        if (city != null && city.isNotEmpty) 'p_city': city,
+        if (area != null && area.isNotEmpty) 'p_area': area,
+        if (district != null && district.isNotEmpty) 'p_district': district,
+        if (subdistrict != null && subdistrict.isNotEmpty) 'p_subdistrict': subdistrict,
+        if (village != null && village.isNotEmpty) 'p_village': village,
+        if (pincode != null && pincode.isNotEmpty) 'p_pincode': pincode,
+        if (state != null && state.isNotEmpty) 'p_state': state,
+        'p_state_code': ?stateCode,
+        'p_district_code': ?districtCode,
+        'p_subdistrict_code': ?subdistrictCode,
+        'p_local_body_code': ?localBodyCode,
+        if (contentType != null && contentType.isNotEmpty) 'p_content_type': contentType,
+        if (categoryId != null && categoryId.isNotEmpty) 'p_category_id': categoryId,
+        'p_page': page,
+        'p_limit': limit,
+        if (cursor != null && cursor.isNotEmpty) 'p_cursor': cursor,
+      };
+      response = await apiClient.post(
+        ApiConstants.feedRpc,
+        body: rpcBody,
+      );
+    } else {
+      final queryParams = <String, dynamic>{
+        if (city != null && city.isNotEmpty) 'city': city,
+        if (area != null && area.isNotEmpty) 'area': area,
+        if (district != null && district.isNotEmpty) 'district': district,
+        if (subdistrict != null && subdistrict.isNotEmpty) 'subdistrict': subdistrict,
+        if (village != null && village.isNotEmpty) 'village': village,
+        if (pincode != null && pincode.isNotEmpty) 'pincode': pincode,
+        'lat': ?lat,
+        'lng': ?lng,
+        'stateCode': ?stateCode,
+        'districtCode': ?districtCode,
+        'subdistrictCode': ?subdistrictCode,
+        'localBodyCode': ?localBodyCode,
+        if (state != null && state.isNotEmpty) 'state': state,
+        if (country != null && country.isNotEmpty) 'country': country,
+        if (contentType != null && contentType.isNotEmpty) 'contentType': contentType,
+        if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
+        if (categorySlug != null && categorySlug.isNotEmpty) 'categorySlug': categorySlug,
+        'page': page,
+        'limit': limit,
+        if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+      };
+      response = await apiClient.get(
+        ApiConstants.feed,
+        queryParameters: queryParams,
+      );
+    }
 
     final feedItems = <FeedItem>[];
     FeedPagination pagination = const FeedPagination();
@@ -80,7 +135,7 @@ class ContentRemoteDataSource {
     return (items: feedItems, posts: posts, pagination: pagination);
   }
 
-  /// 2. GET /content/search
+  /// 2. GET /content/search OR RPC /rpc/search_content
   /// Search content by query, category, city, or type (ARTICLE, VIDEO).
   Future<List<Post>> search({
     required String query,
@@ -88,17 +143,31 @@ class ContentRemoteDataSource {
     String? city,
     String? type,
   }) async {
-    final queryParams = <String, dynamic>{
-      'q': query,
-      if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
-      if (city != null && city.isNotEmpty) 'city': city,
-      if (type != null && type.isNotEmpty) 'type': type,
-    };
+    final dynamic response;
 
-    final response = await apiClient.get(
-      ApiConstants.search,
-      queryParameters: queryParams,
-    );
+    if (ApiConstants.isSupabase) {
+      final rpcBody = <String, dynamic>{
+        'p_query': query,
+        if (categoryId != null && categoryId.isNotEmpty) 'p_category_id': categoryId,
+        if (city != null && city.isNotEmpty) 'p_city': city,
+        if (type != null && type.isNotEmpty) 'p_type': type,
+      };
+      response = await apiClient.post(
+        ApiConstants.searchRpc,
+        body: rpcBody,
+      );
+    } else {
+      final queryParams = <String, dynamic>{
+        'q': query,
+        if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
+        if (city != null && city.isNotEmpty) 'city': city,
+        if (type != null && type.isNotEmpty) 'type': type,
+      };
+      response = await apiClient.get(
+        ApiConstants.search,
+        queryParameters: queryParams,
+      );
+    }
 
     final posts = <Post>[];
     if (response is Map<String, dynamic>) {
@@ -117,19 +186,24 @@ class ContentRemoteDataSource {
     return posts;
   }
 
-  /// 3. GET /content/categories
+  /// 3. GET /content/categories OR PostgREST /categories
   /// Retrieves list of active categories.
   Future<List<CategoryModel>> getCategories() async {
-    final response = await apiClient.get(ApiConstants.categories);
+    final dynamic response = await apiClient.get(
+      ApiConstants.isSupabase ? ApiConstants.categoriesRest : ApiConstants.categories,
+    );
     final categories = <CategoryModel>[];
 
-    if (response is Map<String, dynamic>) {
-      final list = response['categories'];
-      if (list is List) {
-        for (final item in list) {
-          if (item is Map<String, dynamic>) {
-            categories.add(CategoryModel.fromJson(item));
-          }
+    final dynamic list = response is List
+        ? response
+        : (response is Map<String, dynamic>
+            ? (response['categories'] ?? response['data'])
+            : null);
+
+    if (list is List) {
+      for (final item in list) {
+        if (item is Map<String, dynamic>) {
+          categories.add(CategoryModel.fromJson(item));
         }
       }
     }
@@ -137,19 +211,24 @@ class ContentRemoteDataSource {
     return categories;
   }
 
-  /// 4. GET /content/locations
+  /// 4. GET /content/locations OR PostgREST /locations
   /// Retrieves supported localities and cities for location switcher.
   Future<List<LocationModel>> getLocations() async {
-    final response = await apiClient.get(ApiConstants.locations);
+    final dynamic response = await apiClient.get(
+      ApiConstants.isSupabase ? ApiConstants.locationsRest : ApiConstants.locations,
+    );
     final locations = <LocationModel>[];
 
-    if (response is Map<String, dynamic>) {
-      final list = response['locations'];
-      if (list is List) {
-        for (final item in list) {
-          if (item is Map<String, dynamic>) {
-            locations.add(LocationModel.fromJson(item));
-          }
+    final dynamic list = response is List
+        ? response
+        : (response is Map<String, dynamic>
+            ? (response['locations'] ?? response['data'])
+            : null);
+
+    if (list is List) {
+      for (final item in list) {
+        if (item is Map<String, dynamic>) {
+          locations.add(LocationModel.fromJson(item));
         }
       }
     }
@@ -157,10 +236,18 @@ class ContentRemoteDataSource {
     return locations;
   }
 
-  /// 5. GET /content/{id}
+  /// 5. GET /content/{id} OR RPC /rpc/get_content_detail
   /// Retrieves full content / video details.
   Future<Post> getContentDetails(String id) async {
-    final response = await apiClient.get(ApiConstants.contentDetail(id));
+    final dynamic response;
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.detailRpc,
+        body: {'p_id': id},
+      );
+    } else {
+      response = await apiClient.get(ApiConstants.contentDetail(id));
+    }
 
     if (response is Map<String, dynamic>) {
       final contentJson = response['content'] ?? response['data'] ?? response;
@@ -172,10 +259,18 @@ class ContentRemoteDataSource {
     throw const FormatException('Invalid content details response');
   }
 
-  /// 6. POST /content/{id}/like
+  /// 6. POST /content/{id}/like OR RPC /rpc/toggle_content_like
   /// Toggle like status on article or video without login.
   Future<({bool success, bool isLiked, int likes})> toggleLike(String id) async {
-    final response = await apiClient.post(ApiConstants.likeContent(id));
+    final dynamic response;
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.likeRpc,
+        body: {'p_content_id': id},
+      );
+    } else {
+      response = await apiClient.post(ApiConstants.likeContent(id));
+    }
 
     if (response is Map<String, dynamic>) {
       return (
@@ -188,10 +283,22 @@ class ContentRemoteDataSource {
     return (success: false, isLiked: false, likes: 0);
   }
 
-  /// 7. POST /content/{id}/save
+  /// 7. POST /content/{id}/save OR RPC /rpc/toggle_content_save
   /// Toggle bookmark / save status on content.
   Future<({bool success, bool isSaved})> toggleSave(String id) async {
-    final response = await apiClient.post(ApiConstants.saveContent(id));
+    final dynamic response;
+    if (ApiConstants.isSupabase) {
+      final deviceId = await _deviceIdService.getDeviceId();
+      response = await apiClient.post(
+        ApiConstants.saveRpc,
+        body: {
+          'p_content_id': id,
+          'p_device_id': deviceId,
+        },
+      );
+    } else {
+      response = await apiClient.post(ApiConstants.saveContent(id));
+    }
 
     if (response is Map<String, dynamic>) {
       return (
@@ -203,22 +310,34 @@ class ContentRemoteDataSource {
     return (success: false, isSaved: false);
   }
 
-  /// 8. POST /content/{id}/report
+  /// 8. POST /content/{id}/report OR RPC /rpc/report_content
   /// Report inappropriate content with reason & device ID.
   Future<ReportResponse> reportContent({
     required String id,
     required String reason,
   }) async {
     final deviceId = await _deviceIdService.getDeviceId();
-    final body = ReportRequest(
-      reason: reason,
-      deviceId: deviceId,
-    ).toJson();
+    final dynamic response;
 
-    final response = await apiClient.post(
-      ApiConstants.reportContent(id),
-      body: body,
-    );
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.reportRpc,
+        body: {
+          'p_content_id': id,
+          'p_reason': reason,
+          'p_device_id': deviceId,
+        },
+      );
+    } else {
+      final body = ReportRequest(
+        reason: reason,
+        deviceId: deviceId,
+      ).toJson();
+      response = await apiClient.post(
+        ApiConstants.reportContent(id),
+        body: body,
+      );
+    }
 
     if (response is Map<String, dynamic>) {
       return ReportResponse.fromJson(response);
@@ -230,21 +349,32 @@ class ContentRemoteDataSource {
     );
   }
 
-  /// 9. POST /views
+  /// 9. POST /views OR RPC /rpc/track_video_view
   /// Enforces 3-view ceiling monetization rule for video tracking.
   Future<ViewRegistrationResponse> registerView({
     required String videoId,
   }) async {
     final deviceId = await _deviceIdService.getDeviceId();
-    final body = ViewRegistrationRequest(
-      videoId: videoId,
-      deviceId: deviceId,
-    ).toJson();
+    final dynamic response;
 
-    final response = await apiClient.post(
-      ApiConstants.views,
-      body: body,
-    );
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.viewsRpc,
+        body: {
+          'p_video_id': videoId,
+          'p_device_id': deviceId,
+        },
+      );
+    } else {
+      final body = ViewRegistrationRequest(
+        videoId: videoId,
+        deviceId: deviceId,
+      ).toJson();
+      response = await apiClient.post(
+        ApiConstants.views,
+        body: body,
+      );
+    }
 
     if (response is Map<String, dynamic>) {
       return ViewRegistrationResponse.fromJson(response);
