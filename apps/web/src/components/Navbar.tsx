@@ -154,10 +154,14 @@ export const Navbar: React.FC = () => {
           {/* Brand Logo & Compact Morphing Subtitle */}
           <Link
             href="/"
-            className="flex items-center gap-2 sm:gap-3 group focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] rounded-full py-0.5 px-1 shrink-0"
+            className="flex items-center gap-2.5 sm:gap-3 group focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] rounded-full py-0.5 px-1 shrink-0"
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#DE5227] text-white font-sans font-black text-lg sm:text-2xl flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              N
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl overflow-hidden shadow-xs group-hover:scale-105 transition-transform shrink-0">
+              <img
+                src="/nagrik-logo.png"
+                alt="Nagrik Logo"
+                className="w-full h-full object-contain rounded-xl sm:rounded-2xl"
+              />
             </div>
             <div className="flex flex-col text-left min-w-0">
               <span className={`font-sans text-lg sm:text-2xl font-bold tracking-tight transition-colors leading-none ${

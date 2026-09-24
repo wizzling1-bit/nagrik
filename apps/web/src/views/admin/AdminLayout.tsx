@@ -761,13 +761,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                 className="flex items-center gap-2.5 text-left cursor-pointer group"
                 title="Nagrik Operations"
               >
-                <div className="w-9 h-9 rounded-2xl bg-[#DE5227] hover:bg-[#C84318] text-white flex items-center justify-center shadow-md shadow-orange-500/25 shrink-0 group-hover:scale-105 transition-transform">
-                  <div className="grid grid-cols-2 gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
+                <div className="w-9 h-9 rounded-2xl overflow-hidden shadow-md shadow-orange-500/25 shrink-0 group-hover:scale-105 transition-transform">
+                  <img
+                    src="/nagrik-logo.png"
+                    alt="Nagrik Logo"
+                    className="w-full h-full object-contain rounded-2xl"
+                  />
                 </div>
                 <div className="overflow-hidden">
                   <div className="text-sm font-black font-serif text-slate-900 dark:text-white leading-tight">
@@ -801,15 +800,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             <div className="flex flex-col items-center gap-3">
               <button
                 onClick={() => setActiveTab('dashboard')}
-                className="w-10 h-10 rounded-2xl bg-[#DE5227] hover:bg-[#C84318] text-white flex items-center justify-center shadow-md shadow-orange-500/25 hover:scale-105 transition-transform cursor-pointer"
+                className="w-10 h-10 rounded-2xl overflow-hidden shadow-md shadow-orange-500/25 hover:scale-105 transition-transform cursor-pointer"
                 title="Nagrik Operations"
               >
-                <div className="grid grid-cols-2 gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                </div>
+                <img
+                  src="/nagrik-logo.png"
+                  alt="Nagrik Logo"
+                  className="w-full h-full object-contain rounded-2xl"
+                />
               </button>
             </div>
           )}

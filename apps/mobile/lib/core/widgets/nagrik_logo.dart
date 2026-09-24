@@ -22,12 +22,12 @@ enum NagrikLogoVariant {
 
 /// Size extensions for [NagrikLogoSize] geometry and typography scale.
 extension NagrikLogoSizeX on NagrikLogoSize {
-  /// Base icon mark dimensions matching web SVG aspect ratio (100:112).
+  /// Base icon mark dimensions matching the 1:1 brand mark.
   Size get markDimensions => switch (this) {
-        NagrikLogoSize.sm => const Size(30.0, 34.0),
-        NagrikLogoSize.md => const Size(38.0, 42.0),
-        NagrikLogoSize.lg => const Size(48.0, 54.0),
-        NagrikLogoSize.xl => const Size(64.0, 72.0),
+        NagrikLogoSize.sm => const Size(32.0, 32.0),
+        NagrikLogoSize.md => const Size(40.0, 40.0),
+        NagrikLogoSize.lg => const Size(48.0, 48.0),
+        NagrikLogoSize.xl => const Size(64.0, 64.0),
       };
 
   /// Main headline wordmark font size.
@@ -63,11 +63,10 @@ extension NagrikLogoSizeX on NagrikLogoSize {
       };
 }
 
-/// Authentic vector brand crest mark for Nagrik.
+/// Authentic brand mark for Nagrik.
 ///
-/// Paints the authentic squircle container, apex triangle, signal radio arcs,
-/// bold `N` glyph, and tricolor accent dots with pixel-perfect fidelity
-/// to `apps/web/src/components/NagrikLogo.tsx`.
+/// Renders the official high-resolution brand image with a graceful
+/// vector fallback painter.
 class NagrikLogoMark extends StatelessWidget {
   const NagrikLogoMark({
     super.key,
@@ -87,9 +86,34 @@ class NagrikLogoMark extends StatelessWidget {
     final h = height ?? dimensions.height;
 
     return RepaintBoundary(
-      child: CustomPaint(
-        size: Size(w, h),
-        painter: const NagrikLogoMarkPainter(),
+      child: Container(
+        width: w,
+        height: h,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(w * 0.24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(w * 0.24),
+          child: CustomPaint(
+            size: Size(w, h),
+            painter: const NagrikLogoMarkPainter(),
+            child: Image.asset(
+              'assets/images/nagrik_logo.png',
+              width: w,
+              height: h,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -97,7 +121,7 @@ class NagrikLogoMark extends StatelessWidget {
 
 /// Custom painter for the Nagrik brand crest vector mark.
 ///
-/// Canonical coordinate system: 100 x 112 viewBox.
+/// Canonical coordinate system: 100 x 100 viewBox.
 class NagrikLogoMarkPainter extends CustomPainter {
   const NagrikLogoMarkPainter();
 
@@ -105,121 +129,86 @@ class NagrikLogoMarkPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (size.width <= 0 || size.height <= 0) return;
 
-    final scale = math.min(size.width / 100.0, size.height / 112.0);
+    final scale = math.min(size.width / 100.0, size.height / 100.0);
     final dx = (size.width - 100.0 * scale) / 2.0;
-    final dy = (size.height - 112.0 * scale) / 2.0;
+    final dy = (size.height - 100.0 * scale) / 2.0;
 
     canvas.save();
     canvas.translate(dx, dy);
     canvas.scale(scale, scale);
 
-    // 1. Main Squircle Container
-    // <rect x="5" y="4" width="90" height="84" rx="26" fill="url(#nagrik_brand_grad)" />
+    // 1. Dark Base Squircle Container
     final squircleRRect = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(5.0, 4.0, 90.0, 84.0),
-      const Radius.circular(26.0),
+      const Rect.fromLTWH(0.0, 0.0, 100.0, 100.0),
+      const Radius.circular(22.0),
     );
-    final squirclePaint = Paint()
+    final bgPaint = Paint()
       ..shader = ui.Gradient.linear(
-        const Offset(5.0, 4.0),
-        const Offset(95.0, 88.0),
+        const Offset(0.0, 0.0),
+        const Offset(100.0, 100.0),
         const [
-          Color(0xFFEA580C),
-          Color(0xFFC2410C),
+          Color(0xFF14171F),
+          Color(0xFF080A0E),
         ],
       )
       ..style = PaintingStyle.fill;
-    canvas.drawRRect(squircleRRect, squirclePaint);
+    canvas.drawRRect(squircleRRect, bgPaint);
 
-    // 2. Bottom Pointer Triangle
-    // <path d="M50 100 L41 87 L59 87 Z" fill="#D9562B" />
-    final trianglePath = Path()
-      ..moveTo(50.0, 100.0)
-      ..lineTo(41.0, 87.0)
-      ..lineTo(59.0, 87.0)
-      ..close();
-    final trianglePaint = Paint()
-      ..color = const Color(0xFFD9562B)
+    // 2. 3D Gradient Orange Ribbon N
+    final ribbonPaint = Paint()
+      ..shader = ui.Gradient.linear(
+        const Offset(20.0, 20.0),
+        const Offset(80.0, 80.0),
+        const [
+          Color(0xFFFF9100),
+          Color(0xFFFF5722),
+          Color(0xFFE64A19),
+        ],
+        const [0.0, 0.5, 1.0],
+      )
       ..style = PaintingStyle.fill;
-    canvas.drawPath(trianglePath, trianglePaint);
 
-    // 3. Signal Radio Arcs
-    // <path d="M66 28 C70 32 72 38 72 45 C72 52 70 57 66 61" stroke="#FEE7DE" strokeWidth="4.5" strokeLinecap="round" />
-    // <path d="M75 20 C83 26 86 35 86 45 C86 55 83 64 75 70" stroke="#FEE7DE" strokeWidth="4.5" strokeLinecap="round" />
-    final arcPaint = Paint()
-      ..color = const Color(0xFFFEE7DE)
-      ..strokeWidth = 4.5
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final arc1 = Path()
-      ..moveTo(66.0, 28.0)
-      ..cubicTo(70.0, 32.0, 72.0, 38.0, 72.0, 45.0)
-      ..cubicTo(72.0, 52.0, 70.0, 57.0, 66.0, 61.0);
-    canvas.drawPath(arc1, arcPaint);
-
-    final arc2 = Path()
-      ..moveTo(75.0, 20.0)
-      ..cubicTo(83.0, 26.0, 86.0, 35.0, 86.0, 45.0)
-      ..cubicTo(86.0, 55.0, 83.0, 64.0, 75.0, 70.0);
-    canvas.drawPath(arc2, arcPaint);
-
-    // 4. Bold N Glyph
-    // <path d="M27 30 L27 68 M27 30 L64 68 M64 30 L64 68" stroke="#FFFFFF" strokeWidth="11" strokeLinecap="square" strokeLinejoin="miter" />
-    final nPaint = Paint()
-      ..color = const Color(0xFFFFFFFF)
-      ..strokeWidth = 11.0
-      ..strokeCap = StrokeCap.square
-      ..strokeJoin = StrokeJoin.miter
-      ..style = PaintingStyle.stroke;
-
-    final nPath = Path()
-      ..moveTo(27.0, 30.0)
-      ..lineTo(27.0, 68.0)
-      ..moveTo(27.0, 30.0)
-      ..lineTo(64.0, 68.0)
-      ..moveTo(64.0, 30.0)
-      ..lineTo(64.0, 68.0);
-    canvas.drawPath(nPath, nPaint);
-
-    // 5. Tricolor Accent Base Dots
-    // <rect x="33" y="104" width="9" height="4" rx="2" fill="#F58220" />
-    // <rect x="45.5" y="104" width="9" height="4" rx="2" fill="#CBD5E1" />
-    // <rect x="58" y="104" width="9" height="4" rx="2" fill="#22C55E" />
-    const dotRadius = Radius.circular(2.0);
-
-    final saffronDot = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(33.0, 104.0, 9.0, 4.0),
-      dotRadius,
+    // Left Stem
+    final leftStem = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(18.0, 20.0, 18.0, 60.0),
+      const Radius.circular(9.0),
     );
-    canvas.drawRRect(
-      saffronDot,
-      Paint()
-        ..color = const Color(0xFFF58220)
-        ..style = PaintingStyle.fill,
-    );
+    canvas.drawRRect(leftStem, ribbonPaint);
 
-    final slateDot = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(45.5, 104.0, 9.0, 4.0),
-      dotRadius,
-    );
-    canvas.drawRRect(
-      slateDot,
-      Paint()
-        ..color = const Color(0xFFCBD5E1)
-        ..style = PaintingStyle.fill,
-    );
+    // Diagonal Fold
+    final diagPath = Path()
+      ..moveTo(20.0, 28.0)
+      ..lineTo(36.0, 20.0)
+      ..lineTo(78.0, 72.0)
+      ..lineTo(62.0, 80.0)
+      ..close();
+    canvas.drawPath(diagPath, ribbonPaint);
 
-    final emeraldDot = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(58.0, 104.0, 9.0, 4.0),
-      dotRadius,
+    // Right Upright Pin
+    const pinCenter = Offset(70.0, 36.0);
+    final pinPaint = Paint()
+      ..shader = ui.Gradient.linear(
+        const Offset(55.0, 20.0),
+        const Offset(85.0, 60.0),
+        const [
+          Color(0xFFFF9100),
+          Color(0xFFFF5722),
+        ],
+      )
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(pinCenter, 14.0, pinPaint);
+
+    final rightStem = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(61.0, 36.0, 18.0, 44.0),
+      const Radius.circular(9.0),
     );
-    canvas.drawRRect(
-      emeraldDot,
-      Paint()
-        ..color = const Color(0xFF22C55E)
-        ..style = PaintingStyle.fill,
-    );
+    canvas.drawRRect(rightStem, pinPaint);
+
+    // Pin Hole
+    final holePaint = Paint()
+      ..color = const Color(0xFF0C1018)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(pinCenter, 5.5, holePaint);
 
     canvas.restore();
   }
