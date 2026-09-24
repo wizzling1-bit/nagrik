@@ -109,7 +109,7 @@ class NagrikLogoMark extends StatelessWidget {
               height: h,
               fit: BoxFit.cover,
               filterQuality: FilterQuality.high,
-              errorBuilder: (_, __, ___) => const CustomPaint(
+              errorBuilder: (context, error, stackTrace) => const CustomPaint(
                 painter: NagrikLogoMarkPainter(),
               ),
             ),

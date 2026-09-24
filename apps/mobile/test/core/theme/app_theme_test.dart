@@ -110,9 +110,9 @@ void main() {
       expect(theme.colorScheme.error, NagrikDarkColors.error);
     });
 
-    test('scaffold background is midnight obsidian Level 0 (#0C1018)', () {
+    test('scaffold background is midnight obsidian Level 0 (#10141C)', () {
       expect(theme.scaffoldBackgroundColor, NagrikDarkColors.level0Background);
-      expect(theme.scaffoldBackgroundColor, const Color(0xFF0C1018));
+      expect(theme.scaffoldBackgroundColor, const Color(0xFF10141C));
     });
 
     test('cardTheme uses Level 1 surface and dark border', () {
