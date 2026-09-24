@@ -198,6 +198,7 @@ class AdvertisementCard extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: ad.mediaUrl!,
                   memCacheWidth: 600,
+                  memCacheHeight: 300,
                   height: 140,
                   width: double.infinity,
                   fit: BoxFit.cover,

@@ -191,16 +191,25 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
     }
 
     // 4. Dispose distant controllers outside [newPage - 1, newPage, newPage + 1]
-    final keysToDispose = _controllers.keys
-        .where((k) => k < newPage - 1 || k > newPage + 1)
-        .toList();
-    for (final k in keysToDispose) {
-      _controllers[k]?.pause();
-      _controllers[k]?.dispose();
-      _controllers.remove(k);
-    }
+    _pruneDistantControllers(newPage);
 
     setState(() {});
+  }
+
+  void _pruneDistantControllers(int currentPage) {
+    final keysToRemove = <int>[];
+    for (final index in _controllers.keys) {
+      if ((index - currentPage).abs() > 1) {
+        keysToRemove.add(index);
+      }
+    }
+    for (final key in keysToRemove) {
+      final ctrl = _controllers.remove(key);
+      try {
+        ctrl?.pause();
+        ctrl?.dispose();
+      } catch (_) {}
+    }
   }
 
   @override
@@ -270,25 +279,27 @@ class _VideosScreenState extends ConsumerState<VideosScreen>
           final post = posts[organicIndex];
           final controller = _controllers[index];
 
-          return VerticalVideoCard(
-            key: ValueKey('video_${post.id}'),
-            post: post,
-            controller: controller,
-            isMuted: isMuted,
-            onToggleMute: () {
-              ref.read(videosMutedProvider.notifier).toggle();
-            },
-            onTogglePlayPause: () {
-              final ctrl = _controllers[index];
-              if (ctrl != null && ctrl.value.isInitialized) {
-                if (ctrl.value.isPlaying) {
-                  ctrl.pause();
-                } else {
-                  ctrl.play();
+          return RepaintBoundary(
+            child: VerticalVideoCard(
+              key: ValueKey('video_${post.id}'),
+              post: post,
+              controller: controller,
+              isMuted: isMuted,
+              onToggleMute: () {
+                ref.read(videosMutedProvider.notifier).toggle();
+              },
+              onTogglePlayPause: () {
+                final ctrl = _controllers[index];
+                if (ctrl != null && ctrl.value.isInitialized) {
+                  if (ctrl.value.isPlaying) {
+                    ctrl.pause();
+                  } else {
+                    ctrl.play();
+                  }
+                  setState(() {});
                 }
-                setState(() {});
-              }
-            },
+              },
+            ),
           );
         },
       ),

@@ -347,6 +347,8 @@ class _VerticalVideoCardState extends ConsumerState<VerticalVideoCard>
       return CachedNetworkImage(
         imageUrl: thumbnailUrl,
         fit: BoxFit.cover,
+        memCacheWidth: 720,
+        memCacheHeight: 1280,
         placeholder: (_, _) => Container(color: Colors.black),
         errorWidget: (_, _, _) => Container(
           color: const Color(0xFF101522),

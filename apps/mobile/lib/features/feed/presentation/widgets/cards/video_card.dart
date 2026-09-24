@@ -134,6 +134,7 @@ class VideoCard extends ConsumerWidget {
                 child: CachedNetworkImage(
                   imageUrl: post.mediaUrls.first,
                   memCacheWidth: 800,
+                  memCacheHeight: 450,
                   fit: BoxFit.cover,
                   fadeInDuration: const Duration(milliseconds: 150),
                   placeholder: (context, url) => _thumbnailFallback(context, isDark),
