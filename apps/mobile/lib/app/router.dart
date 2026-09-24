@@ -424,8 +424,8 @@ Page<dynamic> _smoothPageTransition({
   return CustomTransitionPage<void>(
     key: key,
     child: child,
-    transitionDuration: const Duration(milliseconds: 220),
-    reverseTransitionDuration: const Duration(milliseconds: 180),
+    transitionDuration: const Duration(milliseconds: 240),
+    reverseTransitionDuration: const Duration(milliseconds: 190),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       final curve = CurvedAnimation(
         parent: animation,
@@ -433,7 +433,7 @@ Page<dynamic> _smoothPageTransition({
         reverseCurve: Curves.easeInCubic,
       );
       final slideAnimation = Tween<Offset>(
-        begin: const Offset(0.03, 0),
+        begin: const Offset(0.04, 0),
         end: Offset.zero,
       ).animate(curve);
 
