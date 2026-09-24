@@ -426,9 +426,9 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                   />
                   <span className="leading-snug">
                     {language === 'hi' ? (
-                      <>मैं <Link href="/terms?tab=terms" className="text-[#DE5227] font-bold hover:underline">नागरिक दिशानिर्देशों</Link> और 100% सामग्री स्वामित्व नियमों से सहमत हूँ।</>
+                      <>मैं <Link href="/terms" className="text-[#DE5227] font-bold hover:underline">नागरिक दिशानिर्देशों</Link> और 100% सामग्री स्वामित्व नियमों से सहमत हूँ।</>
                     ) : (
-                      <>I acknowledge the <Link href="/terms?tab=terms" className="text-[#DE5227] font-bold hover:underline">Contributor Guidelines</Link> and 100% Content IP Ownership Agreement.</>
+                      <>I acknowledge the <Link href="/terms" className="text-[#DE5227] font-bold hover:underline">Contributor Guidelines</Link> and 100% Content IP Ownership Agreement.</>
                     )}
                   </span>
                 </label>
@@ -491,9 +491,9 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
           {/* Micro Footer Policy Links */}
           <div className="pt-4 border-t border-stone-200/80 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-3">
-              <Link href="/terms?tab=terms" className="hover:text-slate-900 dark:hover:text-white transition">Terms</Link>
+              <Link href="/terms" className="hover:text-slate-900 dark:hover:text-white transition">Terms</Link>
               <span>•</span>
-              <Link href="/terms?tab=privacy" className="hover:text-slate-900 dark:hover:text-white transition">Privacy</Link>
+              <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-white transition">Privacy</Link>
               <span>•</span>
               <Link href="/contact" className="hover:text-slate-900 dark:hover:text-white transition">Support</Link>
             </div>

@@ -258,7 +258,7 @@ export const Footer: React.FC = () => {
                     { label: 'Local Reports', href: '/creator' },
                     { label: 'Investigations', href: '/#ecosystem' },
                     { label: "People's Stories", href: '/publishers' },
-                    { label: 'Top Cities', href: '/#story' },
+                    { label: 'Creator Earnings', href: '/#earnings' },
                   ].map((link) => (
                     <li key={link.label}>
                       <Link
@@ -284,45 +284,11 @@ export const Footer: React.FC = () => {
               <nav aria-label="Company navigation">
                 <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
                   {[
-                    { label: 'About Us', href: '/#why' },
-                    { label: 'Our Mission', href: '/#why' },
-                    { label: 'For Publishers', href: '/creator' },
-                    { label: 'Careers', href: '/contact' },
+                    { label: 'About Us', href: '/about' },
+                    { label: 'Citizen Manifesto', href: '/about#manifesto' },
+                    { label: 'Bureau Network', href: '/about#bureaus' },
+                    { label: 'Publisher Studio', href: '/creator' },
                     { label: 'Contact Us', href: '/contact' },
-                    { label: 'Press', href: '/terms?tab=creator' },
-                  ].map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="group/link inline-flex items-center gap-1 hover:text-white transition-colors duration-200"
-                      >
-                        <span className="relative">
-                          {link.label}
-                          <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#DE5227] transition-all duration-300 group-hover/link:w-full" />
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </div>
-
-            {/* ── COL 4: SUPPORT (col-span-1 lg:col-span-2) ── */}
-            <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
-              <h3 className="text-[13px] font-bold text-white tracking-tight font-sans uppercase">
-                Support
-              </h3>
-              <nav aria-label="Support navigation">
-                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
-                  {[
-                    { label: 'Help Center', href: '/#faq' },
-                    {
-                      label: 'Community Guidelines',
-                      href: '/terms?tab=guidelines',
-                    },
-                    { label: 'Editorial Standards', href: '/terms?tab=guidelines' },
-                    { label: 'Report an Issue', href: '/contact' },
-                    { label: 'Feedback', href: '/contact' },
                     { label: 'FAQ', href: '/#faq' },
                   ].map((link) => (
                     <li key={link.label}>
@@ -341,20 +307,20 @@ export const Footer: React.FC = () => {
               </nav>
             </div>
 
-            {/* ── COL 4B: LEGAL & TRUST (col-span-1 sm:col-span-1 lg:hidden) ── */}
-            <div className="col-span-1 sm:col-span-1 lg:hidden space-y-3.5 sm:space-y-4">
+            {/* ── COL 4: LEGAL & TRUST (col-span-2 sm:col-span-1 lg:col-span-2) ── */}
+            <div className="col-span-2 sm:col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
               <h3 className="text-[13px] font-bold text-white tracking-tight font-sans uppercase">
                 Legal & Trust
               </h3>
               <nav aria-label="Legal navigation">
                 <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
                   {[
-                    { label: 'Privacy Policy', href: '/terms?tab=privacy' },
-                    { label: 'Terms of Service', href: '/terms?tab=terms' },
-                    { label: 'Contributor Policy', href: '/terms?tab=creator' },
-                    { label: 'DMCA Notice', href: '/terms?tab=dmca' },
-                    { label: 'Direct UPI Terms', href: '/#earnings' },
-                    { label: '100% IP Rights', href: '/#story' },
+                    { label: 'Privacy Policy', href: '/privacy' },
+                    { label: 'Terms of Service', href: '/terms' },
+                    { label: 'Editorial Standards', href: '/guidelines' },
+                    { label: 'Grievance Officer', href: '/grievance' },
+                    { label: 'Cookie Policy', href: '/cookies' },
+                    { label: 'Report an Issue', href: '/contact' },
                   ].map((link) => (
                     <li key={link.label}>
                       <Link
@@ -441,17 +407,38 @@ export const Footer: React.FC = () => {
               <span>© 2026 Nagrik Media Trust. All rights reserved.</span>
               <span className="hidden sm:inline text-slate-700">·</span>
               <Link
-                href="/terms?tab=privacy"
+                href="/privacy"
                 className="hover:text-slate-300 transition-colors duration-200"
               >
                 Privacy
               </Link>
               <span className="text-slate-700">·</span>
               <Link
-                href="/terms?tab=terms"
+                href="/terms"
                 className="hover:text-slate-300 transition-colors duration-200"
               >
                 Terms
+              </Link>
+              <span className="text-slate-700">·</span>
+              <Link
+                href="/cookies"
+                className="hover:text-slate-300 transition-colors duration-200"
+              >
+                Cookies
+              </Link>
+              <span className="text-slate-700">·</span>
+              <Link
+                href="/grievance"
+                className="hover:text-slate-300 transition-colors duration-200"
+              >
+                Grievance
+              </Link>
+              <span className="text-slate-700">·</span>
+              <Link
+                href="/guidelines"
+                className="hover:text-slate-300 transition-colors duration-200"
+              >
+                Guidelines
               </Link>
             </div>
 
