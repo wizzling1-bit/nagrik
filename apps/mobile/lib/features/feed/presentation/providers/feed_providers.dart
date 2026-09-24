@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nagrik/core/errors/app_error.dart';
 import 'package:nagrik/core/network/connectivity_provider.dart';
+import 'package:nagrik/core/network/offline_cache_service.dart';
 import 'package:nagrik/features/feed/data/models/api_models.dart';
 import 'package:nagrik/features/feed/data/repositories/content_repository.dart';
 import 'package:nagrik/features/feed/domain/models/feed_item.dart';
@@ -183,8 +184,27 @@ class FeedStateNotifier extends Notifier<FeedState> {
     final repo = ref.read(contentRepositoryProvider);
     final tab = ref.read(feedTabProvider);
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    // 1. Instant SWR Hydration: Render cached stories immediately (0ms)
+    try {
+      final cachedPosts = await OfflineCacheService.getFeedCache();
+      if (cachedPosts.isNotEmpty && state.items.isEmpty) {
+        final cachedFeedItems = <FeedItem>[];
+        for (final raw in cachedPosts) {
+          try {
+            cachedFeedItems.add(ContentFeedItem(post: Post.fromJson(raw)));
+          } catch (_) {}
+        }
+        if (cachedFeedItems.isNotEmpty && state.items.isEmpty) {
+          state = state.copyWith(
+            items: cachedFeedItems,
+            isLoading: false,
+            clearError: true,
+          );
+        }
+      }
+    } catch (_) {}
 
+    // 2. Background Revalidation from Network
     try {
       final result = await repo.getFeedWithItems(
         city: location?.city,
@@ -213,10 +233,13 @@ class FeedStateNotifier extends Notifier<FeedState> {
       _noteOutcome(null);
     } catch (e) {
       _noteOutcome(e);
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: friendlyErrorMessage(e, fallback: 'Could not load your feed. Please retry.'),
-      );
+      // Only display error if we have no cached content to show
+      if (state.items.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: friendlyErrorMessage(e, fallback: 'Could not load your feed. Please retry.'),
+        );
+      }
     }
   }
 

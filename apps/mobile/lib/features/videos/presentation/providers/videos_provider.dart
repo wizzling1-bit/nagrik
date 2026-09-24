@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nagrik/core/errors/app_error.dart';
+import 'package:nagrik/core/network/offline_cache_service.dart';
 import 'package:nagrik/features/feed/data/repositories/content_repository.dart';
 import 'package:nagrik/features/feed/domain/models/feed_item.dart';
+import 'package:nagrik/features/feed/domain/models/post.dart';
+import 'package:nagrik/features/feed/domain/models/post_type.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 
@@ -44,8 +47,30 @@ class VideosFeedNotifier extends Notifier<FeedState> {
     final location = ref.read(selectedLocationProvider);
     final repo = ref.read(contentRepositoryProvider);
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    // 1. Instant SWR Hydration: Hydrate from cache immediately (0ms)
+    try {
+      final cachedPosts = await OfflineCacheService.getFeedCache();
+      if (cachedPosts.isNotEmpty && state.items.isEmpty) {
+        final cachedVideoItems = <FeedItem>[];
+        for (final raw in cachedPosts) {
+          try {
+            final post = Post.fromJson(raw);
+            if (post.type == PostType.video || post.videoUrl != null) {
+              cachedVideoItems.add(ContentFeedItem(post: post));
+            }
+          } catch (_) {}
+        }
+        if (cachedVideoItems.isNotEmpty && state.items.isEmpty) {
+          state = state.copyWith(
+            items: cachedVideoItems,
+            isLoading: false,
+            clearError: true,
+          );
+        }
+      }
+    } catch (_) {}
 
+    // 2. Background Revalidation from Network
     try {
       final result = await repo.getFeedWithItems(
         city: location?.city,
@@ -72,10 +97,12 @@ class VideosFeedNotifier extends Notifier<FeedState> {
         clearError: true,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: friendlyErrorMessage(e, fallback: 'Could not load news videos. Tap to retry.'),
-      );
+      if (state.items.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: friendlyErrorMessage(e, fallback: 'Could not load news videos. Tap to retry.'),
+        );
+      }
     }
   }
 
