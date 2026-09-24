@@ -103,14 +103,15 @@ class NagrikLogoMark extends StatelessWidget {
           borderRadius: BorderRadius.circular(w * 0.24),
           child: CustomPaint(
             size: Size(w, h),
-            painter: const NagrikLogoMarkPainter(),
             child: Image.asset(
               'assets/images/nagrik_logo.png',
               width: w,
               height: h,
               fit: BoxFit.cover,
               filterQuality: FilterQuality.high,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              errorBuilder: (_, __, ___) => const CustomPaint(
+                painter: NagrikLogoMarkPainter(),
+              ),
             ),
           ),
         ),

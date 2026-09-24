@@ -85,7 +85,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    const bgColor = NagrikBrandColors.midnight;
+    const bgColor = Color(0xFF10141C);
 
     if (reduceMotion) {
       return GestureDetector(
@@ -244,27 +244,51 @@ class _LogoEmblem extends StatelessWidget {
       opacity: opacity.clamp(0.0, 1.0),
       child: Transform.scale(
         scale: scale,
-        child: Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 28,
-                offset: const Offset(0, 6),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Soft warm terracotta ambient backlight glow
+            Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFFD96B43).withValues(alpha: 0.28),
+                    Colors.transparent,
+                  ],
+                ),
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.asset(
-              'assets/images/nagrik_logo.png',
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.high,
             ),
-          ),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFD96B43).withValues(alpha: 0.35),
+                    blurRadius: 24,
+                    offset: const Offset(0, 4),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    blurRadius: 28,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'assets/images/nagrik_logo.png',
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
