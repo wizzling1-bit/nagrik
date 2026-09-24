@@ -15,6 +15,8 @@ class VerticalVideoOverlay extends ConsumerStatefulWidget {
     required this.post,
     this.controller,
     required this.isMuted,
+    this.isPlaying,
+    this.onTogglePlayPause,
     required this.onToggleMute,
     required this.onLike,
     required this.onComment,
@@ -27,6 +29,8 @@ class VerticalVideoOverlay extends ConsumerStatefulWidget {
   final Post post;
   final VideoPlayerController? controller;
   final bool isMuted;
+  final bool? isPlaying;
+  final VoidCallback? onTogglePlayPause;
   final VoidCallback onToggleMute;
   final VoidCallback onLike;
   final VoidCallback onComment;
@@ -168,6 +172,27 @@ class _VerticalVideoOverlayState extends ConsumerState<VerticalVideoOverlay> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Play / Pause Action
+              if (widget.onTogglePlayPause != null) ...[
+                _ActionButton(
+                  key: const Key('video_play_pause_action_btn'),
+                  icon: (widget.isPlaying ?? (controller?.value.isPlaying ?? false))
+                      ? Icons.pause_circle_filled_rounded
+                      : Icons.play_circle_fill_rounded,
+                  iconColor: (widget.isPlaying ?? (controller?.value.isPlaying ?? false))
+                      ? Colors.white
+                      : NagrikBrandColors.orangePrimary,
+                  label: (widget.isPlaying ?? (controller?.value.isPlaying ?? false))
+                      ? 'Pause'
+                      : 'Play',
+                  onTap: () {
+                    NagrikMotion.lightImpact();
+                    widget.onTogglePlayPause?.call();
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // Like Action
               _ActionButton(
                 icon: post.isLiked
@@ -490,6 +515,7 @@ class _VerticalVideoOverlayState extends ConsumerState<VerticalVideoOverlay> {
 
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
+    super.key,
     required this.icon,
     required this.iconColor,
     required this.label,

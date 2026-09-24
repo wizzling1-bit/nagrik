@@ -220,6 +220,39 @@ class _VerticalVideoCardState extends ConsumerState<VerticalVideoCard>
               ),
             ),
 
+          // Persistent Center Paused Badge when video is paused
+          if (isInitialized && controller != null && !controller.value.isPlaying && !_showPlayPauseRipple)
+            Center(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _triggerPlayPause,
+                child: Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.58),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.28),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                ),
+              ),
+            ),
+
           // Journalist Overlays & Interactions
           IgnorePointer(
             ignoring: false,
@@ -227,6 +260,8 @@ class _VerticalVideoCardState extends ConsumerState<VerticalVideoCard>
               post: post,
               controller: controller,
               isMuted: widget.isMuted,
+              isPlaying: controller?.value.isPlaying ?? false,
+              onTogglePlayPause: _triggerPlayPause,
               onToggleMute: widget.onToggleMute,
               onLike: () {
                 ref.read(videosFeedProvider.notifier).toggleLike(post.id);

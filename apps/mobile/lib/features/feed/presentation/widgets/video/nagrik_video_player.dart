@@ -420,9 +420,9 @@ class _NagrikVideoPlayerState extends ConsumerState<NagrikVideoPlayer> {
               if (_isInitialized && controller != null && !_hasError)
                 Positioned.fill(
                   child: IgnorePointer(
-                    ignoring: !_showControls,
+                    ignoring: !(_showControls || !controller.value.isPlaying),
                     child: AnimatedOpacity(
-                      opacity: _showControls ? 1.0 : 0.0,
+                      opacity: (_showControls || !controller.value.isPlaying) ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeInOut,
                       child: Container(
