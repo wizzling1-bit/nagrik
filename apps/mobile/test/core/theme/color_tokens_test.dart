@@ -67,53 +67,53 @@ void main() {
     });
   });
 
-  group('NagrikDarkColors semantic mapping (Midnight Obsidian)', () {
-    test('Level 0 background is midnight obsidian #0C1018', () {
-      expect(NagrikDarkColors.level0Background, const Color(0xFF0C1018));
-      expect(NagrikDarkColors.background, const Color(0xFF0C1018));
+  group('NagrikDarkColors semantic mapping (Soft Charcoal Non-Glare)', () {
+    test('Level 0 background is soft charcoal #10141C', () {
+      expect(NagrikDarkColors.level0Background, const Color(0xFF10141C));
+      expect(NagrikDarkColors.background, const Color(0xFF10141C));
     });
 
-    test('Level 1 surface is #131A2A', () {
-      expect(NagrikDarkColors.level1Surface, const Color(0xFF131A2A));
-      expect(NagrikDarkColors.surface, const Color(0xFF131A2A));
+    test('Level 1 surface is #161B26', () {
+      expect(NagrikDarkColors.level1Surface, const Color(0xFF161B26));
+      expect(NagrikDarkColors.surface, const Color(0xFF161B26));
     });
 
-    test('Level 2 elevated is #1A2236', () {
-      expect(NagrikDarkColors.level2Elevated, const Color(0xFF1A2236));
-      expect(NagrikDarkColors.surfaceElevated, const Color(0xFF1A2236));
+    test('Level 2 elevated is #1E2433', () {
+      expect(NagrikDarkColors.level2Elevated, const Color(0xFF1E2433));
+      expect(NagrikDarkColors.surfaceElevated, const Color(0xFF1E2433));
     });
 
-    test('Level 3 interactive is #1E283E', () {
-      expect(NagrikDarkColors.level3Interactive, const Color(0xFF1E283E));
-      expect(NagrikDarkColors.surfaceInteractive, const Color(0xFF1E283E));
+    test('Level 3 interactive is #242C3D', () {
+      expect(NagrikDarkColors.level3Interactive, const Color(0xFF242C3D));
+      expect(NagrikDarkColors.surfaceInteractive, const Color(0xFF242C3D));
     });
 
-    test('Level 4 muted is #0F1520', () {
-      expect(NagrikDarkColors.level4Muted, const Color(0xFF0F1520));
-      expect(NagrikDarkColors.surfaceMuted, const Color(0xFF0F1520));
+    test('Level 4 muted is #121620', () {
+      expect(NagrikDarkColors.level4Muted, const Color(0xFF121620));
+      expect(NagrikDarkColors.surfaceMuted, const Color(0xFF121620));
     });
 
-    test('text hierarchy: primary #F0F2F5, secondary #8E9DB5, tertiary #5E6D84', () {
-      expect(NagrikDarkColors.textPrimary, const Color(0xFFF0F2F5));
-      expect(NagrikDarkColors.textSecondary, const Color(0xFF8E9DB5));
-      expect(NagrikDarkColors.textTertiary, const Color(0xFF5E6D84));
+    test('text hierarchy: primary #E2E6EC, secondary #8F9CAE, tertiary #64748B', () {
+      expect(NagrikDarkColors.textPrimary, const Color(0xFFE2E6EC));
+      expect(NagrikDarkColors.textSecondary, const Color(0xFF8F9CAE));
+      expect(NagrikDarkColors.textTertiary, const Color(0xFF64748B));
       expect(NagrikDarkColors.textOnPrimary, const Color(0xFFFFFFFF));
     });
 
-    test('brand accents: primary #DE5227, secondary #C84318, bright #F4835E', () {
-      expect(NagrikDarkColors.brandPrimary, const Color(0xFFDE5227));
-      expect(NagrikDarkColors.brandSecondary, const Color(0xFFC84318));
-      expect(NagrikDarkColors.brandBright, const Color(0xFFF4835E));
+    test('brand accents: primary #D96B43, secondary #C85A34, bright #E07A55', () {
+      expect(NagrikDarkColors.brandPrimary, const Color(0xFFD96B43));
+      expect(NagrikDarkColors.brandSecondary, const Color(0xFFC85A34));
+      expect(NagrikDarkColors.brandBright, const Color(0xFFE07A55));
     });
 
-    test('border is #1C2537, borderStrong is #2A3650, divider is #1C2537', () {
-      expect(NagrikDarkColors.border, const Color(0xFF1C2537));
-      expect(NagrikDarkColors.borderStrong, const Color(0xFF2A3650));
-      expect(NagrikDarkColors.divider, const Color(0xFF1C2537));
+    test('border is translucent #14FFFFFF, borderStrong is #24FFFFFF, divider is #14FFFFFF', () {
+      expect(NagrikDarkColors.border, const Color(0x14FFFFFF));
+      expect(NagrikDarkColors.borderStrong, const Color(0x24FFFFFF));
+      expect(NagrikDarkColors.divider, const Color(0x14FFFFFF));
     });
 
-    test('dark semantics: success #34D399', () {
-      expect(NagrikDarkColors.success, const Color(0xFF34D399));
+    test('dark semantics: success #38B781', () {
+      expect(NagrikDarkColors.success, const Color(0xFF38B781));
     });
   });
 }

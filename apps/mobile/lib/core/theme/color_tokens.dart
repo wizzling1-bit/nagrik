@@ -99,22 +99,22 @@ abstract final class NagrikLightColors {
   static const scrim = Color(0x66000000);
 }
 
-/// Semantic Dark Palette (Midnight Obsidian Luxury Editorial Aesthetic).
+/// Semantic Dark Palette (Soft Charcoal Editorial Aesthetic — Non-Glare).
 abstract final class NagrikDarkColors {
-  /// Level 0: Midnight Obsidian canvas background (#0C1018).
-  static const level0Background = Color(0xFF0C1018);
+  /// Level 0: Soft Charcoal Canvas background (#10141C) — eliminates eye fatigue.
+  static const level0Background = Color(0xFF10141C);
 
-  /// Level 1: Primary card / content surface (#131A2A).
-  static const level1Surface = Color(0xFF131A2A);
+  /// Level 1: Primary card / content surface (#161B26).
+  static const level1Surface = Color(0xFF161B26);
 
-  /// Level 2: Elevated surface / dialogs / modal sheets (#1A2236).
-  static const level2Elevated = Color(0xFF1A2236);
+  /// Level 2: Elevated surface / dialogs / modal sheets (#1E2433).
+  static const level2Elevated = Color(0xFF1E2433);
 
-  /// Level 3: Selected / focused / active interactive surface (#1E283E).
-  static const level3Interactive = Color(0xFF1E283E);
+  /// Level 3: Selected / focused / active interactive surface (#242C3D).
+  static const level3Interactive = Color(0xFF242C3D);
 
-  /// Level 4 / Inset: Inset / muted surface / text fields (#0F1520).
-  static const level4Muted = Color(0xFF0F1520);
+  /// Level 4 / Inset: Inset / muted surface / text fields (#121620).
+  static const level4Muted = Color(0xFF121620);
 
   // Aliases
   static const background = level0Background;
@@ -123,45 +123,50 @@ abstract final class NagrikDarkColors {
   static const surfaceMuted = level4Muted;
   static const surfaceInteractive = level3Interactive;
 
-  /// Bright luminescent primary text (#F0F2F5).
-  static const textPrimary = Color(0xFFF0F2F5);
+  /// Soft ivory paper primary text (#E2E6EC) — no blinding glare.
+  static const textPrimary = Color(0xFFE2E6EC);
 
-  /// Muted obsidian secondary text (#8E9DB5).
-  static const textSecondary = Color(0xFF8E9DB5);
+  /// Soft slate secondary text (#8F9CAE).
+  static const textSecondary = Color(0xFF8F9CAE);
 
-  /// Faint tertiary metadata text (#5E6D84).
-  static const textTertiary = Color(0xFF5E6D84);
+  /// Muted metadata tertiary text (#64748B).
+  static const textTertiary = Color(0xFF64748B);
 
-  /// High contrast white text for solid buttons (#FFFFFF).
+  /// Clean button text (#FFFFFF).
   static const textOnPrimary = Color(0xFFFFFFFF);
 
-  /// Signature Nagrik Brand Orange (#DE5227).
-  static const brandPrimary = Color(0xFFDE5227);
+  /// Soft warm terracotta brand orange (#D96B43) — reduced optical fatigue.
+  static const brandPrimary = Color(0xFFD96B43);
 
-  /// Accessible Brand Orange (#C84318).
-  static const brandSecondary = Color(0xFFC84318);
+  /// Deeper brand orange (#C85A34).
+  static const brandSecondary = Color(0xFFC85A34);
 
-  /// Vibrant luminous brand orange accent (#F4835E).
-  static const brandBright = Color(0xFFF4835E);
+  /// Warm luminous accent (#E07A55).
+  static const brandBright = Color(0xFFE07A55);
 
-  /// Subtle dark border (#1C2537).
-  static const border = Color(0xFF1C2537);
+  /// Delicate translucent borders (#14FFFFFF).
+  static const border = Color(0x14FFFFFF);
 
-  /// Strong dark border (#2A3650).
-  static const borderStrong = Color(0xFF2A3650);
+  /// Stronger translucent border (#24FFFFFF).
+  static const borderStrong = Color(0x24FFFFFF);
 
-  /// Divider line tone (#1C2537).
-  static const divider = Color(0xFF1C2537);
+  /// Divider line (#14FFFFFF).
+  static const divider = Color(0x14FFFFFF);
 
-  /// Mint emerald success green (#34D399).
-  static const success = Color(0xFF34D399);
-  static const successContainer = Color(0xFF0C2E1F);
+  /// Soft emerald success green (#38B781).
+  static const success = Color(0xFF38B781);
+  static const successContainer = Color(0xFF0F3022);
 
-  static const warning = Color(0xFFE5A138);
+  /// Soft amber warning (#DDA046).
+  static const warning = Color(0xFFDDA046);
   static const warningContainer = Color(0xFF332005);
-  static const error = Color(0xFFE05656);
+
+  /// Soft coral error (#D95B5B).
+  static const error = Color(0xFFD95B5B);
   static const errorContainer = Color(0xFF38151A);
-  static const info = Color(0xFF5A8EE8);
+
+  /// Soft azure info (#5586DC).
+  static const info = Color(0xFF5586DC);
   static const infoContainer = Color(0xFF12233D);
 
   static const overlay = Color(0x40000000);
