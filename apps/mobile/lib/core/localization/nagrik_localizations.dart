@@ -21,6 +21,7 @@ class NagrikStringsData {
     required this.clearAll,
     // Navigation
     required this.navHome,
+    required this.navVideos,
     required this.navSearch,
     required this.navSaved,
     // Home & Feed
@@ -169,6 +170,7 @@ class NagrikStringsData {
   final String finishAndExplore;
   final String clearAll;
   final String navHome;
+  final String navVideos;
   final String navSearch;
   final String navSaved;
   final String latestNearYou;
@@ -312,6 +314,7 @@ const kEnglishStrings = NagrikStringsData(
   finishAndExplore: 'Finish & Explore',
   clearAll: 'Clear all',
   navHome: 'Home',
+  navVideos: 'Videos',
   navSearch: 'Search',
   navSaved: 'Saved',
   latestNearYou: 'LATEST NEAR YOU',
@@ -455,6 +458,7 @@ const kHindiStrings = NagrikStringsData(
   finishAndExplore: 'पूरा करें और देखें',
   clearAll: 'सभी हटाएं',
   navHome: 'होम',
+  navVideos: 'वीडियो',
   navSearch: 'खोजें',
   navSaved: 'सहेजे गए',
   latestNearYou: 'आपके आस-पास की ताज़ा ख़बरें',

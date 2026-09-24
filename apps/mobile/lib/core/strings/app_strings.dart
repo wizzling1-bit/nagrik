@@ -22,6 +22,7 @@ abstract final class NagrikStrings {
 
   // Navigation
   static const navHome = 'Home';
+  static const navVideos = 'Videos';
   static const navDiscover = 'Discover';
   static const navReport = 'Report';
   static const navAlerts = 'Alerts';

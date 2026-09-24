@@ -18,12 +18,14 @@ import 'package:nagrik/features/onboarding/presentation/splash_screen.dart';
 import 'package:nagrik/features/saved/presentation/saved_screen.dart';
 import 'package:nagrik/features/search/presentation/search_screen.dart';
 import 'package:nagrik/features/settings/presentation/settings_screen.dart';
+import 'package:nagrik/features/videos/presentation/screens/videos_screen.dart';
 
 /// Route path constants for the simplified hyperlocal news app.
 abstract final class AppRoutes {
   static const splash = '/splash';
   static const onboarding = '/onboarding';
   static const home = '/';
+  static const videos = '/videos';
   static const search = '/search';
   static const saved = '/saved';
   static const notifications = '/notifications';
@@ -145,6 +147,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.home,
                 builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.videos,
+                builder: (context, state) => const VideosScreen(),
               ),
             ],
           ),
@@ -357,6 +367,12 @@ class _ScaffoldWithNavBarState extends ConsumerState<_ScaffoldWithNavBar> {
                           selectedIcon: const Icon(Icons.home_rounded),
                           label: strings.navHome,
                           tooltip: strings.navHome,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(Icons.play_circle_outline_rounded),
+                          selectedIcon: const Icon(Icons.play_circle_filled_rounded),
+                          label: strings.navVideos,
+                          tooltip: strings.navVideos,
                         ),
                         NavigationDestination(
                           icon: const Icon(Icons.search_rounded),
