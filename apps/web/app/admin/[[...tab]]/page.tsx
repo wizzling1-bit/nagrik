@@ -8,7 +8,7 @@ export default function AdminPage() {
   const router = useRouter();
 
   return (
-    <main className="w-full h-screen overflow-hidden">
+    <main className="w-full min-h-screen">
       <AdminLayout onBackToHome={() => router.push('/')} />
     </main>
   );

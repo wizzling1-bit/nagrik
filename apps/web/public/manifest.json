@@ -1,0 +1,17 @@
+{
+  "name": "Naagrik - Hyperlocal News India",
+  "short_name": "Naagrik",
+  "description": "Citizen-powered hyperlocal journalism from across India",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F17",
+  "theme_color": "#FF5722",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

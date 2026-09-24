@@ -15,7 +15,7 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="admin-portal-root min-h-screen w-full bg-slate-900 text-slate-100 overflow-hidden">
+    <div className="admin-portal-root min-h-screen w-full bg-[#EAE2D5] dark:bg-[#070A11] text-slate-900 dark:text-slate-100">
       {children}
     </div>
   );

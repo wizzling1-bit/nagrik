@@ -50,6 +50,12 @@ export const metadata: Metadata = {
     title: 'नागरिक (Naagrik) - Hyperlocal Civic Journalism Platform',
     description: 'Instant local updates, verified ground reports, and short-form civic news.',
   },
+  manifest: '/manifest.json',
+  alternates: {
+    types: {
+      'application/rss+xml': [{ url: '/feed.xml', title: 'Naagrik RSS Feed' }],
+    },
+  },
 };
 
 export default function RootLayout({
@@ -58,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="hi" className={`${sansFont.variable} ${serifFont.variable} ${displayFont.variable} ${scriptFont.variable}`}>
+    <html lang="hi" data-scroll-behavior="smooth" className={`${sansFont.variable} ${serifFont.variable} ${displayFont.variable} ${scriptFont.variable}`}>
       <body className="text-content font-sans antialiased selection:bg-[#DE5227] selection:text-white min-h-screen flex flex-col transition-colors duration-200">
         <Providers>
           <Navbar />

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Pagination } from '../../components/Pagination';
+import { supabase } from '@/lib/supabase';
 
 interface AdminCmsTabProps {
   cmsPages: any[];
@@ -146,27 +147,23 @@ Publishers may file counter-notices within 14 business days.`
 
     setSaving(true);
     try {
-      const res = await fetch(`${apiBase}/admin/cms/${selectedSlug}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('cms_pages')
+        .upsert({
           slug: selectedSlug,
-          title,
+          title: title.trim(),
           content,
           version,
-          isPublished
-        })
-      });
+          is_published: isPublished,
+          updated_at: new Date().toISOString()
+        });
 
-      const data = await res.json();
-      if (data.success) {
+      if (error) {
+        console.error('Supabase save CMS doc error:', error);
+        showToast(error.message || 'Failed to update CMS document.', 'error');
+      } else {
         showToast(`'${title}' updated and published successfully!`);
         await fetchCmsPages();
-      } else {
-        showToast(data.error || 'Failed to update CMS document.', 'error');
       }
     } catch {
       showToast(`Saved changes for '${title}' locally!`);
@@ -185,23 +182,20 @@ Publishers may file counter-notices within 14 business days.`
 
     setSaving(true);
     try {
-      const res = await fetch(`${apiBase}/admin/cms`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('cms_pages')
+        .insert({
           slug: cleanSlug,
           title: newTitle.trim(),
           content: newContent || `### ${newTitle}\n\nDocument details and community policies...`,
           version: newVersion || '1.0',
-          isPublished: true
-        })
-      });
+          is_published: true
+        });
 
-      const data = await res.json();
-      if (data.success) {
+      if (error) {
+        console.error('Supabase create CMS doc error:', error);
+        showToast(error.message || 'Failed to create document.', 'error');
+      } else {
         showToast(`New policy '${newTitle}' created successfully!`);
         await fetchCmsPages();
         setSelectedSlug(cleanSlug);
@@ -209,8 +203,6 @@ Publishers may file counter-notices within 14 business days.`
         setNewSlug('');
         setNewTitle('');
         setNewContent('');
-      } else {
-        showToast(data.error || 'Failed to create document.', 'error');
       }
     } catch {
       showToast(`Created document '${newTitle}' locally!`);
@@ -224,25 +216,23 @@ Publishers may file counter-notices within 14 business days.`
     if (!deletingPage) return;
     setIsDeleting(true);
     try {
-      const targetId = deletingPage.id || deletingPage._id || deletingPage.slug;
-      const res = await fetch(`${apiBase}/admin/cms/${targetId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (data.success) {
+      const targetSlug = deletingPage.slug;
+      const { error } = await supabase
+        .from('cms_pages')
+        .delete()
+        .eq('slug', targetSlug);
+
+      if (error) {
+        console.error('Supabase delete CMS doc error:', error);
+        showToast(error.message || 'Failed to delete document.', 'error');
+      } else {
         showToast(`Document '${deletingPage.title}' deleted successfully.`);
         await fetchCmsPages();
         setSelectedSlug('terms');
-      } else {
-        showToast(data.error || 'Failed to delete document.', 'error');
       }
     } catch {
       showToast(`Deleted document '${deletingPage.title}' locally.`);
       setSelectedSlug('terms');
-    } finally {
       setIsDeleting(false);
       setDeletingPage(null);
     }
@@ -286,7 +276,7 @@ Publishers may file counter-notices within 14 business days.`
       )}
 
       {/* Top Header Card */}
-      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shadow-2xs">
@@ -323,7 +313,7 @@ Publishers may file counter-notices within 14 business days.`
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Document List Sidebar (4 Cols) */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-4 space-y-3 shadow-xs">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-4 space-y-3 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
             <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-2.5 px-2">
               <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                 Legal Documents ({allPages.length})
@@ -349,7 +339,7 @@ Publishers may file counter-notices within 14 business days.`
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="p-2 rounded-xl bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 shrink-0">
+                      <div className="p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#0B0F17] border border-[#DCD1BF] dark:border-slate-800 shrink-0">
                         {getDocIcon(page.slug)}
                       </div>
                       <div className="min-w-0">
@@ -394,7 +384,7 @@ Publishers may file counter-notices within 14 business days.`
           </div>
 
           {/* Quick Preview Link Card */}
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs shadow-xs">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
             <div className="space-y-0.5">
               <div className="font-bold text-slate-900 dark:text-white">Public Consumer URL</div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">/terms?tab={selectedSlug}</div>
@@ -412,7 +402,7 @@ Publishers may file counter-notices within 14 business days.`
         </div>
 
         {/* Right: Rich Policy Document Editor (8 Cols) */}
-        <div className="lg:col-span-8 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-5 shadow-xs">
+        <div className="lg:col-span-8 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-6 space-y-5 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           {/* Editor Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200/60 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2.5">
@@ -535,7 +525,7 @@ Publishers may file counter-notices within 14 business days.`
       {/* Create New Legal Policy Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative my-8">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative my-8">
             <button
               onClick={() => setShowCreateModal(false)}
               className="absolute top-5 right-5 p-2 rounded-full bg-stone-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-stone-200 dark:border-slate-700 transition cursor-pointer"

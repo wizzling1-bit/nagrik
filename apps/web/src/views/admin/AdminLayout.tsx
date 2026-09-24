@@ -27,7 +27,17 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
-  Megaphone
+  Megaphone,
+  Sun,
+  Moon,
+  Clock,
+  Radio,
+  Activity,
+  Shield,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sparkles,
+  Plus
 } from 'lucide-react';
 import { NagrikLogo } from '../../components/NagrikLogo';
 import { useAuth } from '../../context/AuthContext';
@@ -36,22 +46,18 @@ import { AdminDashboardTab } from './AdminDashboardTab';
 import { AdminModerationTab } from './AdminModerationTab';
 import { AdminCreatorsTab } from './AdminCreatorsTab';
 import { AdminPayoutsTab } from './AdminPayoutsTab';
-import { AdminAdsTab } from './AdminAdsTab';
 import { AdminCategoriesTab } from './AdminCategoriesTab';
 import { AdminCmsTab } from './AdminCmsTab';
 import { AdminSettingsTab } from './AdminSettingsTab';
 import { AdminAuditTab } from './AdminAuditTab';
 import { AdminMetrics, AdminTab } from './types';
-import { Sun, Moon, Clock, Radio, Activity, Shield } from 'lucide-react';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-
+import { supabase } from '@/lib/supabase';
 interface AdminLayoutProps {
   onBackToHome?: () => void;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
-  const { token, user, logout: handleSignOut } = useAuth();
+  const { token, user, isLoading, logout: handleSignOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,6 +65,28 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
   const handleAdminLogout = () => {
     handleSignOut();
     navigate('/signin');
+  };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Sidebar expanded / slider state (persisted in localStorage)
+  const SIDEBAR_EXPANDED_KEY = 'nagrik_admin_sidebar_expanded';
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem(SIDEBAR_EXPANDED_KEY) !== 'false';
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarExpanded((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(SIDEBAR_EXPANDED_KEY, String(next));
+      }
+      return next;
+    });
   };
 
   // Live IST Clock
@@ -75,13 +103,32 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
   // Extract active tab from URL path (e.g. /admin/moderation -> 'moderation')
   const pathParts = location.pathname.split('/').filter(Boolean);
-  const subRoute = (pathParts[1] || 'dashboard') as AdminTab;
+  const rawSubRoute = pathParts[1] || 'dashboard';
 
-  // Active Tab normalizer
-  const activeTab: AdminTab = subRoute;
+  // Map legacy / duplicate route aliases directly to canonical tabs
+  const canonicalTabMap: Record<string, AdminTab> = {
+    dashboard: 'dashboard',
+    analytics: 'dashboard',
+    moderation: 'moderation',
+    reports: 'moderation',
+    verification: 'moderation',
+    creators: 'creators',
+    publishers: 'creators',
+    users: 'creators',
+    payouts: 'payouts',
+    categories: 'categories',
+    geo: 'categories',
+    cms: 'cms',
+    audit: 'audit',
+    settings: 'settings',
+    features: 'settings'
+  };
+
+  const activeTab: AdminTab = canonicalTabMap[rawSubRoute] || 'dashboard';
 
   const setActiveTab = (tab: AdminTab) => {
-    navigate(`/admin/${tab}`);
+    const canonical = canonicalTabMap[tab] || tab;
+    navigate(`/admin/${canonical}`);
   };
 
   // Data States
@@ -99,9 +146,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
   // Payouts State
   const [payouts, setPayouts] = useState<any[]>([]);
-
-  // Ads State
-  const [ads, setAds] = useState<any[]>([]);
 
   // Settings State
   const [settings, setSettings] = useState<any>({
@@ -145,50 +189,78 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
   // Fetch Settings
   const fetchSettings = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success && data.settings) {
-        setSettings(data.settings);
+      const { data: setRow } = await supabase.from('system_settings').select('*').limit(1).maybeSingle();
+      if (setRow) {
+        setSettings({
+          earningRatePer1000Views: setRow.earning_rate_per_1000_views ?? 1.0,
+          minPayoutAmount: setRow.min_payout_amount ?? 10,
+          maxCountedViewsPerVideo: setRow.max_counted_views_per_video ?? 3,
+          adFeedFrequency: setRow.ad_feed_frequency ?? 4
+        });
       }
     } catch (err) {
-      console.error('Error fetching settings:', err);
+      console.warn('Notice fetching settings via Supabase:', err);
     }
   };
 
   // Fetch CMS Legal Pages
   const fetchCmsPages = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/cms`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCmsPages(data.pages || []);
+      const { data: pages } = await supabase.from('cms_pages').select('*');
+      if (pages) {
+        setCmsPages(pages);
       }
     } catch (err) {
-      console.error('Error fetching CMS pages:', err);
+      console.warn('Notice fetching CMS pages via Supabase:', err);
     }
   };
 
   // Fetch Dashboard Metrics
   const fetchDashboard = async () => {
-    if (!token) return;
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/admin/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const [contentsRes, usersRes, creatorsRes, payoutsRes] = await Promise.all([
+        supabase.from('contents').select('id, title, views, eligible_views, total_earnings, moderation_status, publication_status, location_state, location_city, created_at'),
+        supabase.from('users').select('id, role', { count: 'exact' }),
+        supabase.from('creators').select('id', { count: 'exact' }),
+        supabase.from('payout_requests').select('amount, status')
+      ]);
+
+      const contents = contentsRes.data || [];
+      const totalReports = contents.length;
+      const approvedReports = contents.filter(c => c.moderation_status === 'APPROVED').length;
+      const pendingModeration = contents.filter(c => c.moderation_status === 'PENDING_REVIEW').length;
+      const flaggedModeration = contents.filter(c => c.moderation_status === 'FLAGGED').length;
+      const totalViews = contents.reduce((acc, c) => acc + (c.views || 0), 0);
+      const totalEligibleViews = contents.reduce((acc, c) => acc + (c.eligible_views || 0), 0);
+      const totalDisbursed = (payoutsRes.data || [])
+        .filter(p => p.status === 'PAID')
+        .reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+      const pendingDisbursals = (payoutsRes.data || [])
+        .filter(p => p.status === 'PENDING')
+        .reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+      const pendingPayoutsCount = (payoutsRes.data || []).filter(p => p.status === 'PENDING').length;
+
+      const totalUsersCount = usersRes.count ?? usersRes.data?.length ?? 0;
+      const totalCreatorsCount = creatorsRes.count ?? (usersRes.data?.filter(u => u.role === 'CREATOR' || u.role === 'PUBLISHER').length || 0);
+
+      setMetrics({
+        totalUsers: totalUsersCount,
+        totalCreators: totalCreatorsCount,
+        activeCreators: totalCreatorsCount,
+        totalReports,
+        publishedContent: approvedReports,
+        pendingModeration,
+        flaggedModeration,
+        totalViews,
+        totalEligibleViews,
+        totalPaidOut: totalDisbursed,
+        pendingPayouts: pendingDisbursals,
+        pendingPayoutsCount
       });
-      const data = await res.json();
-      if (data.success) {
-        setMetrics(data.metrics || data.data);
-      }
     } catch (err) {
-      console.error('Error fetching admin dashboard:', err);
+      console.error('Error fetching admin dashboard via Supabase:', err);
     } finally {
       setLoading(false);
     }
@@ -196,96 +268,137 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
   // Fetch Moderation Queue
   const fetchModerationQueue = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/moderation?status=${modStatusFilter}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setModItems(data.items || data.data || []);
+      let query = supabase
+        .from('contents')
+        .select('*, creator:creators(*, user:users(*)), category:categories(*)')
+        .order('created_at', { ascending: false });
+
+      if (modStatusFilter) {
+        query = query.eq('moderation_status', modStatusFilter);
+      }
+      const { data } = await query;
+      if (data) {
+        setModItems(data.map((c: any) => ({
+          ...c,
+          _id: c.id,
+          status: c.moderation_status,
+          mediaUrl: c.media_url,
+          thumbnailUrl: c.thumbnail_url,
+          moderationStatus: c.moderation_status,
+          publicationStatus: c.publication_status,
+          eligibleViews: c.eligible_views,
+          totalEarnings: c.total_earnings,
+          createdAt: c.created_at,
+          publishedAt: c.published_at,
+          category: c.category?.name || c.category_id || 'General',
+          creatorName: c.creator?.user?.name || c.creator?.user?.email || 'Citizen Reporter',
+          creator: c.creator,
+          city: c.location_city || c.location?.city || '',
+          state: c.location_state || c.location?.state || '',
+          area: c.location_area || c.location?.area || ''
+        })));
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching moderation queue via Supabase:', err);
     }
   };
 
   // Fetch Creators List
   const fetchCreators = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/creators`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCreatorsList(data.creators || data.data || []);
+      const { data } = await supabase
+        .from('creators')
+        .select('*, user:users(*)')
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        setCreatorsList(data.map((c: any) => ({
+          ...c,
+          _id: c.id,
+          name: c.user?.name || 'Citizen Reporter',
+          email: c.user?.email || '',
+          phone: c.user?.phone || '',
+          channelName: c.user?.name || 'Citizen Reporter',
+          avatarUrl: c.user?.profile_image || c.avatar_url,
+          verificationStatus: c.verification_status,
+          totalEligibleViews: c.total_eligible_views || 0,
+          availableBalance: c.available_balance || 0,
+          lifetimeEarnings: c.lifetime_earnings || 0,
+          totalPaid: c.total_paid || 0,
+          createdAt: c.created_at
+        })));
       }
     } catch (err) {
-      console.error('Error fetching creators:', err);
+      console.error('Error fetching creators via Supabase:', err);
     }
   };
 
   // Fetch Payouts
   const fetchPayouts = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/payouts`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setPayouts(data.requests || data.payouts || data.data || []);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+      const { data } = await supabase
+        .from('payout_requests')
+        .select('*, creator:creators(*, user:users(*)), payout_method:payout_methods(*)')
+        .order('requested_at', { ascending: false });
 
-  // Fetch Ads
-  const fetchAds = async () => {
-    if (!token) return;
-    try {
-      const res = await fetch(`${API_BASE}/admin/ads`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAds(data.ads || data.data || []);
+      if (data) {
+        setPayouts(data.map((p: any) => ({
+          ...p,
+          _id: p.id,
+          creatorId: p.creator_id,
+          creatorName: p.creator?.user?.name || p.creator?.user?.email || 'Citizen Reporter',
+          creatorEmail: p.creator?.user?.email || '',
+          requestedAt: p.requested_at,
+          processedAt: p.processed_at,
+          transactionReference: p.transaction_reference,
+          payoutMethod: p.payout_method?.type || p.payout_method || 'UPI',
+          payoutMethodDetails: p.payout_method
+        })));
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching payouts via Supabase:', err);
     }
   };
 
   // Fetch Categories
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${API_BASE}/admin/categories`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCategories(data.categories || data.data || []);
+      const { data } = await supabase.from('categories').select('*').order('display_order', { ascending: true });
+      if (data) {
+        setCategories(data.map((c: any) => ({
+          ...c,
+          _id: c.id,
+          displayOrder: c.display_order
+        })));
       }
     } catch (err) {
-      console.error('Error fetching categories:', err);
+      console.error('Error fetching categories via Supabase:', err);
     }
   };
 
   // Fetch Audit Logs
   const fetchAuditLogs = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/admin/audit-logs`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAuditLogs(data.logs || data.auditLogs || data.data || []);
+      const { data } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (data) {
+        setAuditLogs(data.map((l: any) => ({
+          ...l,
+          _id: l.id,
+          actor: l.actor_email || 'Admin',
+          actorEmail: l.actor_email,
+          actorRole: l.actor_role,
+          createdAt: l.created_at || l.timestamp,
+          time: l.created_at || l.timestamp
+        })));
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching audit logs via Supabase:', err);
     }
   };
 
@@ -294,7 +407,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     fetchModerationQueue();
     fetchCreators();
     fetchPayouts();
-    fetchAds();
     fetchCategories();
     fetchCmsPages();
     fetchAuditLogs();
@@ -302,22 +414,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
   };
 
   useEffect(() => {
-    if (token) {
-      fetchAllData();
-    }
-  }, [token]);
+    fetchAllData();
+  }, []);
 
   useEffect(() => {
-    if (token && (activeTab === 'moderation' || activeTab === 'reports' || activeTab === 'verification')) {
+    if (activeTab === 'moderation') {
       fetchModerationQueue();
     }
-    if (token && (activeTab === 'creators' || activeTab === 'publishers' || activeTab === 'users')) {
+    if (activeTab === 'creators') {
       fetchCreators();
     }
-    if (token && activeTab === 'cms') {
+    if (activeTab === 'cms') {
       fetchCmsPages();
     }
-    if (token && (activeTab === 'settings' || activeTab === 'features')) {
+    if (activeTab === 'settings') {
       fetchSettings();
     }
   }, [modStatusFilter, activeTab]);
@@ -333,16 +443,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
   // Actions
   const handleModerate = async (contentId: string, status: 'APPROVED' | 'REJECTED' | 'FLAGGED', reason?: string) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/moderation/${contentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status, reason, rejectionReason: reason })
-      });
-      const data = await res.json();
-      if (data.success) {
+      const { error } = await supabase
+        .from('contents')
+        .update({
+          moderation_status: status === 'APPROVED' ? 'APPROVED' : (status === 'REJECTED' ? 'REJECTED' : 'FLAGGED'),
+          publication_status: status === 'APPROVED' ? 'PUBLISHED' : 'DRAFT',
+          rejection_reason: reason || null,
+          reviewed_at: new Date().toISOString(),
+          published_at: status === 'APPROVED' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', contentId);
+
+      if (error) {
+        console.error('Supabase moderate error:', error);
+        showToast(error.message || 'Failed to update report status', 'error');
+      } else {
         showToast(
           status === 'APPROVED'
             ? 'Report approved & published to citizen feed!'
@@ -350,10 +466,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             ? 'Report rejected.'
             : 'Report flagged for review.'
         );
-        fetchModerationQueue();
-        fetchDashboard();
-      } else {
-        showToast(data.error || 'Failed to update report status', 'error');
+        await fetchModerationQueue();
+        await fetchDashboard();
       }
     } catch (err: any) {
       console.error(err);
@@ -368,21 +482,23 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     adminNote?: string
   ) => {
     try {
-      const res = await fetch(`${API_BASE}/admin/payouts/${requestId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status, txRef, transactionReference: txRef, adminNote })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(status === 'PAID' ? `Payout approved with UTR: ${txRef}` : 'Payout rejected.');
-        fetchPayouts();
-        fetchDashboard();
+      const { error } = await supabase
+        .from('payout_requests')
+        .update({
+          status: status,
+          transaction_reference: txRef || null,
+          admin_note: adminNote || null,
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', requestId);
+
+      if (error) {
+        console.error('Supabase process payout error:', error);
+        showToast(error.message || 'Failed to process payout', 'error');
       } else {
-        showToast(data.error || 'Failed to process payout', 'error');
+        showToast(status === 'PAID' ? `Payout approved with UTR: ${txRef || 'CONFIRMED'}` : 'Payout rejected.');
+        await fetchPayouts();
+        await fetchDashboard();
       }
     } catch (err: any) {
       console.error(err);
@@ -390,30 +506,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     }
   };
 
-  useEffect(() => {
-    if (!token || user?.role !== 'ADMIN') {
-      navigate('/signin?redirect=/admin');
-    }
-  }, [token, user, navigate]);
-
-  // If Not Authenticated as Admin, redirect to unified sign in
-  if (!token || user?.role !== 'ADMIN') {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF9F6] dark:bg-[#0B0F17] text-slate-900 dark:text-white p-6">
-        <div className="w-10 h-10 border-3 border-[#DE5227]/30 border-t-[#DE5227] rounded-full animate-spin mb-4" />
-        <p className="text-sm font-bold font-serif">Opening Sign In Gateway...</p>
-        <span className="text-xs font-mono text-slate-500">Administrator Credentials Required</span>
-      </div>
-    );
-  }
-
   // Admin User details
   const adminName = user?.name || (user?.email ? user.email.split('@')[0] : 'Admin');
-  const adminEmail = user?.email || 'admin@naagrik.news';
+  const adminEmail = user?.email || 'admin@nagrik.news';
   const adminRole = user?.role || 'System Administrator';
 
-  const totalPendingModeration = metrics?.pendingModeration || modItems.filter(i => i.status === 'PENDING_REVIEW').length || 0;
-  const totalPendingPayouts = metrics?.pendingPayouts || payouts.filter(p => p.status === 'PENDING').length || 0;
+  const totalPendingModeration = metrics?.pendingModeration ?? modItems.filter(i => (i.moderationStatus || i.moderation_status) === 'PENDING_REVIEW').length;
+  const totalPendingPayouts = metrics?.pendingPayoutsCount ?? payouts.filter(p => p.status === 'PENDING').length;
   const totalPendingAlerts = totalPendingModeration + totalPendingPayouts;
 
   // Real formatted date string matching "Mon, 28 Jul 2025"
@@ -424,135 +523,94 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     year: 'numeric'
   });
 
-  // 3-Group Navigation Items for Sovereign Newsroom Ops
+  // Clean, Non-Duplicate 2-Group Navigation for Sovereign Newsroom Ops
   const editorialNavItems = [
     {
       tab: 'dashboard' as AdminTab,
       label: 'Dashboard',
+      desc: 'Operations & Live Pulse',
       icon: LayoutDashboard,
       badge: null,
-      alias: ['dashboard']
+      alias: ['dashboard', 'analytics']
     },
     {
       tab: 'moderation' as AdminTab,
       label: 'Content Moderation',
+      desc: 'Review & Published Queue',
       icon: ShieldAlert,
       badge: totalPendingModeration > 0 ? (
-        <span className="bg-[#DE5227] text-white text-[10px] font-black px-1.5 py-0.2 rounded-full animate-pulse">
+        <span className="bg-[#DE5227] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full animate-pulse">
           {totalPendingModeration}
         </span>
       ) : null,
-      alias: ['moderation']
+      alias: ['moderation', 'reports', 'verification']
     },
     {
-      tab: 'reports' as AdminTab,
-      label: 'Published Reports',
-      icon: FileText,
-      badge: (
-        <span className="text-[10px] text-slate-400 font-mono">
-          {metrics?.publishedContent || modItems.length || 0}
-        </span>
-      ),
-      alias: ['reports']
-    },
-    {
-      tab: 'communities' as AdminTab,
-      label: 'Civic Communities',
-      icon: MessageSquare,
-      badge: null,
-      alias: ['communities']
-    },
-    {
-      tab: 'analytics' as AdminTab,
-      label: 'Live Telemetry',
-      icon: TrendingUp,
-      badge: null,
-      alias: ['analytics']
-    }
-  ];
-
-  const creatorNavItems = [
-    {
-      tab: 'publishers' as AdminTab,
-      label: 'Publishers & Stringers',
+      tab: 'creators' as AdminTab,
+      label: 'Publishers & Creators',
+      desc: 'Citizen Journalist Bureau',
       icon: Users,
       badge: (
         <span className="text-[10px] text-slate-400 font-mono">
           {metrics?.totalCreators || creatorsList.length || 0}
         </span>
       ),
-      alias: ['publishers', 'creators']
+      alias: ['creators', 'publishers', 'users']
     },
     {
       tab: 'payouts' as AdminTab,
       label: 'Treasury & Payouts',
+      desc: 'UPI Disbursals Ledger',
       icon: CreditCard,
       badge: totalPendingPayouts > 0 ? (
-        <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 py-0.2 rounded-full animate-bounce">
+        <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-full animate-bounce">
           {totalPendingPayouts}
         </span>
       ) : null,
       alias: ['payouts']
-    },
-    {
-      tab: 'verification' as AdminTab,
-      label: 'Identity Verification',
-      icon: CheckCircle2,
-      badge: null,
-      alias: ['verification']
     }
   ];
 
   const systemNavItems = [
     {
-      tab: 'geo' as AdminTab,
-      label: 'Geo Management',
-      icon: Globe,
-      badge: null,
-      alias: ['geo']
-    },
-    {
       tab: 'categories' as AdminTab,
-      label: 'Categories & Tags',
+      label: 'Categories & Beats',
+      desc: 'Civic Beat Taxonomy',
       icon: Tag,
       badge: null,
-      alias: ['categories']
+      alias: ['categories', 'geo']
     },
     {
       tab: 'cms' as AdminTab,
-      label: 'Legal & CMS Pages',
+      label: 'CMS & Legal Pages',
+      desc: 'Ethical Charters & Terms',
       icon: BookOpen,
       badge: (
-        <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 rounded font-bold font-mono">
+        <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold font-mono">
           Live
         </span>
       ),
       alias: ['cms']
     },
     {
-      tab: 'features' as AdminTab,
-      label: 'Feature Controls',
-      icon: Sliders,
-      badge: null,
-      alias: ['features']
-    },
-    {
       tab: 'audit' as AdminTab,
       label: 'Audit Trail',
+      desc: 'Immutable Bureau Log',
       icon: History,
       badge: null,
       alias: ['audit']
     },
     {
       tab: 'settings' as AdminTab,
-      label: 'System Settings',
+      label: 'Platform Settings',
+      desc: 'Rates, Limits & Controls',
       icon: Settings,
       badge: null,
-      alias: ['settings']
+      alias: ['settings', 'features']
     }
   ];
 
-  const allNavItems = [...editorialNavItems, ...creatorNavItems, ...systemNavItems];
+  const allNavItems = [...editorialNavItems, ...systemNavItems];
 
   // Global Command Search Results Filtering
   const searchResults = useMemo(() => {
@@ -581,11 +639,68 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     return { nav: navMatches, reports: reportMatches, creators: creatorMatches };
   }, [globalSearch, modItems, creatorsList]);
 
+  useEffect(() => {
+    // Only redirect AFTER authentication check has finished loading
+    if (!isLoading && (!token || user?.role !== 'ADMIN')) {
+      navigate('/signin?redirect=/admin');
+    }
+  }, [token, user, isLoading, navigate]);
+
+  // While verifying session during initial load or page reload
+  if (!mounted || isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF9F6] dark:bg-[#0B0F17] text-slate-900 dark:text-white p-6 font-sans">
+        <div className="w-10 h-10 border-3 border-[#DE5227]/30 border-t-[#DE5227] rounded-full animate-spin mb-4" />
+        <p className="text-sm font-bold font-serif">Verifying Administrator Session...</p>
+        <span className="text-xs font-mono text-slate-500 mt-1">Sovereign Control Security Verification</span>
+      </div>
+    );
+  }
+
+  // If Not Authenticated as Admin after loading is complete, redirect to unified sign in
+  if (!token || user?.role !== 'ADMIN') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF9F6] dark:bg-[#0B0F17] text-slate-900 dark:text-white p-6 font-sans">
+        <div className="w-10 h-10 border-3 border-[#DE5227]/30 border-t-[#DE5227] rounded-full animate-spin mb-4" />
+        <p className="text-sm font-bold font-serif">Opening Sign In Gateway...</p>
+        <span className="text-xs font-mono text-slate-500 mt-1">Administrator Credentials Required</span>
+      </div>
+    );
+  }
+
   const renderNavGroup = (items: typeof editorialNavItems, isMobile = false) => (
-    <div className="space-y-0.5">
+    <div className={`space-y-1 ${!isSidebarExpanded && !isMobile ? 'flex flex-col items-center' : ''}`}>
       {items.map((item) => {
         const Icon = item.icon;
         const isActive = item.alias.includes(activeTab);
+
+        if (!isSidebarExpanded && !isMobile) {
+          return (
+            <button
+              key={item.tab}
+              onClick={() => {
+                setActiveTab(item.tab);
+              }}
+              className={`relative p-3 rounded-2xl transition-all group cursor-pointer ${
+                isActive
+                  ? 'bg-[#DE5227] text-white shadow-md shadow-orange-500/25'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-[#F5EFE6] dark:hover:bg-slate-800/80'
+              }`}
+              title={item.label}
+              aria-label={item.label}
+            >
+              <Icon className="w-5 h-5 stroke-[1.8]" />
+              {/* Notification dot if badge exists */}
+              {item.badge && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" />
+              )}
+              {/* Hover Tooltip in collapsed mode */}
+              <span className="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-bold rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                {item.label}
+              </span>
+            </button>
+          );
+        }
 
         return (
           <button
@@ -594,30 +709,37 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
               setActiveTab(item.tab);
               if (isMobile) setMobileMenuOpen(false);
             }}
-            className={`w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition cursor-pointer relative group ${
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition-all text-left cursor-pointer group ${
               isActive
-                ? 'bg-[#FDF2EC] text-[#DE5227] dark:bg-[#DE5227]/20 dark:text-orange-400 font-bold shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-stone-100/70 dark:hover:bg-[#1A2234]'
+                ? 'bg-[#DE5227] text-white shadow-md shadow-orange-500/25'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-[#F8F5EE] dark:hover:bg-slate-800/70'
             }`}
           >
-            {/* Active Left Orange Bar Accent */}
-            {isActive && (
-              <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#DE5227] rounded-r-full shadow-xs" />
-            )}
-
-            <div className="flex items-center gap-2.5 pl-1.5">
-              <Icon
-                className={`w-4 h-4 transition-colors ${
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                   isActive
-                    ? 'text-[#DE5227] dark:text-orange-400'
-                    : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-[#F4EFE6] dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:text-[#DE5227]'
                 }`}
-              />
-              <span>{item.label}</span>
+              >
+                <Icon className="w-4 h-4 stroke-[2]" />
+              </div>
+              <div className="truncate">
+                <div className={`text-xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-900 dark:text-white font-serif'}`}>
+                  {item.label}
+                </div>
+                <div className={`text-[10px] leading-tight truncate ${isActive ? 'text-white/80' : 'text-slate-500 dark:text-slate-400 font-mono mt-0.5'}`}>
+                  {item.desc}
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0 ml-2">
               {item.badge}
+              {isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              )}
             </div>
           </button>
         );
@@ -625,117 +747,213 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     </div>
   );
 
-  const renderSidebarContent = (isMobile = false) => (
-    <div className="flex flex-col h-full justify-between">
-      <div className="p-4 space-y-5 overflow-y-auto flex-1">
-        {/* Brand Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-stone-200/60 dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <NagrikLogo size="sm" variant="icon" />
-            <div>
-              <div className="font-black text-sm text-slate-950 dark:text-white tracking-wide flex items-center gap-1.5">
-                <span>Nagrik Operations</span>
+  const renderSidebarContent = (isMobile = false) => {
+    const showExpanded = isSidebarExpanded || isMobile;
+
+    return (
+      <div className="flex flex-col h-full justify-between">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-0.5">
+          {/* Top Brand Strip */}
+          {showExpanded ? (
+            <div className="flex items-center justify-between pb-3 border-b border-[#DCD1BF]/60 dark:border-slate-800">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className="flex items-center gap-2.5 text-left cursor-pointer group"
+                title="Nagrik Operations"
+              >
+                <div className="w-9 h-9 rounded-2xl bg-[#DE5227] hover:bg-[#C84318] text-white flex items-center justify-center shadow-md shadow-orange-500/25 shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="grid grid-cols-2 gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </div>
+                </div>
+                <div className="overflow-hidden">
+                  <div className="text-sm font-black font-serif text-slate-900 dark:text-white leading-tight">
+                    नागरिक <span className="text-[#DE5227]">Operations</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                    Superintendent Bureau
+                  </div>
+                </div>
+              </button>
+
+              {isMobile ? (
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={toggleSidebar}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-[#F8F5EE] dark:hover:bg-slate-800 transition cursor-pointer"
+                  title="Turn section names OFF (Collapse sidebar)"
+                  aria-label="Collapse sidebar"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className="w-10 h-10 rounded-2xl bg-[#DE5227] hover:bg-[#C84318] text-white flex items-center justify-center shadow-md shadow-orange-500/25 hover:scale-105 transition-transform cursor-pointer"
+                title="Nagrik Operations"
+              >
+                <div className="grid grid-cols-2 gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* ── ON / OFF SLIDER TOGGLE SECTION ── */}
+          {!isMobile && (
+            showExpanded ? (
+              <div className="p-2.5 rounded-2xl bg-[#F8F5EE] dark:bg-slate-900/80 border border-[#DCD1BF] dark:border-slate-800 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-orange-500/10 text-[#DE5227] dark:text-orange-400 flex items-center justify-center">
+                    <Sliders className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-black text-slate-900 dark:text-white leading-none">
+                      Section Names
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                      Slider View Active
+                    </div>
+                  </div>
+                </div>
+
+                {/* Explicit Sliding Toggle Switch Button */}
+                <button
+                  onClick={toggleSidebar}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-white dark:bg-slate-800 border border-[#DCD1BF] dark:border-slate-700 hover:border-[#DE5227] shadow-xs transition-all cursor-pointer group"
+                  title="Turn section names OFF (Collapse to icon dock)"
+                  role="switch"
+                  aria-checked="true"
+                >
+                  <span className="text-[10px] font-mono font-black text-emerald-600 dark:text-emerald-400">
+                    ON
+                  </span>
+                  <div className="w-7 h-4 bg-[#DE5227] rounded-full p-0.5 transition-colors flex items-center justify-end shadow-inner">
+                    <div className="w-3 h-3 bg-white rounded-full shadow-xs" />
+                  </div>
+                </button>
               </div>
-              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase">
-                PEOPLE. STORIES. CHANGE.
+            ) : (
+              /* Collapsed Compact ON/OFF Switch Pill */
+              <button
+                onClick={toggleSidebar}
+                className="flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl bg-[#F8F5EE] dark:bg-slate-900 border border-[#DCD1BF] dark:border-slate-800 hover:border-[#DE5227] transition-all group cursor-pointer shadow-2xs"
+                title="Turn Section Names ON (Slide Open Sidebar)"
+                role="switch"
+                aria-checked="false"
+              >
+                <span className="text-[8px] font-mono font-black text-slate-500 dark:text-slate-400 group-hover:text-[#DE5227]">
+                  OFF
+                </span>
+                <div className="w-7 h-4 bg-stone-300 dark:bg-slate-700 rounded-full p-0.5 transition-colors flex items-center justify-start group-hover:bg-[#DE5227]/30">
+                  <div className="w-3 h-3 bg-white rounded-full shadow-xs" />
+                </div>
+              </button>
+            )
+          )}
+
+          {/* Section 1: EDITORIAL & OPERATIONS */}
+          <div className="space-y-1.5">
+            {showExpanded && (
+              <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 font-mono">
+                EDITORIAL & OPERATIONS
               </div>
+            )}
+            {renderNavGroup(editorialNavItems, isMobile)}
+          </div>
+
+          {/* Section 2: PLATFORM & GOVERNANCE */}
+          <div className="space-y-1.5 pt-2">
+            {showExpanded && (
+              <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 font-mono">
+                PLATFORM & GOVERNANCE
+              </div>
+            )}
+            {renderNavGroup(systemNavItems, isMobile)}
+          </div>
+        </div>
+
+        {/* Bottom Admin User Profile & Sign Out (Moved from Header Right Corner) */}
+        {showExpanded ? (
+          <div className="pt-3 border-t border-[#DCD1BF]/60 dark:border-slate-800 mt-2 shrink-0">
+            <div className="p-2.5 rounded-2xl bg-[#F8F5EE] dark:bg-slate-900/80 border border-[#DCD1BF] dark:border-slate-800 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#DE5227] to-amber-600 text-white font-bold text-xs flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0">
+                  {adminName.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="text-left leading-tight min-w-0">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                    {adminName}
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                    Superintendent
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleAdminLogout}
+                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-800 transition cursor-pointer shrink-0 border border-transparent hover:border-[#DCD1BF] dark:hover:border-slate-700 shadow-xs"
+                title="Sign Out"
+                aria-label="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
-          {isMobile && (
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+        ) : (
+          <div className="pt-3 border-t border-[#DCD1BF]/60 dark:border-slate-800 mt-2 flex flex-col items-center gap-2 shrink-0">
+            <div
+              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#DE5227] to-amber-600 text-white font-bold text-xs flex items-center justify-center shadow-md shadow-orange-500/20 cursor-default"
+              title={`${adminName} (Superintendent)`}
             >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-
-        {/* Section 1: COMMAND & EDITORIAL */}
-        <div className="space-y-1.5">
-          <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
-            COMMAND & EDITORIAL
-          </div>
-          {renderNavGroup(editorialNavItems, isMobile)}
-        </div>
-
-        {/* Section 2: CREATORS & TREASURY */}
-        <div className="space-y-1.5 pt-1">
-          <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
-            CREATORS & TREASURY
-          </div>
-          {renderNavGroup(creatorNavItems, isMobile)}
-        </div>
-
-        {/* Section 3: GOVERNANCE & SYSTEM */}
-        <div className="space-y-1.5 pt-1">
-          <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
-            GOVERNANCE & SYSTEM
-          </div>
-          {renderNavGroup(systemNavItems, isMobile)}
-        </div>
-      </div>
-
-      {/* Sidebar Footer with Editorial Watermark, Theme Toggle and Profile */}
-      <div className="p-4 border-t border-stone-200/60 dark:border-slate-800 space-y-3 bg-[#FAF8F5]/80 dark:bg-[#111827]">
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <div className="flex items-center gap-1.5 font-mono text-[10px]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Node: Patna-Varanasi</span>
-          </div>
-
-          {/* Quick Sidebar Theme Toggle */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-1.5 rounded-lg border border-stone-200 dark:border-slate-700 hover:bg-stone-200/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition cursor-pointer"
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-600" />}
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-200/40 dark:border-slate-800/80">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#DE5227] to-amber-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
               {adminName.slice(0, 2).toUpperCase()}
             </div>
-            <div className="overflow-hidden min-w-0">
-              <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                {adminName}
-              </div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                {adminRole}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={onBackToHome}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-stone-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
-              title="Visit Public Newsroom"
-            >
-              <Globe className="w-4 h-4 text-[#DE5227]" />
-            </button>
             <button
               onClick={handleAdminLogout}
-              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
+              className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-[#F8F5EE] dark:hover:bg-slate-800 transition cursor-pointer"
               title="Sign Out"
+              aria-label="Sign Out"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
-        </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="h-screen w-screen bg-[#F4EFE6] dark:bg-[#0B0F17] text-slate-900 dark:text-white flex overflow-hidden antialiased font-sans transition-colors duration-200 bg-grid-pattern">
-      {/* 1. DEDICATED DESKTOP SIDEBAR */}
-      <aside className="w-64 h-screen bg-[#FAF8F5] dark:bg-[#111827] border-r border-stone-200/90 dark:border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex sticky top-0 z-30 shadow-xs">
+    <div className="min-h-screen w-full bg-[#EAE2D5] dark:bg-[#070A11] text-slate-900 dark:text-slate-100 flex p-3 sm:p-5 lg:p-6 gap-4 sm:gap-6 antialiased font-sans transition-colors duration-200 selection:bg-[#DE5227] selection:text-white relative overflow-x-clip">
+      {/* Ambient Editorial Depth Layers */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#DE5227]/[0.08] dark:bg-[#DE5227]/[0.10] rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-amber-500/[0.06] dark:bg-amber-500/[0.07] rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 left-1/3 w-[32rem] h-96 bg-[#DE5227]/[0.05] dark:bg-[#DE5227]/[0.06] rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(#C6B9A3_1.2px,transparent_1.2px)] dark:bg-[radial-gradient(#1E293B_1.2px,transparent_1.2px)] [background-size:24px_24px] opacity-45 dark:opacity-20" />
+      </div>
+
+      {/* 1. DEDICATED SLIDING NAVIGATION SIDEBAR */}
+      <aside
+        className={`hidden md:flex flex-col justify-between py-5 bg-white/95 dark:bg-[#101522]/95 backdrop-blur-md rounded-3xl border border-[#DCD1BF] dark:border-slate-800 shadow-[0_8px_30px_-4px_rgba(30,24,16,0.12)] shrink-0 sticky top-6 h-[calc(100vh-3rem)] z-30 transition-all duration-300 ease-in-out ${
+          isSidebarExpanded ? 'w-72 lg:w-80 px-4 items-stretch' : 'w-16 lg:w-18 px-2 items-center'
+        }`}
+      >
         {renderSidebarContent(false)}
       </aside>
 
@@ -746,44 +964,64 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="relative w-68 max-w-[85vw] h-full bg-[#FAF8F5] dark:bg-[#111827] border-r border-stone-200/90 dark:border-slate-800 flex flex-col justify-between z-10 shadow-2xl">
+          <aside className="relative w-76 max-w-[85vw] h-full bg-white dark:bg-[#101522] border-r border-[#DCD1BF] dark:border-slate-800 flex flex-col justify-between p-4 z-10 shadow-2xl">
             {renderSidebarContent(true)}
           </aside>
         </div>
       )}
 
       {/* 2. MAIN ADMIN CONTENT CONTAINER */}
-      <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 space-y-6 relative z-10 pb-20">
         {/* Topbar Header */}
-        <header className="bg-[#FAF8F5]/90 dark:bg-[#111827]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-slate-800 sticky top-0 z-20 px-4 sm:px-8 py-3 flex items-center justify-between gap-4 shadow-2xs">
-          <div className="flex items-center gap-3 flex-1 max-w-xl">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 shrink-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-stone-200/60 dark:hover:bg-slate-800 transition cursor-pointer border border-stone-200 dark:border-slate-800"
+              className="md:hidden p-2.5 rounded-2xl bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)] cursor-pointer"
               aria-label="Open Navigation"
             >
               <Menu className="w-5 h-5" />
             </button>
 
+            {/* Nagrik Saffron/Vermilion Starburst Emblem */}
+            <div className="w-11 h-11 rounded-2xl bg-[#DE5227] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/25">
+              <Sparkles className="w-5 h-5 stroke-[2]" />
+            </div>
+
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black font-serif tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
+                Good morning, {adminName.split(' ')[0]}!
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mt-0.5 truncate hidden sm:block">
+                Superintendent Operations & Sovereign Editorial Bureau
+              </p>
+            </div>
+          </div>
+
+          {/* Right Area: Search Pill, Status, IST Clock, Theme, Notifications, Refresh, User */}
+          <div className="flex items-center gap-2 sm:gap-2.5 self-end md:self-auto flex-wrap sm:flex-nowrap justify-end flex-1 min-w-0">
             {/* Global Search Input with ⌘ K & Command Palette */}
-            <div className="relative w-full">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 z-10" />
+            <div className="relative w-48 sm:w-64 lg:w-72">
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search reporters, stories, locations, or tools (⌘K)..."
+                placeholder="Search tools, stories (⌘K)..."
                 value={globalSearch}
                 onFocus={() => setSearchDropdownOpen(true)}
                 onChange={(e) => {
                   setGlobalSearch(e.target.value);
                   setSearchDropdownOpen(true);
                 }}
-                className="w-full pl-9 pr-14 py-2 bg-[#FAF8F5] dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#DE5227] shadow-2xs"
+                className="w-full pl-4 pr-10 py-2 rounded-full bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-500 shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)] focus:outline-none focus:border-[#DE5227] transition"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-[10px] text-slate-400 font-mono pointer-events-none">
-                <span>⌘</span>
-                <span>K</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSearchDropdownOpen(true)}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#DE5227] hover:bg-[#C84318] text-white flex items-center justify-center shadow-xs transition cursor-pointer"
+                title="Search"
+              >
+                <Search className="w-3.5 h-3.5" />
+              </button>
 
               {/* Floating Command Search Results Dropdown */}
               {searchDropdownOpen && globalSearch.trim().length > 0 && (
@@ -792,10 +1030,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                     className="fixed inset-0 z-40"
                     onClick={() => setSearchDropdownOpen(false)}
                   />
-                  <div className="absolute left-0 right-0 top-full mt-2 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-1 text-xs">
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-1 text-xs">
                     {/* Navigation Views */}
                     {searchResults.nav.length > 0 && (
-                      <div className="p-2 border-b border-stone-100 dark:border-slate-800">
+                      <div className="p-2 border-b border-[#DCD1BF]/60 dark:border-slate-800">
                         <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase px-2.5 py-1 font-mono">
                           Navigation & Tools
                         </div>
@@ -806,10 +1044,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                               key={item.tab}
                               onClick={() => {
                                 setActiveTab(item.tab);
-                                setGlobalSearch('');
                                 setSearchDropdownOpen(false);
                               }}
-                              className="w-full px-3 py-2 rounded-xl flex items-center justify-between text-left hover:bg-stone-50 dark:hover:bg-slate-800/60 transition cursor-pointer group"
+                              className="w-full px-3 py-2 rounded-xl flex items-center justify-between text-left hover:bg-[#F8F5EE] dark:hover:bg-slate-800/60 transition cursor-pointer group"
                             >
                               <div className="flex items-center gap-2.5">
                                 <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#DE5227] transition" />
@@ -818,7 +1055,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                                 </span>
                               </div>
                               <span className="text-[10px] text-slate-400 font-mono">
-                                Jump to view ↵
+                                Jump ↵
                               </span>
                             </button>
                           );
@@ -828,7 +1065,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
                     {/* Reports Matches */}
                     {searchResults.reports.length > 0 && (
-                      <div className="p-2 border-b border-stone-100 dark:border-slate-800">
+                      <div className="p-2 border-b border-[#DCD1BF]/60 dark:border-slate-800">
                         <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase px-2.5 py-1 font-mono">
                           Reports & Stories
                         </div>
@@ -837,10 +1074,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                             key={report.id || report._id || idx}
                             onClick={() => {
                               setActiveTab('moderation');
-                              setGlobalSearch('');
                               setSearchDropdownOpen(false);
                             }}
-                            className="w-full px-3 py-2 rounded-xl flex items-center justify-between text-left hover:bg-stone-50 dark:hover:bg-slate-800/60 transition cursor-pointer group"
+                            className="w-full px-3 py-2 rounded-xl flex items-center justify-between text-left hover:bg-[#F8F5EE] dark:hover:bg-slate-800/60 transition cursor-pointer group"
                           >
                             <div className="min-w-0 pr-3">
                               <div className="font-semibold text-slate-900 dark:text-white truncate group-hover:text-[#DE5227] transition">
@@ -850,7 +1086,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                                 {report.location?.city || report.city || 'Report location'}
                               </div>
                             </div>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F8F5EE] dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
                               {report.status || 'PENDING'}
                             </span>
                           </button>
@@ -871,11 +1107,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                             <button
                               key={c.id || c._id || idx}
                               onClick={() => {
-                                setActiveTab('publishers');
-                                setGlobalSearch('');
+                                setActiveTab('creators');
                                 setSearchDropdownOpen(false);
                               }}
-                              className="w-full px-3 py-2 rounded-xl flex items-center justify-between text-left hover:bg-stone-50 dark:hover:bg-slate-800/60 transition cursor-pointer group"
+                              className="w-full px-3 py-2 rounded-xl flex items-center justify-between text-left hover:bg-[#F8F5EE] dark:hover:bg-slate-800/60 transition cursor-pointer group"
                             >
                               <div className="min-w-0 pr-3">
                                 <div className="font-semibold text-slate-900 dark:text-white truncate group-hover:text-[#DE5227] transition">
@@ -906,35 +1141,26 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                 </>
               )}
             </div>
-          </div>
 
-          {/* Right Area: Operational Pill, Clock, Date, Theme, Notifications, Refresh, User */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Operational Node Status Pill */}
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold shadow-2xs">
+            <div className="hidden xl:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>99.9% Uptime</span>
             </div>
 
             {/* Live IST Clock Badge */}
             {currentTime && (
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF8F5] dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-mono font-bold shadow-2xs">
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-mono font-bold shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)]">
                 <Clock className="w-3.5 h-3.5 text-[#DE5227]" />
                 <span>{currentTime} IST</span>
               </div>
             )}
 
-            {/* Live Date Badge */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF8F5] dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-medium shadow-2xs">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <span>{formattedToday}</span>
-            </div>
-
             {/* Theme Toggle Button */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-[#FAF8F5] dark:bg-[#0B0F17] hover:bg-stone-100 dark:hover:bg-[#1A2234] text-slate-700 dark:text-slate-300 transition cursor-pointer border border-stone-200 dark:border-slate-800 shadow-2xs"
+              className="p-2.5 rounded-2xl bg-white dark:bg-[#101522] hover:bg-[#F8F5EE] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer border border-[#DCD1BF] dark:border-slate-800 shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)]"
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               aria-label="Toggle theme"
             >
@@ -949,7 +1175,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-xl bg-[#FAF8F5] dark:bg-[#0B0F17] hover:bg-stone-100 dark:hover:bg-[#1A2234] text-slate-700 dark:text-slate-300 transition cursor-pointer border border-stone-200 dark:border-slate-800 shadow-2xs"
+                className="relative p-2.5 rounded-2xl bg-white dark:bg-[#101522] hover:bg-[#F8F5EE] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer border border-[#DCD1BF] dark:border-slate-800 shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)]"
                 title="Notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -962,12 +1188,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
               {/* Notifications Popover */}
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-76 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xl z-30 space-y-3 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800 pb-2">
+                <div className="absolute right-0 mt-2 w-76 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl p-4 shadow-2xl z-30 space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center justify-between border-b border-[#DCD1BF]/60 dark:border-slate-800 pb-2">
                     <span className="text-xs font-bold text-slate-900 dark:text-white font-serif">
                       Actionable Alerts
                     </span>
-                    <span className="text-[10px] bg-stone-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full font-bold font-mono">
+                    <span className="text-[10px] bg-[#F8F5EE] dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full font-bold font-mono">
                       {totalPendingAlerts} Pending
                     </span>
                   </div>
@@ -977,7 +1203,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                         setActiveTab('moderation');
                         setNotificationsOpen(false);
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-800/50 flex items-center justify-between transition cursor-pointer border border-transparent hover:border-stone-200 dark:hover:border-slate-700"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#F8F5EE] dark:hover:bg-slate-800/50 flex items-center justify-between transition cursor-pointer border border-transparent hover:border-[#DCD1BF] dark:hover:border-slate-700"
                     >
                       <div className="flex items-center gap-2">
                         <ShieldAlert className="w-4 h-4 text-rose-500" />
@@ -994,7 +1220,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
                         setActiveTab('payouts');
                         setNotificationsOpen(false);
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-800/50 flex items-center justify-between transition cursor-pointer border border-transparent hover:border-stone-200 dark:hover:border-slate-700"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-[#F8F5EE] dark:hover:bg-slate-800/50 flex items-center justify-between transition cursor-pointer border border-transparent hover:border-[#DCD1BF] dark:hover:border-slate-700"
                     >
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-amber-500" />
@@ -1011,35 +1237,32 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
               )}
             </div>
 
+            {/* Quick Link to Creator Studio / Publish Report */}
+            <button
+              onClick={() => navigate('/creator/upload')}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#DE5227] hover:bg-[#C84318] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition cursor-pointer"
+              title="Open Creator Studio / Publish Ground Report"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Publish Report</span>
+            </button>
+
             {/* Refresh Button */}
             <button
               onClick={fetchAllData}
               disabled={loading}
-              className="p-2 rounded-xl bg-[#FAF8F5] dark:bg-[#0B0F17] hover:bg-stone-100 dark:hover:bg-[#1A2234] text-slate-700 dark:text-slate-300 transition cursor-pointer border border-stone-200 dark:border-slate-800 shadow-2xs"
+              className="p-2.5 rounded-2xl bg-white dark:bg-[#101522] hover:bg-[#F8F5EE] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer border border-[#DCD1BF] dark:border-slate-800 shadow-[0_2px_8px_-2px_rgba(30,24,16,0.08)]"
               title="Refresh Data"
             >
               <RefreshCw
                 className={`w-4 h-4 ${loading ? 'animate-spin text-[#DE5227]' : ''}`}
               />
             </button>
-
-            {/* Admin User Chip */}
-            <div className="hidden sm:flex items-center gap-2 pl-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#DE5227] to-amber-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                {adminName.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="text-left leading-tight hidden lg:block">
-                <div className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[120px]">
-                  {adminName}
-                </div>
-                <div className="text-[10px] text-slate-400 font-mono">Admin</div>
-              </div>
-            </div>
           </div>
         </header>
 
         {/* 3. Main Body View */}
-        <main className="p-4 sm:p-8 space-y-6 flex-1 max-w-[1600px] w-full mx-auto">
+        <main className="space-y-6 flex-1 w-full">
           {activeTab === 'dashboard' && (
             <AdminDashboardTab
               metrics={metrics}
@@ -1051,10 +1274,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
               auditLogs={auditLogs}
               setActiveTab={setActiveTab}
               handleModerate={handleModerate}
+              adminName={adminName}
             />
           )}
 
-          {(activeTab === 'moderation' || activeTab === 'reports' || activeTab === 'verification') && (
+          {activeTab === 'moderation' && (
             <AdminModerationTab
               modItems={modItems}
               modStatusFilter={modStatusFilter}
@@ -1064,7 +1288,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             />
           )}
 
-          {(activeTab === 'publishers' || activeTab === 'creators' || activeTab === 'users') && (
+          {activeTab === 'creators' && (
             <AdminCreatorsTab creatorsList={creatorsList} />
           )}
 
@@ -1076,39 +1300,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             />
           )}
 
-          {(activeTab === 'communities' || activeTab === 'messages') && (
-            <div className="bg-white dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-8 text-center space-y-3 shadow-xs">
-              <div className="w-12 h-12 rounded-2xl bg-[#DE5227]/10 text-[#DE5227] flex items-center justify-center mx-auto">
-                <MessageSquare className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                Civic Community Channels
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                Hyperlocal community group discussions and citizen grievance threads across verified wards.
-              </p>
-            </div>
-          )}
-
-          {activeTab === 'analytics' && (
-            <AdminDashboardTab
-              metrics={metrics}
-              timeframe={timeframe}
-              setTimeframe={setTimeframe}
-              modItems={modItems}
-              creatorsList={creatorsList}
-              payouts={payouts}
-              auditLogs={auditLogs}
-              setActiveTab={setActiveTab}
-              handleModerate={handleModerate}
-            />
-          )}
-
-          {(activeTab === 'geo' || activeTab === 'categories') && (
+          {activeTab === 'categories' && (
             <AdminCategoriesTab
               categories={categories}
               token={token}
-              apiBase={API_BASE}
+              apiBase="/api"
               fetchCategories={fetchCategories}
             />
           )}
@@ -1117,31 +1313,35 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
             <AdminCmsTab
               cmsPages={cmsPages}
               token={token}
-              apiBase={API_BASE}
+              apiBase="/api"
               fetchCmsPages={fetchCmsPages}
             />
           )}
 
-          {(activeTab === 'settings' || activeTab === 'features') && (
+          {activeTab === 'audit' && (
+            <AdminAuditTab auditLogs={auditLogs} />
+          )}
+
+          {activeTab === 'settings' && (
             <AdminSettingsTab
               settings={settings}
               setSettings={setSettings}
               token={token}
-              apiBase={API_BASE}
+              apiBase="/api"
             />
           )}
-
-          {activeTab === 'audit' && <AdminAuditTab auditLogs={auditLogs} />}
         </main>
 
         {/* Footer */}
-        <footer className="bg-[#FAF9F6] dark:bg-[#111827] border-t border-stone-200/80 dark:border-slate-800 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <footer className="bg-white/80 dark:bg-[#101522]/80 backdrop-blur-md border border-[#DCD1BF] dark:border-slate-800 rounded-3xl px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400 shadow-[0_2px_8px_-2px_rgba(30,24,16,0.06)]">
           <div className="flex items-center gap-2">
             <NagrikLogo size="sm" variant="icon" />
-            <span>© {new Date().getFullYear()} Nagrik Hyperlocal Civic Journalism Platform</span>
+            <span className="font-serif font-bold text-slate-800 dark:text-slate-200">
+              © {new Date().getFullYear()} Nagrik Hyperlocal Civic Journalism Platform
+            </span>
           </div>
-          <div className="font-mono text-[11px] text-slate-400">
-            Enterprise Operations Build v2.4
+          <div className="font-mono text-[11px] text-[#DE5227] font-semibold">
+            Enterprise Operations Console • Sovereign Node
           </div>
         </footer>
       </div>

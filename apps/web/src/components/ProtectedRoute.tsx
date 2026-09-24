@@ -14,9 +14,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   fallback
 }) => {
-  const { isAuthenticated, role, logout } = useAuth();
+  const { isAuthenticated, role, logout, isLoading } = useAuth();
 
-  // If user is not logged in
+  // If session is still verifying, show clean loader instead of kicking user out
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 font-sans">
+        <div className="w-10 h-10 border-3 border-[#DE5227]/30 border-t-[#DE5227] rounded-full animate-spin mb-3" />
+        <p className="text-xs font-mono text-slate-500">Verifying security clearances...</p>
+      </div>
+    );
+  }
+
+  // If user is not logged in after check completes
   if (!isAuthenticated || !role) {
     if (fallback) {
       return <>{fallback}</>;

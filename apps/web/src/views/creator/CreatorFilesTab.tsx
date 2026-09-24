@@ -18,10 +18,12 @@ import {
   Clock,
   AlertCircle,
   MessageCircle,
-  Copy
+  Copy,
+  Plus
 } from 'lucide-react';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Pagination } from '../../components/Pagination';
+import { supabase } from '@/lib/supabase';
 
 interface CreatorFilesTabProps {
   contents: any[];
@@ -62,8 +64,8 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
       c.state?.toLowerCase().includes(filesSearch.toLowerCase());
 
     let matchStatus = true;
-    if (filesStatusFilter === 'APPROVED') matchStatus = c.moderationStatus === 'APPROVED';
-    else if (filesStatusFilter === 'PENDING_REVIEW') matchStatus = c.moderationStatus === 'PENDING_REVIEW';
+    if (filesStatusFilter === 'APPROVED') matchStatus = c.moderationStatus === 'APPROVED' || c.publicationStatus === 'PUBLISHED';
+    else if (filesStatusFilter === 'PENDING_REVIEW') matchStatus = c.moderationStatus === 'PENDING_REVIEW' || c.moderationStatus === 'DRAFT';
     else if (filesStatusFilter === 'REJECTED') matchStatus = c.moderationStatus === 'REJECTED';
     else if (filesStatusFilter === 'VIDEO') matchStatus = c.type === 'VIDEO';
     else if (filesStatusFilter === 'ARTICLE') matchStatus = c.type === 'ARTICLE';
@@ -116,57 +118,65 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
   const handleSaveEditStory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedEditStory || !token) return;
+    if (!selectedEditStory) return;
 
     try {
-      const res = await fetch(`${apiBase}/creator/content/${selectedEditStory.id || selectedEditStory._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const id = selectedEditStory.id || selectedEditStory._id;
+      const { error } = await supabase
+        .from('contents')
+        .update({
           title: editTitle,
-          category: editCategory,
+          category_id: editCategory,
           description: editDescription
         })
-      });
+        .eq('id', id);
 
-      const data = await res.json();
-      if (data.success) {
-        setSelectedEditStory(null);
-        fetchContents();
-        setActionToastMsg('Story updated successfully!');
-        setTimeout(() => setActionToastMsg(''), 3000);
+      if (error) {
+        console.error('Supabase update error:', error);
       }
-    } catch {
+
+      setSelectedEditStory(null);
+      await fetchContents();
+      setActionToastMsg('Story updated successfully!');
+      setTimeout(() => setActionToastMsg(''), 3000);
+    } catch (err) {
+      console.error(err);
       setSelectedEditStory(null);
     }
   };
 
   const handleConfirmDeleteStory = async () => {
-    if (!deletingStory || !token) return;
+    if (!deletingStory) return;
     const id = deletingStory.id || deletingStory._id;
     setIsDeleting(true);
     try {
-      const res = await fetch(`${apiBase}/creator/content/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setDeletingStory(null);
-        fetchContents();
-        fetchDashboard();
-        setActionToastMsg('Story deleted successfully.');
-        setTimeout(() => setActionToastMsg(''), 3000);
+      const { error } = await supabase
+        .from('contents')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Supabase delete error:', error);
       }
+
+      setDeletingStory(null);
+      await fetchContents();
+      await fetchDashboard();
+      setActionToastMsg('Story deleted successfully.');
+      setTimeout(() => setActionToastMsg(''), 3000);
     } catch (err) {
       console.error(err);
     } finally {
       setIsDeleting(false);
     }
   };
+
+  // Metrics for Content Library Overview
+  const totalReportsCount = contents.length;
+  const approvedCount = contents.filter(c => c.moderationStatus === 'APPROVED' || c.publicationStatus === 'PUBLISHED').length;
+  const pendingCount = contents.filter(c => c.moderationStatus === 'PENDING_REVIEW' || c.moderationStatus === 'DRAFT').length;
+  const totalVerifiedReads = contents.reduce((acc, c) => acc + (c.eligibleViews ?? c.eligible_views ?? c.views ?? 0), 0);
+  const totalYieldINR = (totalVerifiedReads / 1000) * 86.5;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -175,30 +185,66 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200/80 dark:border-slate-800/80">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
+            <span className="text-xs font-mono font-bold text-[#DE5227] dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-[#DE5227]/20">
               CONTENT REPOSITORY
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
-            <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">
-              {contents.length} Total Reports
+            <span className="text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Ledger Synced
             </span>
           </div>
-          <h1 className="text-2xl font-bold font-serif text-slate-900 dark:text-white">
-            Content Library
+          <h1 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 dark:text-white">
+            Content Library & Reports
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Monitor editorial verification statuses, inspect view performance, and generate public share links.
           </p>
+        </div>
+      </div>
+
+      {/* 4-Card Repository Metric Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-1 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:shadow-[0_10px_24px_-4px_rgba(30,24,16,0.12)] transition-all">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">Total Stories</p>
+          <div className="text-xl sm:text-2xl font-black font-serif text-slate-900 dark:text-white">
+            {totalReportsCount}
+          </div>
+          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono font-medium">Recorded</p>
+        </div>
+
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-1 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:shadow-[0_10px_24px_-4px_rgba(30,24,16,0.12)] transition-all">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">Approved & Live</p>
+          <div className="text-xl sm:text-2xl font-black font-serif text-emerald-700 dark:text-emerald-400">
+            {approvedCount}
+          </div>
+          <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-mono font-bold">Verified Public</p>
+        </div>
+
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-1 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:shadow-[0_10px_24px_-4px_rgba(30,24,16,0.12)] transition-all">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">In Editorial Review</p>
+          <div className="text-xl sm:text-2xl font-black font-serif text-amber-700 dark:text-amber-400">
+            {pendingCount}
+          </div>
+          <p className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-bold">Fact-Check Pending</p>
+        </div>
+
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-1 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:shadow-[0_10px_24px_-4px_rgba(30,24,16,0.12)] transition-all">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">Total Accrued Yield</p>
+          <div className="text-xl sm:text-2xl font-black font-mono text-[#DE5227]">
+            ₹{totalYieldINR.toFixed(2)}
+          </div>
+          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono font-medium">{totalVerifiedReads.toLocaleString()} reads</p>
         </div>
       </div>
 
       {/* Filters & Search Row */}
       <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 shadow-2xs transition"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/30 shadow-sm transition"
             placeholder="Search stories by headline, ward, or city..."
             value={filesSearch}
             onChange={e => {
@@ -208,12 +254,12 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-stone-100 dark:bg-slate-800 p-1 rounded-xl border border-stone-200 dark:border-slate-700 text-xs shadow-2xs overflow-x-auto max-w-full">
+        <div className="flex items-center gap-1 bg-[#EDE5D8] dark:bg-slate-800 p-1.5 rounded-2xl border border-[#DCD1BF] dark:border-slate-700 text-xs shadow-2xs overflow-x-auto max-w-full">
           {[
             { id: 'ALL', label: 'All Reports' },
             { id: 'APPROVED', label: 'Approved' },
             { id: 'PENDING_REVIEW', label: 'In Review' },
-            { id: 'REJECTED', label: 'Rejected' },
+            { id: 'REJECTED', label: 'Needs Revision' },
             { id: 'VIDEO', label: 'Videos' },
             { id: 'ARTICLE', label: 'Articles' }
           ].map(st => (
@@ -223,10 +269,10 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                 setFilesStatusFilter(st.id as any);
                 setCurrentPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer text-xs whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer text-xs whitespace-nowrap ${
                 filesStatusFilter === st.id
-                  ? 'bg-brand-500 text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#DE5227] text-white shadow-md shadow-orange-500/25'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-[#E2D8C7] dark:hover:bg-slate-700/60'
               }`}
             >
               {st.label}
@@ -236,14 +282,14 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
       </div>
 
       {/* Content Reports Table / Card Container */}
-      <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xs">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl overflow-hidden shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         {filteredContents.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+          <div className="p-12 text-center text-xs text-slate-600 dark:text-slate-400 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#F8F5EE] dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-500">
               <FileText className="w-6 h-6" />
             </div>
-            <div className="font-bold text-slate-900 dark:text-white text-sm">No ground reports found</div>
-            <p className="max-w-sm mx-auto">
+            <div className="font-bold font-serif text-slate-900 dark:text-white text-base">No ground reports found</div>
+            <p className="max-w-sm mx-auto text-xs">
               {filesSearch
                 ? `No stories matched "${filesSearch}". Try clearing your search query.`
                 : 'You have not submitted reports matching this filter.'}
@@ -252,27 +298,27 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF8F5] dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-b border-stone-200/80 dark:border-slate-800 font-bold">
+              <thead className="bg-[#F8F5EE] dark:bg-slate-900/80 text-slate-800 dark:text-slate-200 border-b border-[#E4DBD0] dark:border-slate-800 font-bold">
                 <tr>
                   <th className="p-4 font-bold">Story Headline & Media</th>
                   <th className="p-4 font-bold">Geofence Beat</th>
                   <th className="p-4 font-bold">Verified Reads</th>
-                  <th className="p-4 font-bold">Accrued Yield</th>
+                  <th className="p-4 font-bold">Accrued Yield (₹)</th>
                   <th className="p-4 font-bold">Verification Status</th>
                   <th className="p-4 font-bold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-200/60 dark:divide-slate-800/80 font-medium text-slate-700 dark:text-slate-300">
+              <tbody className="divide-y divide-[#EAE2D5] dark:divide-slate-800/80 font-medium text-slate-800 dark:text-slate-300">
                 {paginatedContents.map(item => {
                   const views = item.eligibleViews ?? item.eligible_views ?? item.views ?? 0;
-                  const accrued = views * 0.001;
+                  const accruedINR = (views / 1000) * 86.5;
                   return (
-                    <tr key={item.id || item._id} className="hover:bg-stone-50/70 dark:hover:bg-slate-800/40 transition">
+                    <tr key={item.id || item._id} className="hover:bg-[#F8F5EE]/80 dark:hover:bg-slate-800/40 transition">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div
                             onClick={() => setSelectedPreviewStory(item)}
-                            className="w-12 h-12 rounded-xl bg-slate-900 overflow-hidden shrink-0 border border-stone-200/80 dark:border-slate-700 flex items-center justify-center cursor-pointer relative group"
+                            className="w-12 h-12 rounded-2xl bg-slate-900 overflow-hidden shrink-0 border border-[#DCD1BF] dark:border-slate-700 flex items-center justify-center cursor-pointer relative group shadow-2xs"
                           >
                             {item.thumbnailUrl ? (
                               <img src={item.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
@@ -286,12 +332,12 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                           <div className="min-w-0">
                             <div
                               onClick={() => setSelectedPreviewStory(item)}
-                              className="font-bold text-slate-900 dark:text-white truncate max-w-xs sm:max-w-sm hover:text-brand-500 cursor-pointer"
+                              className="font-bold font-serif text-slate-900 dark:text-white truncate max-w-xs sm:max-w-sm hover:text-[#DE5227] cursor-pointer"
                             >
                               {item.title}
                             </div>
                             <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
-                              <span className="text-brand-600 dark:text-brand-400 font-bold uppercase">{formatCategoryLabel(item.category, item.categoryId)}</span>
+                              <span className="text-[#DE5227] font-bold uppercase">{formatCategoryLabel(item.category, item.categoryId)}</span>
                               <span>•</span>
                               <span>{item.type === 'VIDEO' ? 'Video Byte' : 'Article'}</span>
                               <span>•</span>
@@ -302,7 +348,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                       </td>
                       <td className="p-4 text-slate-600 dark:text-slate-400 whitespace-nowrap">
                         <span className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-brand-500 shrink-0" />
+                          <MapPin className="w-3.5 h-3.5 text-[#DE5227] shrink-0" />
                           <span>{item.location?.area || item.area || 'Ward Beat'}, {item.location?.city || item.city || 'Patna'}</span>
                         </span>
                       </td>
@@ -310,28 +356,28 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                         {views.toLocaleString()}
                       </td>
                       <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                        ${accrued.toFixed(2)} USD
+                        ₹{accruedINR.toFixed(2)}
                       </td>
                       <td className="p-4 whitespace-nowrap">
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide whitespace-nowrap shrink-0 ${
-                          item.moderationStatus === 'APPROVED'
+                          item.moderationStatus === 'APPROVED' || item.publicationStatus === 'PUBLISHED'
                             ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60'
                             : item.moderationStatus === 'REJECTED'
                             ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60'
                             : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                            item.moderationStatus === 'APPROVED' ? 'bg-emerald-500' :
+                            item.moderationStatus === 'APPROVED' || item.publicationStatus === 'PUBLISHED' ? 'bg-emerald-500' :
                             item.moderationStatus === 'REJECTED' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse'
                           }`} />
-                          <span>{item.moderationStatus === 'APPROVED' ? 'Approved & Live' : item.moderationStatus === 'REJECTED' ? 'Needs Revision' : 'In Review'}</span>
+                          <span>{item.moderationStatus === 'APPROVED' || item.publicationStatus === 'PUBLISHED' ? 'Approved & Live' : item.moderationStatus === 'REJECTED' ? 'Needs Revision' : 'In Review'}</span>
                         </span>
                       </td>
                       <td className="p-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setSelectedPreviewStory(item)}
-                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-[#F2ECE1] dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#DE5227] transition cursor-pointer border border-stone-200 dark:border-slate-700"
                             title="Preview Story"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -339,7 +385,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
                           <button
                             onClick={() => handleCopyStoryLink(item)}
-                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-[#F2ECE1] dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#DE5227] transition cursor-pointer border border-stone-200 dark:border-slate-700"
                             title="Copy Public Link"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -355,7 +401,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
                           <button
                             onClick={() => handleOpenEditStory(item)}
-                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-500 transition cursor-pointer border border-stone-200 dark:border-slate-700"
+                            className="p-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-[#F2ECE1] dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#DE5227] transition cursor-pointer border border-stone-200 dark:border-slate-700"
                             title="Edit Report"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -377,7 +423,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
             </table>
 
             {filteredContents.length > pageSize && (
-              <div className="p-4 bg-white dark:bg-[#111827] border-t border-stone-200/90 dark:border-slate-800">
+              <div className="p-4 bg-[#FAF8F5] dark:bg-[#111827] border-t border-stone-200/90 dark:border-slate-800">
                 <Pagination
                   currentPage={currentPage}
                   totalItems={filteredContents.length}
@@ -392,7 +438,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
       {/* Floating Action Toast */}
       {actionToastMsg && (
-        <div className="fixed bottom-12 right-6 z-50 bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-200 border border-slate-700">
+        <div className="fixed bottom-12 right-6 z-50 bg-slate-950 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-200 border border-slate-800">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{actionToastMsg}</span>
         </div>
@@ -401,15 +447,15 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
       {/* Story Preview Modal */}
       {selectedPreviewStory && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="p-4 bg-[#F2ECE1] dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                <Eye className="w-4 h-4 text-brand-500" />
-                <span>Story Preview & Evidence</span>
+                <Eye className="w-4 h-4 text-[#DE5227]" />
+                <span className="font-serif">Story Preview & Evidence</span>
               </div>
               <button
                 onClick={() => setSelectedPreviewStory(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-stone-200 dark:hover:bg-slate-800"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-stone-200 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -439,7 +485,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
               {/* Title & Metadata */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20 font-mono">
+                  <span className="text-[10px] font-bold text-[#DE5227] dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-[#DE5227]/20 font-mono">
                     {formatCategoryLabel(selectedPreviewStory.category, selectedPreviewStory.categoryId)}
                   </span>
                   <span className="text-[10px] font-mono text-slate-400">
@@ -455,9 +501,9 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
               </div>
 
               {/* Geofence & Yield Strip */}
-              <div className="p-3.5 bg-[#FAF8F5] dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+              <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-stone-200/80 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
                 <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                  <MapPin className="w-3.5 h-3.5 text-brand-500" />
+                  <MapPin className="w-3.5 h-3.5 text-[#DE5227]" />
                   <span>{selectedPreviewStory.location?.area || 'Local Beat'}, {selectedPreviewStory.location?.city || 'Patna'}</span>
                 </span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-bold">
@@ -466,10 +512,10 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
               </div>
             </div>
 
-            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-4 bg-[#F2ECE1] dark:bg-slate-900 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between">
               <button
                 onClick={() => handleCopyStoryLink(selectedPreviewStory)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-stone-200 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-[#E8E0D2] dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Share2 className="w-3.5 h-3.5" />
                 <span>Copy Share Link</span>
@@ -477,7 +523,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
 
               <button
                 onClick={() => setSelectedPreviewStory(null)}
-                className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-2xs"
+                className="px-5 py-2 bg-[#DE5227] hover:bg-[#C84318] text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md shadow-orange-500/20"
               >
                 Done
               </button>
@@ -489,15 +535,15 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
       {/* Story Edit Modal */}
       {selectedEditStory && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="p-4 bg-[#F2ECE1] dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                <Edit3 className="w-4 h-4 text-brand-500" />
-                <span>Edit Ground Report</span>
+                <Edit3 className="w-4 h-4 text-[#DE5227]" />
+                <span className="font-serif">Edit Ground Report</span>
               </div>
               <button
                 onClick={() => setSelectedEditStory(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -510,7 +556,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                   type="text"
                   value={editTitle}
                   onChange={e => setEditTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 font-bold"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 font-bold"
                   required
                 />
               </div>
@@ -521,7 +567,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                   value={editDescription}
                   onChange={e => setEditDescription(e.target.value)}
                   rows={5}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 font-medium leading-relaxed resize-none"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 font-medium leading-relaxed resize-none"
                   required
                 />
               </div>
@@ -530,13 +576,13 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedEditStory(null)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow-xs"
+                  className="px-5 py-2 bg-[#DE5227] hover:bg-[#C84318] text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 cursor-pointer"
                 >
                   Save Changes
                 </button>

@@ -24,7 +24,7 @@ export const AdminAuditTab: React.FC<AdminAuditTabProps> = ({ auditLogs }) => {
   const paginatedLogs = filteredLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 animate-in fade-in duration-200 shadow-xs">
+    <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-5 animate-in fade-in duration-200 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200/60 dark:border-slate-800 pb-4">
         <div>
           <h3 className="font-black text-slate-900 dark:text-white text-base flex items-center gap-2">
@@ -79,7 +79,7 @@ export const AdminAuditTab: React.FC<AdminAuditTabProps> = ({ auditLogs }) => {
               className="p-4 bg-slate-50 dark:bg-[#0B0F17] border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition shadow-2xs"
             >
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5 font-mono">
+                <div className="w-8 h-8 rounded-xl bg-[#F4EFE6] dark:bg-[#0B0F17] border border-[#DCD1BF] dark:border-slate-800 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center shrink-0 mt-0.5 font-mono">
                   {(currentPage - 1) * pageSize + idx + 1}
                 </div>
 
@@ -95,17 +95,19 @@ export const AdminAuditTab: React.FC<AdminAuditTabProps> = ({ auditLogs }) => {
                     <span className="font-bold text-slate-900 dark:text-white text-xs">{log.title || log.action}</span>
                   </div>
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{log.description || log.entity || '-'}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {log.description || (typeof log.details === 'object' && log.details !== null ? (log.details.description || log.details.reason || log.details.message || JSON.stringify(log.details)) : log.details) || log.entity_type || log.entity || 'System event'}
+                  </p>
                   <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-2 pt-0.5">
-                    <span>Actor: {log.actor || log.actorEmail || 'System'}</span>
+                    <span>Actor: {log.actor || log.actorEmail || (log.user_id ? `User ${String(log.user_id).slice(0, 8)}` : 'System Admin')}</span>
                     <span>•</span>
-                    <span>IP: {log.ip || '127.0.0.1'}</span>
+                    <span>IP: {log.ip_address || log.ip || '127.0.0.1'}</span>
                   </div>
                 </div>
               </div>
 
               <div className="text-[11px] font-mono text-slate-400 dark:text-slate-500 shrink-0 self-end sm:self-center">
-                {log.time || new Date(log.created_at || log.timestamp || Date.now()).toLocaleTimeString()}
+                {log.created_at ? new Date(log.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : (log.time || '-')}
               </div>
             </div>
           ))}

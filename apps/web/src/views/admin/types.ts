@@ -22,6 +22,7 @@ export interface AdminMetrics {
   totalUsers?: number;
   activeCreators?: number;
   totalCreators?: number;
+  totalReports?: number;
   publishedContent?: number;
   pendingModeration?: number;
   flaggedModeration?: number;

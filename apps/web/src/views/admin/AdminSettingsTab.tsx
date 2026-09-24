@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Check
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface AdminSettingsTabProps {
   settings: any;
@@ -56,27 +57,31 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
     }
   }, [settings]);
 
-  // Fetch settings on mount if needed
+  // Fetch settings on mount from Supabase
   const fetchCurrentSettings = async () => {
-    if (!token) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`${apiBase}/admin/settings`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success && data.settings) {
-        setSettings(data.settings);
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        const mapped = {
+          earningRatePer1000Views: data.earning_rate_per_1000_views ?? 1.5,
+          minPayoutAmount: data.min_payout_amount ?? 10,
+          maxCountedViewsPerVideo: data.max_counted_views_per_video ?? 100000,
+          adFeedFrequency: data.ad_feed_frequency ?? 4
+        };
+        setSettings(mapped);
         setFormData((prev) => ({
           ...prev,
-          earningRatePer1000Views: data.settings.earningRatePer1000Views ?? prev.earningRatePer1000Views,
-          minPayoutAmount: data.settings.minPayoutAmount ?? prev.minPayoutAmount,
-          maxCountedViewsPerVideo: data.settings.maxCountedViewsPerVideo ?? prev.maxCountedViewsPerVideo,
-          adFeedFrequency: data.settings.adFeedFrequency ?? prev.adFeedFrequency
+          ...mapped
         }));
       }
     } catch (err) {
-      console.error('Error fetching settings:', err);
+      console.error('Error fetching settings via Supabase:', err);
     } finally {
       setIsLoading(false);
     }
@@ -86,33 +91,33 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await fetch(`${apiBase}/admin/settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert({
+          key: 'DEFAULT',
+          earning_rate_per_1000_views: Number(formData.earningRatePer1000Views),
+          min_payout_amount: Number(formData.minPayoutAmount),
+          max_counted_views_per_video: Number(formData.maxCountedViewsPerVideo),
+          ad_feed_frequency: Number(formData.adFeedFrequency),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
+
+      if (error) {
+        console.error('Supabase update system settings error:', error);
+        setToastMsg({ text: error.message || 'Failed to update system settings.', type: 'error' });
+      } else {
+        setSettings({
           earningRatePer1000Views: Number(formData.earningRatePer1000Views),
           minPayoutAmount: Number(formData.minPayoutAmount),
           maxCountedViewsPerVideo: Number(formData.maxCountedViewsPerVideo),
           adFeedFrequency: Number(formData.adFeedFrequency)
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (data.settings) {
-          setSettings(data.settings);
-        }
+        });
         setToastMsg({
           text: 'Enterprise CPM rules and platform settings saved successfully.',
           type: 'success'
         });
-        setTimeout(() => setToastMsg(null), 3500);
-      } else {
-        setToastMsg({ text: data.error || 'Failed to update system settings.', type: 'error' });
-        setTimeout(() => setToastMsg(null), 3500);
       }
+      setTimeout(() => setToastMsg(null), 3500);
     } catch (err: any) {
       console.error(err);
       setToastMsg({ text: err.message || 'Error communicating with settings server.', type: 'error' });
@@ -162,7 +167,7 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
       {/* Main Form */}
       <form onSubmit={handleSaveSettings} className="space-y-6">
         {/* Section 1: Monetization & Creator Economics */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex items-center justify-between pb-3 border-b border-stone-200/60 dark:border-slate-800">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#DE5227]/10 text-[#DE5227] border border-[#DE5227]/20 flex items-center justify-center">
@@ -280,7 +285,7 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
         </div>
 
         {/* Section 2: Advertising & Feed Ingestion Rules */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex items-center gap-2.5 pb-3 border-b border-stone-200/60 dark:border-slate-800">
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center">
               <Zap className="w-5 h-5" />
@@ -338,7 +343,7 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
         </div>
 
         {/* Section 3: AI & Content Moderation Safety Safeguards */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex items-center gap-2.5 pb-3 border-b border-stone-200/60 dark:border-slate-800">
             <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center">
               <ShieldAlert className="w-5 h-5" />
@@ -400,7 +405,7 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({
         </div>
 
         {/* Section 4: Save Actions Bar */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Info className="w-4 h-4 text-[#DE5227]" />
             <span>Changes take effect immediately across all client applications.</span>

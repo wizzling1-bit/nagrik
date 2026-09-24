@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tag, Trash2, Edit3, CheckCircle2, AlertCircle, X, Save } from 'lucide-react';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Pagination } from '../../components/Pagination';
+import { supabase } from '@/lib/supabase';
 
 interface AdminCategoriesTabProps {
   categories: any[];
@@ -55,29 +56,27 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
     if (!newCatName.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${apiBase}/admin/categories`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const slug = (newCatSlug || newCatName).toLowerCase().trim().replace(/\s+/g, '-');
+      const { error } = await supabase
+        .from('categories')
+        .insert({
           name: newCatName.trim(),
-          slug: (newCatSlug || newCatName).toLowerCase().trim().replace(/\s+/g, '-'),
-          displayOrder: categories.length + 1
-        })
-      });
-      const data = await parseJsonResponse(res);
-      if (data.success) {
+          slug,
+          display_order: categories.length + 1,
+          status: 'ACTIVE'
+        });
+
+      if (error) {
+        console.error('Supabase insert category error:', error);
+        showToast(error.message || 'Failed to add category', 'error');
+      } else {
         setNewCatName('');
         setNewCatSlug('');
         await fetchCategories();
         showToast('Category created successfully!');
-      } else {
-        showToast(data.error || 'Failed to add category', 'error');
       }
     } catch (err: any) {
-      showToast(err.message || 'Error connecting to server', 'error');
+      showToast(err.message || 'Error creating category', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -95,24 +94,22 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
     setSavingEdit(true);
     try {
       const id = editingCategory.id || editingCategory._id;
-      const res = await fetch(`${apiBase}/admin/categories/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const slug = (editSlug || editName).toLowerCase().trim().replace(/\s+/g, '-');
+      const { error } = await supabase
+        .from('categories')
+        .update({
           name: editName.trim(),
-          slug: (editSlug || editName).toLowerCase().trim().replace(/\s+/g, '-')
+          slug
         })
-      });
-      const data = await parseJsonResponse(res);
-      if (data.success) {
+        .eq('id', id);
+
+      if (error) {
+        console.error('Supabase update category error:', error);
+        showToast(error.message || 'Failed to update category', 'error');
+      } else {
         setEditingCategory(null);
         await fetchCategories();
         showToast('Category updated successfully!');
-      } else {
-        showToast(data.error || 'Failed to update category', 'error');
       }
     } catch (err: any) {
       showToast(err.message || 'Error updating category', 'error');
@@ -127,19 +124,18 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
     const name = deletingCategory.name;
     setIsDeleting(true);
     try {
-      const res = await fetch(`${apiBase}/admin/categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const data = await parseJsonResponse(res);
-      if (data.success) {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Supabase delete category error:', error);
+        showToast(error.message || 'Failed to delete category', 'error');
+      } else {
         setDeletingCategory(null);
         await fetchCategories();
         showToast(`Category "${name}" deleted.`);
-      } else {
-        showToast(data.error || 'Failed to delete category', 'error');
       }
     } catch (err: any) {
       showToast(err.message || 'Error deleting category', 'error');
@@ -167,7 +163,7 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Add Category Form */}
-        <div className="lg:col-span-5 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
+        <div className="lg:col-span-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center">
               <Tag className="w-4 h-4" />
@@ -212,7 +208,7 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
         </div>
 
         {/* Right: Active Categories List */}
-        <div className="lg:col-span-7 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-xs">
+        <div className="lg:col-span-7 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
             <h3 className="font-black text-slate-900 dark:text-white text-sm">Active Categories ({categories.length})</h3>
           </div>
@@ -276,7 +272,7 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
       {/* Edit Category Modal */}
       {editingCategory && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center">

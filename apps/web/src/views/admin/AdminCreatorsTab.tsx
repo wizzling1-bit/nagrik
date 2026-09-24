@@ -28,23 +28,23 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
         </div>
       )}
 
-      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl p-4 flex justify-between items-center shadow-xs">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl p-4 flex justify-between items-center shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         <h3 className="text-sm font-black text-slate-900 dark:text-white">Registered Citizen Reporters</h3>
         <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
           {creatorsList.length} Active {creatorsList.length === 1 ? 'Creator' : 'Creators'}
         </span>
       </div>
 
-      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         {creatorsList.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 bg-stone-100/60 dark:bg-[#0B0F17] rounded-2xl border border-stone-200 dark:border-slate-800">
             No registered creators found in the database.
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto rounded-2xl border border-stone-200/90 dark:border-slate-800">
+            <div className="overflow-x-auto rounded-2xl border border-[#DCD1BF] dark:border-slate-800">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F2ECE1]/60 dark:bg-[#0B0F17] text-slate-700 dark:text-slate-300 font-bold border-b border-stone-200/80 dark:border-slate-800">
+                <thead className="bg-[#F4EFE6]/80 dark:bg-[#0B0F17] text-slate-700 dark:text-slate-300 font-bold border-b border-[#DCD1BF] dark:border-slate-800">
                   <tr>
                     <th className="p-4">Reporter Name</th>
                     <th className="p-4">Email</th>
@@ -54,7 +54,7 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
                     <th className="p-4">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-200/60 dark:divide-slate-800 bg-[#FAF8F5] dark:bg-[#111827]">
+                <tbody className="divide-y divide-[#E6DFD5] dark:divide-slate-800 bg-white dark:bg-[#101522]">
                   {paginatedCreators.map((creator: any, idx: number) => {
                     const repName = creator.user?.name || creator.name || 'Citizen Reporter';
                     const repEmail = creator.user?.email || creator.email || '-';
@@ -125,7 +125,7 @@ export const AdminCreatorsTab: React.FC<AdminCreatorsTabProps> = ({ creatorsList
       {/* Creator Portfolio Modal */}
       {selectedCreatorModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 shadow-2xl relative space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 shadow-2xl relative space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setSelectedCreatorModal(null)}
               className="absolute top-5 right-5 p-2 rounded-full bg-stone-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-stone-200 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-700 transition cursor-pointer"

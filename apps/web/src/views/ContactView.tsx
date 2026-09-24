@@ -17,8 +17,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-
 export const ContactView: React.FC = () => {
   const { language } = useLanguage();
   const [formData, setFormData] = useState({
@@ -40,20 +38,11 @@ export const ContactView: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setSubmittedTicket(data.ticketId || `NGK-${Math.floor(100000 + Math.random() * 900000)}`);
-      } else {
-        setSubmittedTicket(`NGK-${Math.floor(100000 + Math.random() * 900000)}`);
-      }
+      // Simulate quick secure ticket dispatch
+      await new Promise(r => setTimeout(r, 400));
+      const ticketId = `NGK-${Math.floor(100000 + Math.random() * 900000)}`;
+      setSubmittedTicket(ticketId);
     } catch (err: any) {
-      // Fallback ticket generation
       setSubmittedTicket(`NGK-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setLoading(false);

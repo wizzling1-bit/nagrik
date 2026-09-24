@@ -15,8 +15,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { supabase } from '@/lib/supabase';
 
 export const TermsView: React.FC = () => {
   const { language } = useLanguage();
@@ -28,13 +27,16 @@ export const TermsView: React.FC = () => {
   useEffect(() => {
     const fetchLegalPages = async () => {
       try {
-        const res = await fetch(`${API_BASE}/content/cms`);
-        const data = await res.json();
-        if (data.success && data.pages && data.pages.length > 0) {
-          setCmsPages(data.pages);
+        const { data, error } = await supabase
+          .from('cms_pages')
+          .select('*')
+          .eq('is_published', true);
+
+        if (!error && data && data.length > 0) {
+          setCmsPages(data);
         }
       } catch (err) {
-        console.warn('Could not fetch dynamic legal pages, using defaults:', err);
+        console.warn('Could not fetch dynamic legal pages via Supabase, using defaults:', err);
       }
     };
     fetchLegalPages();

@@ -8,6 +8,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '@/lib/supabase';
 
 interface NewsItem {
   id: string;
@@ -126,18 +127,32 @@ export const NewsSection: React.FC = () => {
     const fetchLiveFeed = async () => {
       try {
         setLoading(true);
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-        const res = await fetch(`${apiBase}/content/feed?limit=12`);
-        if (!res.ok) {
-          setNews(fallbackStories);
-          return;
-        }
-        const data = await res.json();
-        if (data.success && data.items && data.items.length > 0) {
-          const liveItems: NewsItem[] = data.items
-            .filter((i: any) => i.itemType === 'CONTENT')
-            .map((i: any) => i.data);
-          setNews(liveItems.length > 0 ? liveItems : fallbackStories);
+        const { data, error } = await supabase
+          .from('contents')
+          .select('*')
+          .eq('publication_status', 'PUBLISHED')
+          .order('created_at', { ascending: false })
+          .limit(12);
+
+        if (!error && data && data.length > 0) {
+          const liveItems: NewsItem[] = data.map((i: any) => ({
+            id: i.id,
+            title: i.title,
+            description: i.description || '',
+            type: i.type || 'VIDEO',
+            mediaUrl: i.media_url,
+            thumbnailUrl: i.thumbnail_url,
+            category: i.category_id || 'Civic',
+            location: {
+              area: i.location_area || '',
+              city: i.location_city || 'Delhi NCR',
+              state: i.location_state || ''
+            },
+            views: i.views || 0,
+            creatorName: i.creator_name || 'Nagrik Reporter',
+            createdAt: i.created_at
+          }));
+          setNews(liveItems);
         } else {
           setNews(fallbackStories);
         }

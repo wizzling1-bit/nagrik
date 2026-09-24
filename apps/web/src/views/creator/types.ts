@@ -2,7 +2,6 @@ export type CreatorTab =
   | 'analytics'
   | 'upload'
   | 'files'
-  | 'playlists'
   | 'branding'
   | 'billing'
   | 'agreement';

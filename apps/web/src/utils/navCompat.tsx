@@ -25,7 +25,7 @@ export function useLocation() {
 
 export function useNavigate() {
   const router = useRouter();
-  return (to: string | number, options?: { replace?: boolean }) => {
+  return React.useCallback((to: string | number, options?: { replace?: boolean }) => {
     if (typeof to === 'number') {
       if (typeof window !== 'undefined' && to === -1) {
         window.history.back();
@@ -37,7 +37,7 @@ export function useNavigate() {
     } else {
       router.push(to);
     }
-  };
+  }, [router]);
 }
 
 export interface LinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {

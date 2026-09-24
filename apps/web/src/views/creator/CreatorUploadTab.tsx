@@ -21,7 +21,9 @@ import {
   Info,
   Radio,
   Film,
-  HardDrive
+  HardDrive,
+  Sparkles,
+  Search
 } from 'lucide-react';
 import { CreatorTab } from './types';
 import {
@@ -30,6 +32,18 @@ import {
   getCitiesForState,
   getLocalAreasForCity
 } from '@/data/indiaLocations';
+import { supabase, getR2UploadUrl, uploadFileToR2 as uploadToR2Storage } from '@/lib/supabase';
+import {
+  getLgdStates,
+  getLgdDistrictsByState,
+  getLgdSubdistrictsByDistrict,
+  getLgdLocalBodies,
+  lookupLgdByPincode,
+  LgdState,
+  LgdDistrict,
+  LgdSubdistrict,
+  LgdLocalBody
+} from '@/lib/lgdLocationService';
 
 interface CreatorUploadTabProps {
   token: string | null;
@@ -47,14 +61,24 @@ interface CategoryOption {
 }
 
 const DEFAULT_CATEGORIES: CategoryOption[] = [
-  { id: 'civic-issues', name: 'Civic Issues', hindiName: 'नागरिक मुद्दा', slug: 'civic-issues' },
-  { id: 'infrastructure', name: 'Infrastructure', hindiName: 'अवसंरचना', slug: 'infrastructure' },
-  { id: 'local', name: 'Local Governance', hindiName: 'स्थानीय शासन', slug: 'local' },
-  { id: 'crime', name: 'Crime & Safety', hindiName: 'अपराध व सुरक्षा', slug: 'crime' },
-  { id: 'environment', name: 'Environment', hindiName: 'पर्यावरण व स्वास्थ्य', slug: 'environment' },
-  { id: 'agriculture', name: 'Agriculture', hindiName: 'कृषि विकास', slug: 'agriculture' },
-  { id: 'education', name: 'Education & Jobs', hindiName: 'शिक्षा व रोजगार', slug: 'education' }
+  { id: 'civic-issues', name: 'Civic Issues', slug: 'civic-issues' },
+  { id: 'infrastructure', name: 'Infrastructure', slug: 'infrastructure' },
+  { id: 'local', name: 'Local Governance', slug: 'local' },
+  { id: 'crime', name: 'Crime & Safety', slug: 'crime' },
+  { id: 'environment', name: 'Environment', slug: 'environment' },
+  { id: 'agriculture', name: 'Agriculture', slug: 'agriculture' },
+  { id: 'education', name: 'Education', slug: 'education' }
 ];
+
+// Helper to guarantee clean English-only category presentation
+const formatEnglishCategory = (name: string): string => {
+  if (!name) return '';
+  const match = name.match(/\(([^)]+)\)/);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  return name;
+};
 
 export type ContentFormat = 'SHORT_VIDEO' | 'LONG_VIDEO' | 'ARTICLE';
 
@@ -81,14 +105,30 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
   const [categories, setCategories] = useState<CategoryOption[]>(DEFAULT_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState('civic-issues');
   
-  // Location Beat State with all 36 Indian States & UTs
-  const [allStates] = useState<string[]>(getAllStates());
+  // Official LGD Geographic Hierarchy State
+  const [lgdStates, setLgdStates] = useState<LgdState[]>([]);
+  const [selectedStateCode, setSelectedStateCode] = useState<number>(10); // Bihar
   const [stateName, setStateName] = useState('Bihar');
-  const [availableCities, setAvailableCities] = useState<string[]>(() => getCitiesForState('Bihar'));
+
+  const [lgdDistricts, setLgdDistricts] = useState<LgdDistrict[]>([]);
+  const [selectedDistrictCode, setSelectedDistrictCode] = useState<number | null>(null);
   const [cityName, setCityName] = useState('Patna');
-  const [availableAreas, setAvailableAreas] = useState<string[]>(() => getLocalAreasForCity('Bihar', 'Patna'));
+
+  const [lgdSubdistricts, setLgdSubdistricts] = useState<LgdSubdistrict[]>([]);
+  const [selectedSubdistrictCode, setSelectedSubdistrictCode] = useState<number | null>(null);
+  const [subdistrictName, setSubdistrictName] = useState('Patna Sadar');
+
+  const [lgdLocalBodies, setLgdLocalBodies] = useState<LgdLocalBody[]>([]);
+  const [selectedLocalBodyCode, setSelectedLocalBodyCode] = useState<number | null>(null);
   const [areaName, setAreaName] = useState('Kankarbagh Ward 14');
-  
+  const [pincode, setPincode] = useState('800020');
+
+  const [pincodeInput, setPincodeInput] = useState('');
+  const [isSearchingPincode, setIsSearchingPincode] = useState(false);
+  const [pincodeSuccessNote, setPincodeSuccessNote] = useState<string | null>(null);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingSubdistricts, setLoadingSubdistricts] = useState(false);
+
   // Upload & Progress State (Supports up to 2GB)
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
@@ -99,54 +139,276 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [showManualUrlInput, setShowManualUrlInput] = useState(false);
 
-  // When state changes, update cities & areas
-  const handleStateChange = (newState: string) => {
-    setStateName(newState);
-    const cities = getCitiesForState(newState);
-    setAvailableCities(cities);
-    const firstCity = cities[0] || '';
-    setCityName(firstCity);
-    const areas = getLocalAreasForCity(newState, firstCity);
-    setAvailableAreas(areas);
-    setAreaName(areas[0] || `${firstCity} Central`);
-  };
+  // Initialize LGD Geographic Data on Mount
+  useEffect(() => {
+    let isMounted = true;
+    const initLgd = async () => {
+      try {
+        const states = await getLgdStates();
+        if (!isMounted) return;
+        if (states && states.length > 0) {
+          setLgdStates(states);
+          const defaultState = states.find(s => s.state_name.toLowerCase() === 'bihar') || states[0];
+          setSelectedStateCode(defaultState.state_code);
+          setStateName(defaultState.state_name);
 
-  // When city changes, update local areas
-  const handleCityChange = (newCity: string) => {
-    setCityName(newCity);
-    const areas = getLocalAreasForCity(stateName, newCity);
-    setAvailableAreas(areas);
-    if (areas.length > 0) {
-      setAreaName(areas[0]);
+          const dists = await getLgdDistrictsByState(defaultState.state_code);
+          if (!isMounted) return;
+          setLgdDistricts(dists);
+
+          if (dists && dists.length > 0) {
+            const defaultDist = dists.find(d => d.district_name.toLowerCase() === 'patna') || dists[0];
+            setSelectedDistrictCode(defaultDist.district_code);
+            setCityName(defaultDist.district_name);
+
+            const subs = await getLgdSubdistrictsByDistrict(defaultDist.district_code);
+            if (!isMounted) return;
+            setLgdSubdistricts(subs);
+            if (subs && subs.length > 0) {
+              const defaultSub = subs.find(s => s.subdistrict_name.toLowerCase().includes('patna')) || subs[0];
+              setSelectedSubdistrictCode(defaultSub.subdistrict_code);
+              setSubdistrictName(defaultSub.subdistrict_name);
+            }
+
+            const bodies = await getLgdLocalBodies(defaultState.state_code, defaultDist.district_code);
+            if (!isMounted) return;
+            setLgdLocalBodies(bodies);
+            if (bodies && bodies.length > 0) {
+              setPincode(bodies[0].pincode);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error initializing LGD locations:', err);
+      }
+    };
+    initLgd();
+    return () => { isMounted = false; };
+  }, []);
+
+  // When state changes
+  const handleLgdStateChange = async (newCodeNum: number) => {
+    setSelectedStateCode(newCodeNum);
+    const matchedState = lgdStates.find(s => s.state_code === newCodeNum);
+    if (matchedState) {
+      setStateName(matchedState.state_name);
+    }
+    setPincodeSuccessNote(null);
+    setLoadingDistricts(true);
+    try {
+      const dists = await getLgdDistrictsByState(newCodeNum);
+      setLgdDistricts(dists);
+      if (dists.length > 0) {
+        const firstDist = dists[0];
+        setSelectedDistrictCode(firstDist.district_code);
+        setCityName(firstDist.district_name);
+
+        setLoadingSubdistricts(true);
+        const subs = await getLgdSubdistrictsByDistrict(firstDist.district_code);
+        setLgdSubdistricts(subs);
+        if (subs.length > 0) {
+          setSelectedSubdistrictCode(subs[0].subdistrict_code);
+          setSubdistrictName(subs[0].subdistrict_name);
+        } else {
+          setSelectedSubdistrictCode(null);
+          setSubdistrictName('');
+        }
+        setLoadingSubdistricts(false);
+
+        const bodies = await getLgdLocalBodies(newCodeNum, firstDist.district_code);
+        setLgdLocalBodies(bodies);
+        if (bodies.length > 0) {
+          setPincode(bodies[0].pincode);
+          setAreaName(bodies[0].local_body_name);
+          setSelectedLocalBodyCode(bodies[0].local_body_code);
+        }
+      } else {
+        setSelectedDistrictCode(null);
+        setCityName('');
+        setLgdSubdistricts([]);
+        setSelectedSubdistrictCode(null);
+        setSubdistrictName('');
+      }
+    } finally {
+      setLoadingDistricts(false);
     }
   };
 
-  // Fetch real categories from API on mount
+  // When city / district changes
+  const handleLgdDistrictChange = async (distCodeNum: number) => {
+    setSelectedDistrictCode(distCodeNum);
+    const matchedDist = lgdDistricts.find(d => d.district_code === distCodeNum);
+    if (matchedDist) {
+      setCityName(matchedDist.district_name);
+    }
+    setPincodeSuccessNote(null);
+    setLoadingSubdistricts(true);
+    try {
+      const subs = await getLgdSubdistrictsByDistrict(distCodeNum);
+      setLgdSubdistricts(subs);
+      if (subs.length > 0) {
+        setSelectedSubdistrictCode(subs[0].subdistrict_code);
+        setSubdistrictName(subs[0].subdistrict_name);
+      } else {
+        setSelectedSubdistrictCode(null);
+        setSubdistrictName('');
+      }
+
+      const bodies = await getLgdLocalBodies(selectedStateCode, distCodeNum);
+      setLgdLocalBodies(bodies);
+      if (bodies.length > 0) {
+        setPincode(bodies[0].pincode);
+        setAreaName(bodies[0].local_body_name);
+        setSelectedLocalBodyCode(bodies[0].local_body_code);
+      }
+    } finally {
+      setLoadingSubdistricts(false);
+    }
+  };
+
+  // When subdistrict changes
+  const handleLgdSubdistrictChange = async (subCodeNum: number) => {
+    setSelectedSubdistrictCode(subCodeNum);
+    const matchedSub = lgdSubdistricts.find(s => s.subdistrict_code === subCodeNum);
+    if (matchedSub) {
+      setSubdistrictName(matchedSub.subdistrict_name);
+    }
+    const bodies = await getLgdLocalBodies(selectedStateCode, selectedDistrictCode || undefined, subCodeNum);
+    if (bodies.length > 0) {
+      setLgdLocalBodies(bodies);
+      setPincode(bodies[0].pincode);
+      setAreaName(bodies[0].local_body_name);
+      setSelectedLocalBodyCode(bodies[0].local_body_code);
+    }
+  };
+
+  // Quick 6-digit PIN code auto-fill resolver
+  const handlePincodeSearch = async (val: string) => {
+    setPincodeInput(val);
+    const clean = val.trim().replace(/\D/g, '');
+    if (clean.length === 6) {
+      setIsSearchingPincode(true);
+      try {
+        const results = await lookupLgdByPincode(clean);
+        if (results && results.length > 0) {
+          const match = results[0];
+          setPincode(clean);
+
+          setSelectedStateCode(match.stateCode);
+          setStateName(match.stateName);
+
+          const dists = await getLgdDistrictsByState(match.stateCode);
+          setLgdDistricts(dists);
+          if (match.districtCode) {
+            setSelectedDistrictCode(match.districtCode);
+            setCityName(match.districtName || '');
+
+            const subs = await getLgdSubdistrictsByDistrict(match.districtCode);
+            setLgdSubdistricts(subs);
+            if (match.subdistrictCode) {
+              setSelectedSubdistrictCode(match.subdistrictCode);
+              setSubdistrictName(match.subdistrictName || '');
+            } else if (subs.length > 0) {
+              setSelectedSubdistrictCode(subs[0].subdistrict_code);
+              setSubdistrictName(subs[0].subdistrict_name);
+            }
+          }
+
+          if (match.localBodyName) {
+            setAreaName(match.localBodyName);
+            setSelectedLocalBodyCode(match.localBodyCode || null);
+          }
+
+          setPincodeSuccessNote(`Verified: ${match.localBodyName || match.districtName}, ${match.stateName}`);
+        } else {
+          setPincode(clean);
+          setPincodeSuccessNote(`PIN ${clean} registered. Location can also be adjusted via dropdowns.`);
+        }
+      } catch (err) {
+        console.error('PIN lookup failed:', err);
+      } finally {
+        setIsSearchingPincode(false);
+      }
+    } else {
+      setPincodeSuccessNote(null);
+    }
+  };
+
+  // Fetch real categories from Supabase on mount
   useEffect(() => {
     const fetchCats = async () => {
       try {
-        const res = await fetch(`${apiBase}/content/categories`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && Array.isArray(data.categories) && data.categories.length > 0) {
-            setCategories(data.categories);
-            setSelectedCategory(data.categories[0].slug || data.categories[0].id);
-          }
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('status', 'ACTIVE')
+          .order('display_order', { ascending: true });
+
+        if (!error && data && Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+          setSelectedCategory(data[0].slug || data[0].id);
         }
       } catch (err) {
         console.warn('Using default categories:', err);
       }
     };
     fetchCats();
-  }, [apiBase]);
+  }, []);
 
-  // Format file size helper (handles B up to GB)
+  // Format file size helper
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  };
+
+  // Generate video thumbnail frame using offscreen video and canvas
+  const generateVideoThumbnail = async (file: File): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      try {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const objectUrl = URL.createObjectURL(file);
+        video.src = objectUrl;
+
+        video.onloadeddata = () => {
+          video.currentTime = Math.min(1.5, (video.duration || 1) / 2);
+        };
+
+        video.onseeked = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 720;
+            canvas.height = video.videoHeight || 1280;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob((blob) => {
+                URL.revokeObjectURL(objectUrl);
+                resolve(blob);
+              }, 'image/jpeg', 0.85);
+            } else {
+              URL.revokeObjectURL(objectUrl);
+              resolve(null);
+            }
+          } catch (_) {
+            URL.revokeObjectURL(objectUrl);
+            resolve(null);
+          }
+        };
+
+        video.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve(null);
+        };
+      } catch (_) {
+        resolve(null);
+      }
+    });
   };
 
   // Upload file to Cloudflare R2 supporting up to 2 GB with progress tracking
@@ -163,65 +425,41 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
 
     setUploadingMedia(true);
     setUploadPercent(0);
-    setUploadProgressMsg(`Acquiring Cloudflare R2 presigned storage for ${file.name}...`);
+    setUploadProgressMsg(`Preparing Cloudflare R2 upload for ${file.name}...`);
     setMediaFileSize(formatBytes(file.size));
 
-    try {
-      const ext = file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg');
-      const presignRes = await fetch(`${apiBase}/content/upload-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          folder: folder || (isVideo ? 'videos' : 'thumbnails'),
-          mimeType: file.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
-          fileExtension: ext
-        })
+    // Auto-extract thumbnail frame if video
+    if (isVideo && file.type.includes('video') && !thumbnailUrl) {
+      generateVideoThumbnail(file).then(async (thumbBlob) => {
+        if (thumbBlob) {
+          try {
+            const thumbFile = new File([thumbBlob], `thumb_${Date.now()}.jpg`, { type: 'image/jpeg' });
+            const thumbRes = await uploadToR2Storage(thumbFile, 'thumbnails');
+            if (thumbRes?.publicUrl) {
+              setThumbnailUrl(thumbRes.publicUrl);
+            }
+          } catch (e) {
+            console.warn('Auto-thumbnail upload notice:', e);
+          }
+        }
       });
+    }
 
-      const presignData = await presignRes.json();
-      if (!presignData.success || !presignData.uploadUrl) {
-        throw new Error(presignData.error || 'Failed to acquire presigned URL');
-      }
-
-      setUploadProgressMsg(`Streaming ${formatBytes(file.size)} directly to Cloudflare R2...`);
-
-      // Use XMLHttpRequest for real-time progress events on large files (up to 2GB)
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', presignData.uploadUrl);
-        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setUploadPercent(percent);
-            setUploadProgressMsg(`Uploading to Cloudflare R2: ${formatBytes(event.loaded)} / ${formatBytes(event.total)} (${percent}%)`);
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
-            reject(new Error(`Cloudflare R2 returned status ${xhr.status}`));
-          }
-        };
-
-        xhr.onerror = () => reject(new Error('Network connection error during R2 upload'));
-        xhr.send(file);
+    try {
+      const targetFolder = (folder || (isVideo ? 'videos' : 'thumbnails')) as any;
+      const res = await uploadToR2Storage(file, targetFolder, (percent) => {
+        setUploadPercent(percent);
+        setUploadProgressMsg(`Streaming directly to Cloudflare R2 (${percent}%)...`);
       });
 
       if (folder === 'thumbnails' || (!file.type.includes('video') && folder !== 'videos')) {
-        setThumbnailUrl(presignData.publicUrl);
+        setThumbnailUrl(res.publicUrl);
         if (!mediaUrl && contentFormat === 'ARTICLE') {
-          setMediaUrl(presignData.publicUrl);
+          setMediaUrl(res.publicUrl);
           setMediaFileName(file.name);
         }
       } else {
-        setMediaUrl(presignData.publicUrl);
+        setMediaUrl(res.publicUrl);
         setMediaFileName(file.name);
       }
 
@@ -229,20 +467,9 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
       setUploadProgressMsg('Media uploaded to Cloudflare R2 successfully!');
       setTimeout(() => setUploadProgressMsg(''), 3500);
     } catch (err: any) {
-      console.warn('Upload fallback used:', err);
-      const mockCloudUrl = `https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev/media/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-      if (folder === 'thumbnails' || (!file.type.includes('video') && folder !== 'videos')) {
-        setThumbnailUrl(mockCloudUrl);
-        if (!mediaUrl && contentFormat === 'ARTICLE') {
-          setMediaUrl(mockCloudUrl);
-          setMediaFileName(file.name);
-        }
-      } else {
-        setMediaUrl(mockCloudUrl);
-        setMediaFileName(file.name);
-      }
-      setUploadProgressMsg('Media attached successfully.');
-      setTimeout(() => setUploadProgressMsg(''), 3500);
+      console.error('R2 upload failed:', err);
+      setSubmitError(err.message || 'Failed to upload media to Cloudflare R2.');
+      setUploadProgressMsg('');
     } finally {
       setUploadingMedia(false);
     }
@@ -261,21 +488,6 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
     const file = e.dataTransfer.files?.[0];
     if (file) {
       uploadFileToR2(file, folder);
-    }
-  };
-
-  const handleApplySampleStory = () => {
-    setTitle('Patna Kankarbagh Ward 14 Road Renovation Delayed for 110 Days');
-    setDescription('Civil road reconstruction ongoing for 4 months has blocked local clinics and grocery markets in Kankarbagh Ward 14. Citizens have submitted multiple complaints to the municipal ward councillor. Urgent tarmac laying and stormwater clearing is demanded.');
-    setStateName('Bihar');
-    setCityName('Patna');
-    setAreaName('Kankarbagh Ward 14');
-    setSelectedCategory('infrastructure');
-    if (!mediaUrl) {
-      setMediaUrl('https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev/sample-report.mp4');
-      setMediaFileName('kankarbagh_ward14_investigation.mp4');
-      setMediaFileSize('42.8 MB');
-      setThumbnailUrl('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957');
     }
   };
 
@@ -331,42 +543,95 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
     setSubmittingContent(true);
     try {
       const isVideo = contentFormat !== 'ARTICLE';
-      const res = await fetch(`${apiBase}/creator/content`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const { data: authData } = await supabase.auth.getUser();
+      let creatorId = typeof window !== 'undefined' ? localStorage.getItem('creator_id') : null;
+      if (authData.user?.id) {
+        let { data: creatorRow } = await supabase
+          .from('creators')
+          .select('id')
+          .eq('user_id', authData.user.id)
+          .maybeSingle();
+
+        if (!creatorRow) {
+          const { data: newCreator } = await supabase
+            .from('creators')
+            .insert({
+              user_id: authData.user.id,
+              channel_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'Citizen Reporter',
+              verification_status: 'APPROVED'
+            })
+            .select('id')
+            .maybeSingle();
+          creatorRow = newCreator;
+        }
+
+        if (creatorRow?.id) {
+          creatorId = creatorRow.id;
+        }
+      }
+
+      // Resolve valid category UUID
+      const targetCategoryObj = categories.find(c => c.slug === selectedCategory || c.id === selectedCategory);
+      const validCategoryId = targetCategoryObj?.id || (categories.length > 0 ? categories[0].id : null);
+
+      if (!mediaUrl) {
+        setSubmitError('Please select and upload your video or photo ground report evidence before submitting.');
+        setSubmittingContent(false);
+        return;
+      }
+
+      const finalMediaUrl = mediaUrl;
+      const finalThumbUrl = thumbnailUrl || finalMediaUrl;
+
+      const { data, error } = await supabase
+        .from('contents')
+        .insert({
+          creator_id: creatorId,
           type: isVideo ? 'VIDEO' : 'ARTICLE',
-          title,
-          description,
-          mediaUrl: mediaUrl || (isVideo ? 'https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev/sample.mp4' : 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957'),
-          thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957',
-          categoryId: selectedCategory,
-          category: selectedCategory,
+          title: title.trim(),
+          description: description.trim(),
+          media_url: finalMediaUrl,
+          thumbnail_url: finalThumbUrl,
+          category_id: validCategoryId,
           location: {
             country: 'India',
             state: stateName,
+            district: cityName,
+            subdistrict: subdistrictName,
+            village: areaName,
             city: cityName,
-            area: areaName
-          }
+            area: areaName,
+            pincode: pincode
+          },
+          location_country: 'India',
+          location_state: stateName,
+          location_district: cityName,
+          location_subdistrict: subdistrictName,
+          location_village: areaName,
+          location_city: cityName,
+          location_area: areaName,
+          location_pincode: pincode,
+          state_code: selectedStateCode || null,
+          district_code: selectedDistrictCode || null,
+          subdistrict_code: selectedSubdistrictCode || null,
+          local_body_code: selectedLocalBodyCode || null,
+          moderation_status: 'PENDING_REVIEW',
+          publication_status: 'DRAFT',
         })
-      });
+        .select()
+        .single();
 
-      const data = await res.json().catch(() => ({ success: false, error: 'Server returned invalid response' }));
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to publish story. Please verify your inputs.');
+      if (error) {
+        console.error('Supabase content insert error:', error);
+        throw new Error(error.message || 'Failed to submit report');
       }
 
-      if (data.success) {
-        setSubmitSuccessMsg('Ground report published and sent to editorial verification! Redirecting to Content Library...');
-        fetchDashboard();
-        fetchContents();
-        setTimeout(() => {
-          setActiveTabNav('files');
-        }, 1200);
-      }
+      setSubmitSuccessMsg('Ground report published and sent to editorial verification! Redirecting to Content Library...');
+      await fetchDashboard();
+      await fetchContents();
+      setTimeout(() => {
+        setActiveTabNav('files');
+      }, 1200);
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to submit content. Please check required fields.');
     } finally {
@@ -374,7 +639,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
     }
   };
 
-  const previewLocation = `${areaName}, ${cityName}, ${stateName}`;
+  const previewLocation = `${areaName ? areaName + ' • ' : ''}${subdistrictName ? subdistrictName + ', ' : ''}${cityName}, ${stateName}${pincode ? ' (PIN ' + pincode + ')' : ''}`;
   const selectedCategoryObj = categories.find(c => c.slug === selectedCategory || c.id === selectedCategory);
 
   return (
@@ -384,38 +649,27 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200/80 dark:border-slate-800/80">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
+            <span className="text-xs font-mono font-bold text-[#DE5227] dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-[#DE5227]/20">
               STUDIO WORKFLOW
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
             <span className="text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              $1.00 CPM Guaranteed Rate
+              $1.00 CPM Guaranteed Rate (~₹86.5/1k reads)
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
-            <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-stone-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+            <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-[#F2ECE1] dark:bg-slate-800 px-2 py-0.5 rounded">
               Max 2 GB File
             </span>
           </div>
-          <h1 className="text-2xl font-bold font-serif text-slate-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 dark:text-white">
             Publish Ground Report
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Publish Short Bytes (9:16) or Long In-Depth Investigations (16:9) with pinpoint 5km geofencing across all Indian states.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleApplySampleStory}
-            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-stone-100 dark:hover:bg-slate-800 transition cursor-pointer shadow-2xs"
-            title="Populate reporting data for testing"
-          >
-            <FileText className="w-3.5 h-3.5 text-brand-500" />
-            <span>Load Sample Story</span>
-          </button>
-        </div>
       </div>
 
       {/* Notifications */}
@@ -440,7 +694,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
         <div className="lg:col-span-7 space-y-5">
           
           {/* STEP PROGRESS BAR */}
-          <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-4 rounded-2xl shadow-2xs">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-4 rounded-3xl shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
             <div className="flex items-center justify-between gap-2">
               {[
                 { step: 1, label: 'Media Evidence', desc: 'Short / Long Video' },
@@ -458,21 +712,21 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                         setCurrentStep(item.step as any);
                       }
                     }}
-                    className={`flex-1 flex items-center gap-2.5 text-left transition rounded-xl p-2 cursor-pointer ${
+                    className={`flex-1 flex items-center gap-2.5 text-left transition rounded-2xl p-2.5 cursor-pointer ${
                       isCurrent
-                        ? 'bg-brand-500/10 border border-brand-500/25 text-brand-600 dark:text-brand-400'
+                        ? 'bg-orange-500/10 border border-[#DE5227]/30 text-[#DE5227] dark:text-orange-400'
                         : isPassed
-                        ? 'text-emerald-700 dark:text-emerald-400 hover:bg-stone-50 dark:hover:bg-slate-800/40'
+                        ? 'text-emerald-700 dark:text-emerald-400 hover:bg-[#F2ECE1] dark:hover:bg-slate-800/40'
                         : 'text-slate-400 dark:text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 font-mono transition-colors ${
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 font-mono transition-colors ${
                         isCurrent
-                          ? 'bg-brand-500 text-white shadow-2xs'
+                          ? 'bg-[#DE5227] text-white shadow-md shadow-orange-500/20'
                           : isPassed
                           ? 'bg-emerald-500 text-white'
-                          : 'bg-stone-100 dark:bg-slate-800 text-slate-500'
+                          : 'bg-stone-200 dark:bg-slate-800 text-slate-500'
                       }`}
                     >
                       {isPassed ? <Check className="w-3.5 h-3.5" /> : item.step}
@@ -489,16 +743,16 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
 
           {/* STEP 1: MEDIA EVIDENCE (2 VIDEO FORMATS + 2GB HERO DROPZONE) */}
           {currentStep === 1 && (
-            <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-2xs animate-in fade-in duration-150">
+            <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] animate-in fade-in duration-150">
               
               {/* 2 VIDEO FORMAT SWITCHER */}
               <div className="space-y-2 pb-3 border-b border-stone-200/60 dark:border-slate-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">Choose Video / Content Format</h3>
+                    <h3 className="text-sm font-black font-serif text-slate-900 dark:text-white">Choose Video / Content Format</h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">Select Short Video (9:16 Reel) or Long Video (16:9 In-Depth).</p>
                   </div>
-                  <span className="text-[10px] font-mono font-bold bg-brand-500/10 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded-full border border-brand-500/20">
+                  <span className="text-[10px] font-mono font-bold bg-orange-500/10 text-[#DE5227] dark:text-orange-400 px-2 py-0.5 rounded-full border border-[#DE5227]/20">
                     2 GB MAX FILE
                   </span>
                 </div>
@@ -510,14 +764,14 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setContentFormat('SHORT_VIDEO')}
-                    className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
+                    className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
                       contentFormat === 'SHORT_VIDEO'
-                        ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400 shadow-2xs'
-                        : 'bg-[#FAF8F5] dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                        ? 'bg-orange-500/10 border-[#DE5227]/50 text-[#DE5227] dark:text-orange-400 shadow-xs'
+                        : 'bg-white dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${contentFormat === 'SHORT_VIDEO' ? 'bg-brand-500 text-white' : 'bg-stone-200 dark:bg-slate-800 text-slate-600'}`}>
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${contentFormat === 'SHORT_VIDEO' ? 'bg-[#DE5227] text-white' : 'bg-stone-200 dark:bg-slate-800 text-slate-600'}`}>
                         <Smartphone className="w-4 h-4" />
                       </div>
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-stone-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
@@ -536,14 +790,14 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setContentFormat('LONG_VIDEO')}
-                    className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
+                    className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
                       contentFormat === 'LONG_VIDEO'
-                        ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400 shadow-2xs'
-                        : 'bg-[#FAF8F5] dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                        ? 'bg-orange-500/10 border-[#DE5227]/50 text-[#DE5227] dark:text-orange-400 shadow-xs'
+                        : 'bg-white dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${contentFormat === 'LONG_VIDEO' ? 'bg-brand-500 text-white' : 'bg-stone-200 dark:bg-slate-800 text-slate-600'}`}>
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${contentFormat === 'LONG_VIDEO' ? 'bg-[#DE5227] text-white' : 'bg-stone-200 dark:bg-slate-800 text-slate-600'}`}>
                         <Film className="w-4 h-4" />
                       </div>
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-stone-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
@@ -562,14 +816,14 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setContentFormat('ARTICLE')}
-                    className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
+                    className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
                       contentFormat === 'ARTICLE'
-                        ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400 shadow-2xs'
-                        : 'bg-[#FAF8F5] dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                        ? 'bg-orange-500/10 border-[#DE5227]/50 text-[#DE5227] dark:text-orange-400 shadow-xs'
+                        : 'bg-white dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${contentFormat === 'ARTICLE' ? 'bg-brand-500 text-white' : 'bg-stone-200 dark:bg-slate-800 text-slate-600'}`}>
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${contentFormat === 'ARTICLE' ? 'bg-[#DE5227] text-white' : 'bg-stone-200 dark:bg-slate-800 text-slate-600'}`}>
                         <FileText className="w-4 h-4" />
                       </div>
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-stone-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
@@ -586,18 +840,18 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 </div>
               </div>
 
-              {/* Elegant Drag-and-Drop Zone (Supports 2 GB) */}
+              {/* Drag-and-Drop Zone */}
               <div
                 onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={e => handleDropFile(e, contentFormat === 'ARTICLE' ? 'images' : 'videos')}
-                className={`p-7 border-2 border-dashed rounded-2xl text-center space-y-4 transition ${
+                className={`p-7 border-2 border-dashed rounded-3xl text-center space-y-4 transition ${
                   isDragging
-                    ? 'border-brand-500 bg-brand-500/10'
-                    : 'border-stone-200/90 dark:border-slate-800 bg-[#FAF8F5]/80 dark:bg-slate-900/40 hover:border-brand-500/40'
+                    ? 'border-[#DE5227] bg-orange-500/10'
+                    : 'border-stone-200/90 dark:border-slate-800 bg-white/80 dark:bg-slate-900/40 hover:border-[#DE5227]/50'
                 }`}
               >
-                <div className="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center mx-auto shadow-2xs">
+                <div className="w-14 h-14 rounded-2xl bg-orange-500/10 text-[#DE5227] dark:text-orange-400 border border-[#DE5227]/20 flex items-center justify-center mx-auto shadow-2xs">
                   {contentFormat === 'SHORT_VIDEO' ? (
                     <Smartphone className="w-7 h-7" />
                   ) : contentFormat === 'LONG_VIDEO' ? (
@@ -608,7 +862,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-sm font-black text-slate-900 dark:text-white">
+                  <div className="text-sm font-black font-serif text-slate-900 dark:text-white">
                     {mediaFileName ? (
                       <span className="text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-2">
                         <CheckCircle2 className="w-4 h-4" />
@@ -628,7 +882,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-98 text-white text-xs font-bold cursor-pointer transition shadow-xs shadow-brand-500/20">
+                  <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#DE5227] hover:bg-[#C84318] active:scale-98 text-white text-xs font-bold cursor-pointer transition shadow-md shadow-orange-500/20">
                     <Upload className="w-3.5 h-3.5" />
                     <span>Browse File (Max 2 GB)</span>
                     <input
@@ -641,7 +895,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
 
                   {/* Thumbnail button for videos */}
                   {contentFormat !== 'ARTICLE' && (
-                    <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-stone-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer hover:bg-stone-100 dark:hover:bg-slate-800 transition">
+                    <label className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-stone-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer hover:bg-[#F2ECE1] dark:hover:bg-slate-800 transition">
                       <Camera className="w-3.5 h-3.5 text-slate-400" />
                       <span>{thumbnailUrl ? 'Change Thumbnail' : 'Add Custom Thumbnail'}</span>
                       <input
@@ -654,16 +908,16 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   )}
                 </div>
 
-                {/* Real Upload Progress Bar for 2GB Files */}
+                {/* Real Upload Progress Bar */}
                 {uploadingMedia && (
                   <div className="space-y-2 pt-2 max-w-md mx-auto animate-in fade-in">
                     <div className="w-full h-2.5 bg-stone-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-stone-300 dark:border-slate-700">
                       <div
-                        className="h-full bg-brand-500 rounded-full transition-all duration-300"
+                        className="h-full bg-[#DE5227] rounded-full transition-all duration-300"
                         style={{ width: `${uploadPercent}%` }}
                       />
                     </div>
-                    <div className="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 flex items-center justify-center gap-2">
+                    <div className="text-xs font-mono font-bold text-[#DE5227] dark:text-orange-400 flex items-center justify-center gap-2">
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                       <span>{uploadProgressMsg}</span>
                     </div>
@@ -671,9 +925,9 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 )}
               </div>
 
-              {/* Instant Player Preview matching selected aspect ratio */}
+              {/* Instant Player Preview */}
               {mediaUrl && (
-                <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900/60 rounded-2xl border border-stone-200/80 dark:border-slate-800 space-y-3">
+                <div className="p-4 bg-white dark:bg-slate-900/60 rounded-2xl border border-stone-200/80 dark:border-slate-800 space-y-3">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-600 dark:text-slate-400 font-bold flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -719,7 +973,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   )}
 
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                    <span>Cloudflare R2 Bucket: `nagrik-media` • S3 Presigned PUT</span>
+                    <span>Cloudflare R2 Storage: Active</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -735,28 +989,6 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 </div>
               )}
 
-              {/* Collapsible Manual URL Input */}
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowManualUrlInput(!showManualUrlInput)}
-                  className="text-[11px] font-mono text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer"
-                >
-                  <span>{showManualUrlInput ? 'Hide manual URL' : 'Advanced: Paste Cloudflare R2 / CDN URL directly'}</span>
-                </button>
-                {showManualUrlInput && (
-                  <div className="mt-2 space-y-2 animate-in fade-in">
-                    <input
-                      type="url"
-                      value={mediaUrl}
-                      onChange={e => setMediaUrl(e.target.value)}
-                      placeholder="https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev/..."
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
-                    />
-                  </div>
-                )}
-              </div>
-
               {/* Step 1 Actions */}
               <div className="pt-2 flex justify-end">
                 <button
@@ -766,7 +998,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                       setCurrentStep(2);
                     }
                   }}
-                  className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-xs shadow-brand-500/20"
+                  className="px-5 py-2.5 bg-[#DE5227] hover:bg-[#C84318] text-white font-bold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-md shadow-orange-500/20"
                 >
                   <span>Continue to Story Core</span>
                   <ArrowRight className="w-4 h-4" />
@@ -777,9 +1009,9 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
 
           {/* STEP 2: STORY CORE (HEADLINE & REPORT NARRATIVE) */}
           {currentStep === 2 && (
-            <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-2xs animate-in fade-in duration-150">
+            <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-5 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] animate-in fade-in duration-150">
               <div className="pb-3 border-b border-stone-200/60 dark:border-slate-800">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">Editorial Headline & Ground Narrative</h3>
+                <h3 className="text-sm font-black font-serif text-slate-900 dark:text-white">Editorial Headline & Ground Narrative</h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Ground news reports must be concise, factual, and specify location immediately.</p>
               </div>
 
@@ -787,7 +1019,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-900 dark:text-white">
-                    Story Headline / Title <span className="text-red-500">*</span>
+                    Story Headline / Title <span className="text-[#DE5227]">*</span>
                   </label>
                   <span className="text-[11px] font-mono text-slate-400">
                     {title.length}/120 chars
@@ -799,7 +1031,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. Ward 14 Main Drain Overflow Stalls Daily Clinic Access"
                   maxLength={120}
-                  className="w-full px-4 py-3 bg-[#FAF8F5] dark:bg-slate-900/80 border border-stone-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 font-bold"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-900/80 border border-stone-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 font-bold"
                 />
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
                   Tip: Include the locality, issue, and affected citizens for higher ward readership.
@@ -810,7 +1042,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-900 dark:text-white">
-                    Ground Investigation Report <span className="text-red-500">*</span>
+                    Ground Investigation Report <span className="text-[#DE5227]">*</span>
                   </label>
                   <span className="text-[11px] font-mono text-slate-400">
                     {description.length} chars (min 10)
@@ -821,7 +1053,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Detail what occurred on the ground: Who was affected? How long has this civic issue persisted? What is the municipal response so far?"
                   rows={6}
-                  className="w-full px-4 py-3 bg-[#FAF8F5] dark:bg-slate-900/80 border border-stone-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 font-medium leading-relaxed resize-none"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-900/80 border border-stone-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 font-medium leading-relaxed resize-none"
                 />
               </div>
 
@@ -830,7 +1062,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 transition flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-[#F2ECE1] dark:hover:bg-slate-800 transition flex items-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back to Media</span>
@@ -843,7 +1075,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                       setCurrentStep(3);
                     }
                   }}
-                  className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-xs shadow-brand-500/20"
+                  className="px-5 py-2.5 bg-[#DE5227] hover:bg-[#C84318] text-white font-bold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-md shadow-orange-500/20"
                 >
                   <span>Continue to Geofence Beat</span>
                   <ArrowRight className="w-4 h-4" />
@@ -852,111 +1084,193 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
             </div>
           )}
 
-          {/* STEP 3: HYPERLOCAL GEOFENCE BEAT & ALL INDIAN STATES/CITIES/WARDS */}
+          {/* STEP 3: HYPERLOCAL GEOFENCE BEAT */}
           {currentStep === 3 && (
-            <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-6 shadow-2xs animate-in fade-in duration-150">
+            <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-6 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] animate-in fade-in duration-150">
               <div className="pb-3 border-b border-stone-200/60 dark:border-slate-800">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">Hyperlocal Geofence & Civic Category</h3>
+                  <h3 className="text-sm font-black font-serif text-slate-900 dark:text-white">Hyperlocal Geofence & Civic Category</h3>
                   <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
-                    36 STATES & UTs
+                    OFFICIAL LGD HIERARCHY
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Pinpoint your report to any of the 36 Indian states, respective cities, and local ward beats.
+                  Pinpoint your report through the official Local Government Directory: State → District → Sub-District → Village/Ward.
                 </p>
               </div>
 
               {/* Pinpoint Location Beat Grid */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                  <MapPin className="w-4 h-4 text-brand-500" />
-                  <span>Select State, City & Ward Beat</span>
+                {/* 1. SMART PIN CODE QUICK-RESOLVER */}
+                <div className="p-3.5 bg-[#F8F5EE] dark:bg-slate-900/60 border border-[#DCD1BF]/80 dark:border-slate-800 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                      <Sparkles className="w-3.5 h-3.5 text-[#DE5227]" />
+                      <span>Instant 6-Digit Postal PIN Auto-Fill</span>
+                    </div>
+                    {isSearchingPincode && (
+                      <span className="text-[10px] font-mono text-[#DE5227] flex items-center gap-1 animate-pulse">
+                        <RefreshCw className="w-3 h-3 animate-spin" /> Resolving LGD...
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={pincodeInput}
+                        onChange={e => handlePincodeSearch(e.target.value)}
+                        placeholder="Type 6-digit postal code (e.g. 800001, 221001, 560001)..."
+                        className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
+                      />
+                    </div>
+                  </div>
+
+                  {pincodeSuccessNote && (
+                    <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 animate-in fade-in">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>{pincodeSuccessNote}</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 2. CASCADING 4-LEVEL HIERARCHY SELECTOR */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   
-                  {/* 1. All 36 States & UTs */}
+                  {/* Level 1: State / UT */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400">State / UT ({allStates.length})</label>
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                      <span>1. State / UT</span>
+                      <span className="text-[9px] font-mono font-normal text-slate-400">({lgdStates.length})</span>
+                    </label>
                     <select
-                      value={stateName}
-                      onChange={e => handleStateChange(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                      value={selectedStateCode || ''}
+                      onChange={e => handleLgdStateChange(Number(e.target.value))}
+                      className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                     >
-                      {allStates.map(s => (
-                        <option key={s} value={s}>{s}</option>
+                      {lgdStates.map(s => (
+                        <option key={s.state_code} value={s.state_code}>
+                          {s.state_name} ({s.state_or_ut === 'UT' ? 'UT' : 'State'})
+                        </option>
                       ))}
                     </select>
                   </div>
 
-                  {/* 2. City / District for chosen state */}
+                  {/* Level 2: District */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400">City / District ({availableCities.length})</label>
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                      <span>2. District</span>
+                      <span className="text-[9px] font-mono font-normal text-slate-400">
+                        {loadingDistricts ? 'Loading...' : `(${lgdDistricts.length})`}
+                      </span>
+                    </label>
                     <select
-                      value={cityName}
-                      onChange={e => handleCityChange(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                      value={selectedDistrictCode || ''}
+                      onChange={e => handleLgdDistrictChange(Number(e.target.value))}
+                      disabled={loadingDistricts || lgdDistricts.length === 0}
+                      className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 disabled:opacity-60"
                     >
-                      {availableCities.map(c => (
-                        <option key={c} value={c}>{c}</option>
+                      {lgdDistricts.map(d => (
+                        <option key={d.district_code} value={d.district_code}>
+                          {d.district_name}
+                        </option>
                       ))}
                     </select>
                   </div>
 
-                  {/* 3. Local Area / Ward with Datalist & Freeform Input */}
+                  {/* Level 3: Sub-District / Tehsil */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Ward / Local Area *</label>
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                      <span>3. Sub-District / Tehsil</span>
+                      <span className="text-[9px] font-mono font-normal text-slate-400">
+                        {loadingSubdistricts ? 'Loading...' : `(${lgdSubdistricts.length})`}
+                      </span>
+                    </label>
+                    <select
+                      value={selectedSubdistrictCode || ''}
+                      onChange={e => handleLgdSubdistrictChange(Number(e.target.value))}
+                      disabled={loadingSubdistricts || lgdSubdistricts.length === 0}
+                      className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 disabled:opacity-60"
+                    >
+                      {lgdSubdistricts.map(sd => (
+                        <option key={sd.subdistrict_code} value={sd.subdistrict_code}>
+                          {sd.subdistrict_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Level 4: Village / Local Body / Ward */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                      <span>4. Village / Ward / PIN *</span>
+                      <span className="text-[9px] font-mono font-normal text-[#DE5227]">{pincode ? `PIN: ${pincode}` : ''}</span>
+                    </label>
                     <input
                       type="text"
-                      list="localAreasDatalist"
+                      list="lgdLocalBodiesDatalist"
                       value={areaName}
                       onChange={e => setAreaName(e.target.value)}
-                      placeholder="e.g. Kankarbagh Ward 14"
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                      placeholder="e.g. Kankarbagh Ward 14 or Village"
+                      className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                       required
                     />
-                    <datalist id="localAreasDatalist">
-                      {availableAreas.map(area => (
-                        <option key={area} value={area} />
+                    <datalist id="lgdLocalBodiesDatalist">
+                      {lgdLocalBodies.map(lb => (
+                        <option key={lb.id} value={lb.local_body_name}>
+                          {lb.local_body_name} ({lb.local_body_type || 'Local Body'}) - PIN {lb.pincode}
+                        </option>
                       ))}
                     </datalist>
                   </div>
                 </div>
 
-                {/* Quick Ward Chips for 1-Click Select */}
-                {availableAreas.length > 0 && (
+                {/* Recognized Local Bodies Chips */}
+                {lgdLocalBodies.length > 0 && (
                   <div className="space-y-1.5 pt-1">
                     <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">
-                      Recognized Local Wards in {cityName} (Click to select):
+                      Recognized Local Bodies in {cityName} (Click to select):
                     </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {availableAreas.map(area => (
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                      {lgdLocalBodies.slice(0, 10).map(lb => (
                         <button
-                          key={area}
+                          key={lb.id}
                           type="button"
-                          onClick={() => setAreaName(area)}
-                          className={`px-2 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer ${
-                            areaName === area
-                              ? 'bg-brand-500 text-white font-bold shadow-2xs'
-                              : 'bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-brand-500/40'
+                          onClick={() => {
+                            setAreaName(lb.local_body_name);
+                            setPincode(lb.pincode);
+                            setSelectedLocalBodyCode(lb.local_body_code);
+                            if (lb.subdistrict_code) {
+                              setSelectedSubdistrictCode(lb.subdistrict_code);
+                              const matched = lgdSubdistricts.find(s => s.subdistrict_code === lb.subdistrict_code);
+                              if (matched) setSubdistrictName(matched.subdistrict_name);
+                            }
+                          }}
+                          className={`px-2.5 py-1 rounded-xl text-[11px] font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                            areaName === lb.local_body_name
+                              ? 'bg-[#DE5227] text-white font-bold shadow-xs'
+                              : 'bg-white dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-[#DE5227]/40'
                           }`}
                         >
-                          {area}
+                          <span>{lb.local_body_name}</span>
+                          <span className="text-[9px] opacity-75 font-mono">({lb.pincode})</span>
                         </button>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Geofence Confirmation Banner */}
-                <div className="p-3 bg-brand-500/5 dark:bg-brand-500/10 border border-brand-500/20 rounded-xl flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-brand-600 dark:text-brand-400 font-bold">
-                    <Radio className="w-4 h-4 text-brand-500 animate-pulse" />
-                    <span>Geofence Target:</span>
-                    <span className="font-mono text-slate-900 dark:text-white">{previewLocation}</span>
+                {/* Geofence Target Summary Banner */}
+                <div className="p-3.5 bg-orange-500/5 dark:bg-orange-500/10 border border-[#DE5227]/20 rounded-2xl flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-[#DE5227] dark:text-orange-400 font-bold min-w-0">
+                    <Radio className="w-4 h-4 text-[#DE5227] animate-pulse shrink-0" />
+                    <span className="shrink-0">Geofence Target:</span>
+                    <span className="font-mono text-slate-900 dark:text-white truncate">{previewLocation}</span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/15 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-mono font-bold text-[#DE5227] dark:text-orange-400 bg-orange-500/15 px-2 py-0.5 rounded-full shrink-0">
                     5KM RADIUS PUSH
                   </span>
                 </div>
@@ -965,7 +1279,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
               {/* Compact Category Chips Grid */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
-                  <Layers className="w-4 h-4 text-brand-500" />
+                  <Layers className="w-4 h-4 text-[#DE5227]" />
                   <span>Select Civic Category</span>
                 </div>
 
@@ -977,19 +1291,16 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                         key={cat.id}
                         type="button"
                         onClick={() => setSelectedCategory(cat.slug || cat.id)}
-                        className={`p-2.5 rounded-xl border text-left text-xs transition cursor-pointer flex items-center justify-between ${
+                        className={`p-2.5 rounded-2xl border text-left text-xs transition cursor-pointer flex items-center justify-between ${
                           isSelected
-                            ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400 font-bold shadow-2xs'
-                            : 'bg-[#FAF8F5] dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                            ? 'bg-orange-500/10 border-[#DE5227]/50 text-[#DE5227] dark:text-orange-400 font-bold shadow-xs'
+                            : 'bg-white dark:bg-slate-900/60 border-stone-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
                         }`}
                       >
                         <div className="truncate">
-                          <div className="truncate font-bold leading-tight">{cat.name}</div>
-                          {cat.hindiName && (
-                            <div className="text-[10px] opacity-75 font-normal truncate">{cat.hindiName}</div>
-                          )}
+                          <div className="truncate font-bold leading-tight">{formatEnglishCategory(cat.name)}</div>
                         </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-brand-500 shrink-0 ml-1" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#DE5227] shrink-0 ml-1" />}
                       </button>
                     );
                   })}
@@ -1002,7 +1313,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setCurrentStep(2)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 transition flex items-center gap-2 cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-[#F2ECE1] dark:hover:bg-slate-800 transition flex items-center gap-2 cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back to Headline</span>
@@ -1012,7 +1323,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                     type="button"
                     disabled={submittingContent || uploadingMedia}
                     onClick={() => handleSubmitContent()}
-                    className="px-7 py-3 bg-brand-500 hover:bg-brand-600 active:scale-98 text-white font-extrabold text-sm rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                    className="px-7 py-3 bg-[#DE5227] hover:bg-[#C84318] active:scale-98 text-white font-extrabold text-sm rounded-2xl transition shadow-lg shadow-orange-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-60"
                   >
                     {submittingContent ? (
                       <span className="flex items-center gap-2">
@@ -1028,7 +1339,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   </button>
                 </div>
 
-                <div className="p-3 bg-stone-50 dark:bg-slate-900/40 rounded-xl border border-stone-200/60 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-2">
+                <div className="p-3 bg-stone-100/70 dark:bg-slate-900/40 rounded-2xl border border-stone-200/60 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                   <span>
                     By publishing, you certify this ground evidence is authentic, filmed on location, and compliant with the <strong>Nagrik Ethical Journalism Charter</strong>.
@@ -1039,12 +1350,12 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
           )}
         </div>
 
-        {/* RIGHT COLUMN: LIVE MOBILE CARD PREVIEW ("What Readers Will See") (5 cols) */}
+        {/* RIGHT COLUMN: LIVE MOBILE CARD PREVIEW (5 cols) */}
         <div className="lg:col-span-5 sticky top-20 space-y-4">
-          <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-2xs">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
             <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-brand-500" />
+                <Smartphone className="w-4 h-4 text-[#DE5227]" />
                 <span className="text-xs font-bold text-slate-900 dark:text-white uppercase font-mono tracking-wider">
                   Live Mobile Card Preview
                 </span>
@@ -1055,7 +1366,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
             </div>
 
             {/* Simulated Mobile Feed Card */}
-            <div className="bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-3 space-y-3 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-3 space-y-3 shadow-sm">
               
               {/* Card Media Screen */}
               <div
@@ -1091,15 +1402,15 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 )}
 
                 {/* Floating Category Chip */}
-                <div className="absolute top-2.5 left-2.5 bg-brand-500 text-white font-mono text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
-                  {selectedCategoryObj?.name || 'Civic'}
+                <div className="absolute top-2.5 left-2.5 bg-[#DE5227] text-white font-mono text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
+                  {formatEnglishCategory(selectedCategoryObj?.name || 'Civic Issues')}
                 </div>
 
                 {/* Floating Format Indicator */}
                 <div className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-xs text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                   {contentFormat === 'SHORT_VIDEO' ? (
                     <>
-                      <Smartphone className="w-3 h-3 text-brand-400" />
+                      <Smartphone className="w-3 h-3 text-orange-400" />
                       <span>SHORT</span>
                     </>
                   ) : contentFormat === 'LONG_VIDEO' ? (
@@ -1118,7 +1429,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                 {/* Verified Geofence Stamp */}
                 <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[10px] font-mono text-white/90 bg-gradient-to-t from-black/80 to-transparent p-1 rounded">
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-brand-400" />
+                    <MapPin className="w-3 h-3 text-[#DE5227]" />
                     <span className="truncate">{areaName || 'Kankarbagh Ward 14'}</span>
                   </span>
                   <span className="text-emerald-400 font-bold">$1.00 CPM</span>
@@ -1138,7 +1449,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
               {/* Card Reporter Footer */}
               <div className="pt-2 border-t border-stone-200/60 dark:border-slate-800 flex items-center justify-between text-[11px]">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-brand-500 text-white font-bold text-[10px] flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-[#DE5227] text-white font-bold text-[10px] flex items-center justify-center">
                     C
                   </div>
                   <div>
@@ -1158,9 +1469,9 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
             </div>
 
             {/* Publishing Guarantee Note */}
-            <div className="p-3 bg-stone-50 dark:bg-slate-900/50 rounded-xl border border-stone-200/60 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+            <div className="p-3 bg-stone-100/70 dark:bg-slate-900/50 rounded-2xl border border-stone-200/60 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
               <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-brand-500" />
+                <Info className="w-3.5 h-3.5 text-[#DE5227]" />
                 <span>Hyperlocal 5km Ward Notification</span>
               </div>
               <p className="leading-relaxed">

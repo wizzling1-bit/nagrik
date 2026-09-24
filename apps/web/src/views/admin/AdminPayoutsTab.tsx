@@ -176,7 +176,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
       {/* 1. Header with KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Pending Approvals */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-xs hover:border-amber-500/40 transition">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:border-amber-500/50 transition">
           <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
             <span className="text-[10px] font-black uppercase tracking-wider">Pending Action</span>
             <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
@@ -195,7 +195,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
         </div>
 
         {/* KPI 2: Total Settled Payouts */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-xs hover:border-emerald-500/40 transition">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:border-emerald-500/50 transition">
           <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
             <span className="text-[10px] font-black uppercase tracking-wider">Settled Payouts</span>
             <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -214,7 +214,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
         </div>
 
         {/* KPI 3: Total Payout Volume */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-xs hover:border-orange-500/40 transition">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:border-orange-500/50 transition">
           <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
             <span className="text-[10px] font-black uppercase tracking-wider">Total Lifetime Volume</span>
             <div className="p-1.5 rounded-lg bg-[#DE5227]/10 text-[#DE5227] border border-[#DE5227]/20">
@@ -230,7 +230,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
         </div>
 
         {/* KPI 4: Security & Compliance Rule */}
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
             <span className="text-[10px] font-black uppercase tracking-wider">Compliance Rules</span>
             <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
@@ -247,7 +247,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
       </div>
 
       {/* 2. Controls & Search Toolbar */}
-      <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 shadow-xs">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         {/* Status Filter Tabs */}
         <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0B0F17] p-1 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto">
           {(
@@ -313,7 +313,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
 
       {/* 3. Payout Requests List */}
       {filteredPayouts.length === 0 ? (
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-12 text-center space-y-3 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
             <CheckCircle2 className="w-6 h-6" />
           </div>
@@ -373,7 +373,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
             return (
               <div
                 key={payoutId}
-                className="p-5 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-xs hover:border-[#DE5227]/30 transition group"
+                className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:border-[#DE5227]/50 hover:shadow-[0_8px_24px_-4px_rgba(30,24,16,0.12)] transition group"
               >
                 {/* Left Column: Amount and Creator */}
                 <div className="flex items-start gap-4 min-w-0">
@@ -534,7 +534,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
             className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
             onClick={() => !isSubmittingApproval && setSelectedPayoutForApproval(null)}
           />
-          <div className="relative w-full max-w-md bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 z-10">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 z-10">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200/60 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
@@ -648,7 +648,7 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
             className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
             onClick={() => !isSubmittingRejection && setSelectedPayoutForRejection(null)}
           />
-          <div className="relative w-full max-w-md bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 z-10">
+          <div className="relative w-full max-w-md bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 z-10">
             <div className="flex items-center justify-between pb-3 border-b border-stone-200/60 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-500/20">

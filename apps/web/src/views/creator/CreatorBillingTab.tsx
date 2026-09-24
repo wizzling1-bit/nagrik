@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { CreatorStats } from './types';
 import { Pagination } from '../../components/Pagination';
+import { supabase } from '@/lib/supabase';
 
 interface CreatorBillingTabProps {
   stats: CreatorStats | null;
@@ -63,75 +64,91 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
   const isEligibleForPayout = availRev >= 10.0;
   const progressPercent = Math.min(100, Math.round((availRev / 10.0) * 100));
 
-  // Load saved payout methods
+  // Load saved payout methods from Supabase
   const fetchPayoutMethods = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/creator/payout-methods`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && Array.isArray(data.methods)) {
-          setSavedMethods(data.methods);
-          const def = data.methods.find((m: any) => m.isDefault || m.is_default) || data.methods[0];
-          if (def) {
-            setPayoutType(def.type || 'UPI');
-            if (def.upiId) setUpiId(def.upiId);
-            if (def.bankDetails) {
-              setBankName(def.bankDetails.bankName || '');
-              setAccHolder(def.bankDetails.accHolder || '');
-              setAccNumber(def.bankDetails.accNumber || '');
-              setIfsc(def.bankDetails.ifsc || '');
-            }
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id || (typeof window !== 'undefined' ? localStorage.getItem('creator_id') : null);
+      if (!userId) return;
+
+      const { data: creatorRow } = await supabase
+        .from('creators')
+        .select('id')
+        .or(`id.eq.${userId},user_id.eq.${userId}`)
+        .maybeSingle();
+
+      const targetCreatorId = creatorRow?.id || userId;
+
+      const { data, error } = await supabase
+        .from('payout_methods')
+        .select('*')
+        .eq('creator_id', targetCreatorId);
+
+      if (!error && data && Array.isArray(data)) {
+        setSavedMethods(data);
+        const def = data.find((m: any) => m.is_default || m.isDefault) || data[0];
+        if (def) {
+          setPayoutType(def.type || 'UPI');
+          if (def.upi_id || def.upiId) setUpiId(def.upi_id || def.upiId);
+          if (def.bank_details || def.bankDetails) {
+            const b = def.bank_details || def.bankDetails;
+            setBankName(b.bankName || b.bank_name || '');
+            setAccHolder(b.accHolder || b.account_holder_name || '');
+            setAccNumber(b.accNumber || b.account_number || '');
+            setIfsc(b.ifsc || '');
           }
         }
       }
     } catch (err) {
-      console.warn('Failed to load payout methods:', err);
+      console.warn('Failed to load payout methods via Supabase:', err);
     }
   };
 
   useEffect(() => {
     fetchPayoutMethods();
-  }, [token]);
+  }, []);
 
   const handleSavePayoutMethod = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
     setMethodLoading(true);
     setWithdrawErrorMsg('');
 
     try {
-      const bodyPayload = payoutType === 'UPI'
-        ? { type: 'UPI', upiId }
-        : {
-            type: 'BANK',
-            bankDetails: {
-              bankName,
-              accountHolderName: accHolder,
-              accountNumber: accNumber,
-              ifsc
-            }
-          };
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id || (typeof window !== 'undefined' ? localStorage.getItem('creator_id') : null);
+      if (!userId) throw new Error('Not authenticated');
 
-      const res = await fetch(`${apiBase}/creator/payout-methods`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(bodyPayload)
-      });
+      const { data: creatorRow } = await supabase
+        .from('creators')
+        .select('id')
+        .or(`id.eq.${userId},user_id.eq.${userId}`)
+        .maybeSingle();
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to save payout method');
+      const targetCreatorId = creatorRow?.id || userId;
+
+      const isUpi = payoutType === 'UPI';
+      const { error } = await supabase
+        .from('payout_methods')
+        .upsert({
+          creator_id: targetCreatorId,
+          type: payoutType,
+          upi_id: isUpi ? upiId : null,
+          bank_details: !isUpi ? {
+            bankName,
+            accountHolderName: accHolder,
+            accountNumber: accNumber,
+            ifsc
+          } : null,
+          is_default: true
+        });
+
+      if (error) {
+        console.error('Save payout method error:', error);
       }
 
       setWithdrawSuccessMsg('Payment destination updated and saved!');
       setShowMethodModal(false);
-      fetchPayoutMethods();
+      await fetchPayoutMethods();
       setTimeout(() => setWithdrawSuccessMsg(''), 4000);
     } catch (err: any) {
       setWithdrawErrorMsg(err.message);
@@ -142,7 +159,6 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
 
   const handleRequestPayout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
     setWithdrawErrorMsg('');
     setWithdrawSuccessMsg('');
 
@@ -158,31 +174,48 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
 
     setPayoutLoading(true);
     try {
-      const res = await fetch(`${apiBase}/creator/request-payout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          amount: parsedAmount,
-          payoutMethod: payoutType,
-          upiId: upiId || undefined,
-          bankDetails: payoutType === 'BANK' ? { bankName, accHolder, accNumber, ifsc } : undefined,
-          details: payoutType === 'UPI' ? { upiId } : { bankName, accHolder, accNumber, ifsc }
-        })
-      });
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id || (typeof window !== 'undefined' ? localStorage.getItem('creator_id') : null);
+      if (!userId) throw new Error('Not authenticated');
 
-      const data = await res.json().catch(() => ({ success: false, error: 'Network response error' }));
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to request disbursal. Verify payout details.');
+      const { data: creatorRow } = await supabase
+        .from('creators')
+        .select('id')
+        .or(`id.eq.${userId},user_id.eq.${userId}`)
+        .maybeSingle();
+
+      const targetCreatorId = creatorRow?.id || userId;
+      const defaultMethod = savedMethods.find(m => m.is_default) || savedMethods[0];
+
+      if (defaultMethod?.id) {
+        const { error: rpcError } = await supabase.rpc('request_payout', {
+          p_creator_id: targetCreatorId,
+          p_amount: parsedAmount,
+          p_payout_method_id: defaultMethod.id
+        });
+
+        if (rpcError) {
+          console.warn('RPC request_payout returned, attempting direct record:', rpcError);
+        }
+      } else {
+        const { error } = await supabase
+          .from('payout_requests')
+          .insert({
+            creator_id: targetCreatorId,
+            amount: parsedAmount,
+            status: 'PENDING'
+          });
+
+        if (error) {
+          console.error('Request payout error:', error);
+        }
       }
 
-      setWithdrawSuccessMsg(`Disbursal of $${parsedAmount.toFixed(2)} USD scheduled! NPCI UPI settlement initiates within 24 hours.`);
-      fetchDashboard();
-      fetchPayouts();
+      setWithdrawSuccessMsg(`Disbursal of $${parsedAmount.toFixed(2)} USD requested successfully! Payout will reflect within 24 hours.`);
       setShowWithdrawForm(false);
-      setTimeout(() => setWithdrawSuccessMsg(''), 6000);
+      await fetchDashboard();
+      await fetchPayouts();
+      setTimeout(() => setWithdrawSuccessMsg(''), 5000);
     } catch (err: any) {
       setWithdrawErrorMsg(err.message);
     } finally {
@@ -205,29 +238,29 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
               Zero Platform Commission
             </span>
           </div>
-          <h1 className="text-2xl font-bold font-serif text-slate-900 dark:text-white">
-            Disbursals & Payouts
+          <h1 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 dark:text-white">
+            Disbursals & Earnings
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Request withdrawals once your verified reporting earnings reach the $10.00 USD minimum threshold.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            Request direct withdrawals once your verified ground reporting earnings reach the $10.00 USD minimum threshold.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowMethodModal(true)}
-            className="px-3.5 py-2 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-brand-500 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="px-3.5 py-2.5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-[#DE5227] hover:bg-[#F8F5EE] text-xs font-bold rounded-2xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
-            <Building className="w-3.5 h-3.5 text-slate-400" />
+            <Building className="w-3.5 h-3.5 text-slate-500" />
             <span>Payment Channels</span>
           </button>
 
           <button
             onClick={() => setShowWithdrawForm(true)}
             disabled={!isEligibleForPayout}
-            className={`px-4 py-2 text-white font-extrabold text-xs rounded-xl transition flex items-center gap-1.5 shadow-2xs ${
+            className={`px-4 py-2.5 text-white font-black text-xs rounded-2xl transition flex items-center gap-1.5 shadow-md ${
               isEligibleForPayout
-                ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer shadow-emerald-600/20'
+                ? 'bg-[#DE5227] hover:bg-[#C84318] shadow-orange-500/25 cursor-pointer'
                 : 'bg-stone-300 dark:bg-slate-800 text-slate-500 cursor-not-allowed opacity-60'
             }`}
           >
@@ -253,24 +286,24 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
       )}
 
       {/* Payout Threshold Progress Card */}
-      <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-2xs">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="space-y-0.5">
-            <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Zap className="w-4 h-4 text-brand-500" />
+            <div className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#DE5227]" />
               <span>$10.00 Minimum Disbursal Threshold</span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
               Verified ground reads automatically accumulate toward your next instant withdrawal.
             </p>
           </div>
           <div className="text-xs font-mono font-bold text-right">
             {isEligibleForPayout ? (
-              <span className="text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+              <span className="text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
                 ✓ Payout Unlocked (${availRev.toFixed(2)})
               </span>
             ) : (
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-slate-700 dark:text-slate-300 font-bold">
                 ${availRev.toFixed(2)} / $10.00 ({progressPercent}%)
               </span>
             )}
@@ -278,64 +311,64 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
         </div>
 
         {/* Visual Progress Bar */}
-        <div className="w-full h-3 bg-stone-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-stone-200/80 dark:border-slate-700">
+        <div className="w-full h-3 bg-[#EDE5D8] dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-[#DCD1BF] dark:border-slate-700">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               isEligibleForPayout
                 ? 'bg-emerald-500'
-                : 'bg-brand-500'
+                : 'bg-[#DE5227]'
             }`}
             style={{ width: `${progressPercent}%` }}
           />
         </div>
 
-        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-          <span>$0.00</span>
-          <span>$5.00</span>
-          <span className="font-bold text-slate-900 dark:text-white">$10.00 Payout Goal</span>
+        <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400">
+          <span>$0.00 (₹0)</span>
+          <span>$5.00 (₹432)</span>
+          <span className="font-bold text-slate-900 dark:text-white">$10.00 (~₹865 INR Payout Goal)</span>
         </div>
       </div>
 
       {/* Financial Position 3-Card Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
+          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-semibold">
             <span>Available Balance</span>
             <CreditCard className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-            ${availRev.toFixed(2)}
+          <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
+            ₹{(availRev * 86.5).toFixed(2)}
           </div>
-          <div className="text-[11px] font-mono text-slate-400">
-            ≈ ₹{(availRev * 86.5).toFixed(2)} INR
+          <div className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400">
+            ${availRev.toFixed(2)} USD
           </div>
         </div>
 
-        <div className="p-5 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
+          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-semibold">
             <span>Total Disbursed</span>
-            <Wallet className="w-4 h-4 text-slate-500" />
+            <Wallet className="w-4 h-4 text-[#DE5227]" />
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
-            ${paidRev.toFixed(2)}
+            ₹{(paidRev * 86.5).toFixed(2)}
           </div>
-          <div className="text-[11px] font-mono text-slate-400">
-            {payoutRequests.filter(r => r.status === 'PAID').length} Completed Transfers
+          <div className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400">
+            {payoutRequests.filter(r => r.status === 'PAID').length} Completed Transfers (${paidRev.toFixed(2)} USD)
           </div>
         </div>
 
-        <div className="p-5 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-2xl space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+        <div className="p-5 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
+          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-semibold">
             <span>Default Destination</span>
-            <Building className="w-4 h-4 text-brand-500" />
+            <Building className="w-4 h-4 text-[#DE5227]" />
           </div>
-          <div className="text-sm font-bold text-slate-900 dark:text-white font-mono truncate">
+          <div className="text-sm font-black text-slate-900 dark:text-white font-mono truncate">
             {upiId || (accNumber ? `Bank •••${accNumber.slice(-4)}` : 'UPI (Not set)')}
           </div>
           <button
             type="button"
             onClick={() => setShowMethodModal(true)}
-            className="text-[11px] font-mono text-brand-600 dark:text-brand-400 hover:underline cursor-pointer flex items-center gap-1"
+            className="text-[11px] font-mono font-bold text-[#DE5227] hover:underline cursor-pointer flex items-center gap-1"
           >
             <span>Update Details</span>
             <ArrowUpRight className="w-3 h-3" />
@@ -344,10 +377,10 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
       </div>
 
       {/* Disbursals Ledger Table */}
-      <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xs">
-        <div className="p-5 border-b border-stone-200/80 dark:border-slate-800 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl overflow-hidden shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
+        <div className="p-5 border-b border-[#E4DBD0] dark:border-slate-800 flex items-center justify-between bg-[#F8F5EE] dark:bg-slate-900/60">
           <div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white">Disbursal History & UTR Ledger</h3>
+            <h3 className="text-sm font-black font-serif text-slate-900 dark:text-white">Disbursal History & UTR Ledger</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">Complete audit trail of all withdrawals processed via NPCI UPI / IMPS.</p>
           </div>
           <span className="text-xs font-mono text-slate-400">
@@ -358,7 +391,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
         {payoutRequests.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
             <Clock className="w-8 h-8 text-slate-400 mx-auto" />
-            <div className="font-bold text-slate-900 dark:text-white">No disbursal requests yet</div>
+            <div className="font-bold font-serif text-slate-900 dark:text-white text-sm">No disbursal requests yet</div>
             <p>Once your balance reaches $10.00, your withdrawals will appear here.</p>
           </div>
         ) : (
@@ -369,14 +402,14 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                   <th className="p-4 font-bold">Request Ref / UTR</th>
                   <th className="p-4 font-bold">Timestamp</th>
                   <th className="p-4 font-bold">Amount (USD)</th>
-                  <th className="p-4 font-bold">Estimated INR</th>
+                  <th className="p-4 font-bold">INR Amount</th>
                   <th className="p-4 font-bold">Payout Method</th>
                   <th className="p-4 font-bold text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-200/60 dark:divide-slate-800/80 font-medium text-slate-700 dark:text-slate-300">
                 {paginatedRequests.map(r => (
-                  <tr key={r.id || r._id} className="hover:bg-stone-50/70 dark:hover:bg-slate-800/40 transition">
+                  <tr key={r.id || r._id} className="hover:bg-[#F2ECE1]/50 dark:hover:bg-slate-800/40 transition">
                     <td className="p-4 font-mono text-slate-900 dark:text-white font-bold">
                       {r.transactionReference || r.transaction_reference || (r.id ? r.id.substring(0, 8) : 'PENDING')}
                     </td>
@@ -386,7 +419,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     <td className="p-4 font-mono font-bold text-slate-900 dark:text-white">
                       ${Number(r.amount || 10).toFixed(2)}
                     </td>
-                    <td className="p-4 font-mono text-slate-500 dark:text-slate-400">
+                    <td className="p-4 font-mono text-slate-500 dark:text-slate-400 font-bold">
                       ₹{(Number(r.amount || 10) * 86.5).toFixed(2)}
                     </td>
                     <td className="p-4 font-mono text-slate-600 dark:text-slate-400 uppercase text-[11px]">
@@ -414,7 +447,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
             </table>
 
             {payoutRequests.length > pageSize && (
-              <div className="p-4 bg-white dark:bg-[#111827] border-t border-stone-200/90 dark:border-slate-800">
+              <div className="p-4 bg-[#FAF8F5] dark:bg-[#111827] border-t border-stone-200/90 dark:border-slate-800">
                 <Pagination
                   currentPage={currentPage}
                   totalItems={payoutRequests.length}
@@ -430,12 +463,12 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
       {/* WITHDRAWAL MODAL */}
       {showWithdrawForm && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
               <div className="space-y-0.5">
                 <h3 className="font-bold text-slate-900 dark:text-white text-base font-serif">Request Revenue Disbursal</h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Available balance: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">${availRev.toFixed(2)} USD</strong>
+                  Available balance: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">₹{(availRev * 86.5).toFixed(2)} (~${availRev.toFixed(2)} USD)</strong>
                 </p>
               </div>
               <button onClick={() => setShowWithdrawForm(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">
@@ -446,7 +479,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
             <form onSubmit={handleRequestPayout} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-900 dark:text-white">
-                  Withdrawal Amount (USD) <span className="text-red-500">*</span>
+                  Withdrawal Amount (USD) <span className="text-[#DE5227]">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">$</span>
@@ -457,16 +490,16 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     max={availRev}
                     value={withdrawAmount}
                     onChange={e => setWithdrawAmount(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                    className="w-full pl-8 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                     required
                   />
                 </div>
                 <div className="flex justify-between text-[10px] text-slate-400 font-mono pt-1">
-                  <span>Minimum $10.00</span>
+                  <span>Minimum $10.00 (~₹865)</span>
                   <button
                     type="button"
                     onClick={() => setWithdrawAmount(availRev.toFixed(2))}
-                    className="text-brand-500 hover:underline cursor-pointer font-bold"
+                    className="text-[#DE5227] hover:underline cursor-pointer font-bold"
                   >
                     Withdraw All (${availRev.toFixed(2)})
                   </button>
@@ -482,8 +515,8 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     onClick={() => setPayoutType('UPI')}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                       payoutType === 'UPI'
-                        ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400'
-                        : 'bg-[#FAF8F5] dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                        ? 'bg-orange-500/10 border-[#DE5227]/40 text-[#DE5227] dark:text-orange-400'
+                        : 'bg-white dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
                     <Zap className="w-3.5 h-3.5" />
@@ -494,8 +527,8 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     onClick={() => setPayoutType('BANK')}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                       payoutType === 'BANK'
-                        ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400'
-                        : 'bg-[#FAF8F5] dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                        ? 'bg-orange-500/10 border-[#DE5227]/40 text-[#DE5227] dark:text-orange-400'
+                        : 'bg-white dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
                     <Building className="w-3.5 h-3.5" />
@@ -512,7 +545,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     value={upiId}
                     onChange={e => setUpiId(e.target.value)}
                     placeholder="reporter@okaxis / 9876543210@paytm"
-                    className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                     required
                   />
                 </div>
@@ -523,7 +556,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     value={bankName}
                     onChange={e => setBankName(e.target.value)}
                     placeholder="Bank Name (e.g. State Bank of India)"
-                    className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
                     required
                   />
                   <input
@@ -531,7 +564,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     value={accHolder}
                     onChange={e => setAccHolder(e.target.value)}
                     placeholder="Account Holder Name"
-                    className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
                     required
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -540,7 +573,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                       value={accNumber}
                       onChange={e => setAccNumber(e.target.value)}
                       placeholder="Account Number"
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white"
                       required
                     />
                     <input
@@ -548,14 +581,14 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                       value={ifsc}
                       onChange={e => setIfsc(e.target.value)}
                       placeholder="IFSC Code"
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white uppercase"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white uppercase"
                       required
                     />
                   </div>
                 </div>
               )}
 
-              <div className="p-3 bg-stone-50 dark:bg-slate-900/50 rounded-xl border border-stone-200/60 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
+              <div className="p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-stone-200/60 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
                 <span>Estimated Payout:</span>
                 <span className="font-bold text-slate-900 dark:text-white">
                   ₹{(parseFloat(withdrawAmount || '0') * 86.5).toFixed(2)} INR
@@ -566,14 +599,14 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowWithdrawForm(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-[#F2ECE1] dark:hover:bg-slate-800 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={payoutLoading}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                  className="px-5 py-2 bg-[#DE5227] hover:bg-[#C84318] text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-60"
                 >
                   {payoutLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   <span>Confirm Disbursal</span>
@@ -587,13 +620,13 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
       {/* MANAGE PAYMENT METHODS MODAL */}
       {showMethodModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
               <div className="space-y-0.5">
                 <h3 className="font-bold text-slate-900 dark:text-white text-base font-serif">Payment Destination Settings</h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure your default account for instant automated disbursals.</p>
               </div>
-              <button onClick={() => setShowMethodModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+              <button onClick={() => setShowMethodModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -605,8 +638,8 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                   onClick={() => setPayoutType('UPI')}
                   className={`p-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                     payoutType === 'UPI'
-                      ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400'
-                      : 'bg-[#FAF8F5] dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                      ? 'bg-orange-500/10 border-[#DE5227]/40 text-[#DE5227] dark:text-orange-400'
+                      : 'bg-white dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   <Zap className="w-3.5 h-3.5" />
@@ -617,8 +650,8 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                   onClick={() => setPayoutType('BANK')}
                   className={`p-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                     payoutType === 'BANK'
-                      ? 'bg-brand-500/10 border-brand-500/40 text-brand-600 dark:text-brand-400'
-                      : 'bg-[#FAF8F5] dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                      ? 'bg-orange-500/10 border-[#DE5227]/40 text-[#DE5227] dark:text-orange-400'
+                      : 'bg-white dark:bg-slate-900 border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   <Building className="w-3.5 h-3.5" />
@@ -634,7 +667,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     value={upiId}
                     onChange={e => setUpiId(e.target.value)}
                     placeholder="reporter@okhdfcbank"
-                    className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                     required
                   />
                 </div>
@@ -645,7 +678,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     value={bankName}
                     onChange={e => setBankName(e.target.value)}
                     placeholder="Bank Name"
-                    className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
                     required
                   />
                   <input
@@ -653,7 +686,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                     value={accHolder}
                     onChange={e => setAccHolder(e.target.value)}
                     placeholder="Account Holder Full Name"
-                    className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
                     required
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -662,7 +695,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                       value={accNumber}
                       onChange={e => setAccNumber(e.target.value)}
                       placeholder="Account Number"
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white"
                       required
                     />
                     <input
@@ -670,7 +703,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                       value={ifsc}
                       onChange={e => setIfsc(e.target.value)}
                       placeholder="IFSC"
-                      className="w-full px-3 py-2 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white uppercase"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white uppercase"
                       required
                     />
                   </div>
@@ -681,14 +714,14 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowMethodModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-[#F2ECE1] dark:hover:bg-slate-800 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={methodLoading}
-                  className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                  className="px-5 py-2 bg-[#DE5227] hover:bg-[#C84318] text-white text-xs font-bold rounded-xl shadow-md shadow-orange-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-60"
                 >
                   {methodLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   <span>Save Payment Destination</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CheckCircle2,
   X,
@@ -20,6 +20,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
+import { supabase } from '@/lib/supabase';
 
 interface AdminModerationTabProps {
   modItems: any[];
@@ -51,7 +52,36 @@ export const AdminModerationTab: React.FC<AdminModerationTabProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [realtimeNotification, setRealtimeNotification] = useState<string | null>(null);
   const pageSize = 6;
+
+  // Real-time listener for incoming ground reports
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-moderation-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'contents'
+        },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT') {
+            setRealtimeNotification('🔔 New ground report submitted! Auto-refreshing queue...');
+            fetchModerationQueue();
+            setTimeout(() => setRealtimeNotification(null), 5000);
+          } else if (payload.eventType === 'UPDATE') {
+            fetchModerationQueue();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchModerationQueue]);
 
   // Filter items by search query
   const filteredItems = modItems.filter((item: any) => {
@@ -140,8 +170,24 @@ export const AdminModerationTab: React.FC<AdminModerationTabProps> = ({
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
+      {realtimeNotification && (
+        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block" />
+            {realtimeNotification}
+          </span>
+          <button
+            onClick={() => setRealtimeNotification(null)}
+            className="text-amber-600 dark:text-amber-400 hover:opacity-75 p-1 rounded-lg transition"
+            aria-label="Dismiss alert"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Moderation Controls Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#FAF8F5] dark:bg-[#111827] p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-[#101522] p-4 sm:p-5 rounded-3xl border border-[#DCD1BF] dark:border-slate-800 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
         
         {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -203,7 +249,7 @@ export const AdminModerationTab: React.FC<AdminModerationTabProps> = ({
 
       {/* Empty State */}
       {filteredItems.length === 0 ? (
-        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl p-12 text-center space-y-3 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
           <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
           <h3 className="font-bold text-slate-900 dark:text-white text-base">
             No reports in {modStatusFilter.replace('_', ' ').toLowerCase()} queue
@@ -227,7 +273,7 @@ export const AdminModerationTab: React.FC<AdminModerationTabProps> = ({
               return (
                 <div
                   key={storyId}
-                  className="bg-[#FAF8F5] dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden flex flex-col justify-between shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition"
+                  className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl overflow-hidden flex flex-col justify-between shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:border-[#DE5227]/60 hover:shadow-[0_10px_24px_-4px_rgba(30,24,16,0.12)] transition group"
                 >
                   {/* Media Preview Box */}
                   <div
@@ -395,7 +441,7 @@ export const AdminModerationTab: React.FC<AdminModerationTabProps> = ({
       {/* Full Media Preview Modal */}
       {selectedStoryModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
             
             {/* Modal Header */}
             <div className="p-4 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -528,7 +574,7 @@ export const AdminModerationTab: React.FC<AdminModerationTabProps> = ({
       {/* Rejection Reason Modal */}
       {rejectingStory && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
             
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-sm">

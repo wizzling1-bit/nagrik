@@ -45,14 +45,24 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
   redirectUrl = '/creator',
   onBackToHome
 }) => {
-  const apiBase = propsApiBase || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-  const { login } = useAuth();
+  const { login, signInWithSupabase, signUpWithSupabase, user, isAuthenticated, isLoading } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   // Authentication Mode: Sign In (false) or Sign Up (true)
   const [isRegister, setIsRegister] = useState(initialMode === 'signup');
+
+  // Automatically forward if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (user.role === 'ADMIN') {
+        navigate(redirectUrl && redirectUrl.startsWith('/admin') ? redirectUrl : '/admin');
+      } else {
+        navigate(redirectUrl && !redirectUrl.startsWith('/admin') ? redirectUrl : '/creator');
+      }
+    }
+  }, [isLoading, isAuthenticated, user, redirectUrl, navigate]);
 
   // Synchronize with initialMode changes
   useEffect(() => {
@@ -71,8 +81,6 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authSuccess, setAuthSuccess] = useState(false);
-  const [demoFilled, setDemoFilled] = useState(false);
-  const [demoRole, setDemoRole] = useState<'creator' | 'admin' | null>(null);
 
   // Validation Rules
   const isEmailValid = authEmail.length > 3 && authEmail.includes('@') && authEmail.includes('.');
@@ -96,25 +104,6 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
     }
   };
 
-  // Quick 1-Click Demo Credentials
-  const handleFillDemo = (type: 'creator' | 'admin' = 'creator') => {
-    if (type === 'admin') {
-      setAuthEmail('admin@nagrik.news');
-      setAuthPassword('AdminPass123!');
-      setDemoRole('admin');
-    } else {
-      setAuthEmail('creator1@nagrik.news');
-      setAuthPassword('CreatorPass123!');
-      setDemoRole('creator');
-    }
-    setDemoFilled(true);
-    setAuthError('');
-    setTimeout(() => {
-      setDemoFilled(false);
-      setDemoRole(null);
-    }, 2200);
-  };
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
@@ -127,28 +116,25 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
     }
 
     try {
-      const endpoint = isRegister ? '/auth/register' : '/auth/login';
-      const bodyPayload = isRegister
-        ? { email: authEmail, password: authPassword, name: authName, role: 'CREATOR' }
-        : { email: authEmail, password: authPassword };
+      const cleanEmail = authEmail.trim().toLowerCase();
+      const cleanPassword = authPassword;
 
-      const res = await fetch(`${apiBase}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload)
-      });
+      let result;
+      if (isRegister) {
+        result = await signUpWithSupabase(cleanEmail, cleanPassword, authName.trim(), 'CREATOR');
+      } else {
+        result = await signInWithSupabase(cleanEmail, cleanPassword);
+      }
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || (language === 'hi' ? 'प्रमाणीकरण विफल रहा। कृपया अपनी साख जांचें।' : 'Authentication failed. Please check your email and password.'));
+      if (!result.success || !result.user) {
+        throw new Error(result.error || (language === 'hi' ? 'प्रमाणीकरण विफल रहा। कृपया अपनी साख जांचें।' : 'Authentication failed. Please check your email and password.'));
       }
 
       setAuthSuccess(true);
 
       // Brief cinematic success pause before routing
       setTimeout(() => {
-        login(data.token, data.user);
-        if (data.user?.role === 'ADMIN') {
+        if (result.user?.role === 'ADMIN') {
           navigate(redirectUrl && redirectUrl.startsWith('/admin') ? redirectUrl : '/admin');
         } else {
           navigate(redirectUrl && !redirectUrl.startsWith('/admin') ? redirectUrl : '/creator');
@@ -362,7 +348,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                 {!isRegister && (
                   <button
                     type="button"
-                    onClick={() => setAuthError(language === 'hi' ? 'डेमो खातों का डिफ़ॉल्ट पासवर्ड CreatorPass123! या AdminPass123! है।' : 'Default password for demo accounts is CreatorPass123! or AdminPass123!')}
+                    onClick={() => setAuthError(language === 'hi' ? 'पासवर्ड रीसेट लिंक आपके पंजीकृत ईमेल पर भेजा जाएगा।' : 'Password reset link will be sent to your registered email.')}
                     className="text-[11px] text-slate-500 hover:text-[#DE5227] font-bold transition cursor-pointer font-mono"
                   >
                     {language === 'hi' ? 'पासवर्ड भूल गए?' : 'Forgot password?'}
@@ -466,41 +452,6 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                   <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-[11px] font-mono font-bold">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span>Instant UPI Disbursals</span>
-                  </div>
-                </div>
-
-                {/* 1-Click Quick Demo Credential Pills */}
-                <div className="p-3 bg-[#F2ECE1]/60 dark:bg-slate-900/60 rounded-2xl border border-stone-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-medium">
-                    Demo Credentials:
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleFillDemo('creator')}
-                      className={`text-[10px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-xl border ${
-                        demoFilled && demoRole === 'creator'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700 scale-105'
-                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-stone-200 dark:border-slate-700 hover:border-[#DE5227] hover:text-[#DE5227]'
-                      }`}
-                      title="Auto-fill Creator Account"
-                    >
-                      <Zap className="w-3 h-3 text-amber-500" />
-                      <span>Creator</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleFillDemo('admin')}
-                      className={`text-[10px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-xl border ${
-                        demoFilled && demoRole === 'admin'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700 scale-105'
-                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-stone-200 dark:border-slate-700 hover:border-[#DE5227] hover:text-[#DE5227]'
-                      }`}
-                      title="Auto-fill Admin Account"
-                    >
-                      <KeyRound className="w-3 h-3 text-slate-400" />
-                      <span>Admin</span>
-                    </button>
                   </div>
                 </div>
               </div>

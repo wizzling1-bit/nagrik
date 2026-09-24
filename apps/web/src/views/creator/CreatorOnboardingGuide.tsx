@@ -93,10 +93,10 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#FAF9F6] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col antialiased selection:bg-brand-500 selection:text-white transition-colors duration-200">
+    <div className="min-h-screen w-full bg-[#F4EFE6] dark:bg-[#0A0E17] text-slate-900 dark:text-slate-100 flex flex-col antialiased selection:bg-[#DE5227] selection:text-white transition-colors duration-200">
       
       {/* 1. TOP GUIDE APP BAR */}
-      <header className="h-16 px-4 sm:px-8 border-b border-stone-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#111827]/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between">
+      <header className="h-16 px-4 sm:px-8 border-b border-stone-200/80 dark:border-slate-800/80 bg-[#FAF8F5]/90 dark:bg-[#111827]/90 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <NagrikLogo size="sm" hideSubtitle />
           <div className="h-4 w-px bg-stone-300 dark:bg-slate-700 hidden sm:block" />
@@ -104,7 +104,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
             <span className="text-xs font-bold font-serif text-slate-800 dark:text-slate-200 hidden sm:inline">
               Publisher Studio Guide
             </span>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-brand-500/10 text-brand-600 dark:text-brand-400 px-2.5 py-0.5 rounded-full border border-brand-500/20 font-mono">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-orange-500/10 text-[#DE5227] dark:text-orange-400 px-2.5 py-0.5 rounded-full border border-[#DE5227]/20 font-mono">
               Onboarding
             </span>
           </div>
@@ -118,7 +118,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
             </span>
             <div className="w-24 h-1.5 bg-stone-200 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-brand-500 transition-all duration-300"
+                className="h-full bg-[#DE5227] transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -146,7 +146,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                 onClick={() => setCurrentStep(idx)}
                 className={`flex-1 flex items-center gap-2.5 p-2 rounded-xl text-left transition cursor-pointer ${
                   isCurrent
-                    ? 'bg-white dark:bg-slate-800 border border-brand-500/30 shadow-xs'
+                    ? 'bg-white dark:bg-slate-800 border border-[#DE5227]/30 shadow-xs'
                     : isCompleted
                     ? 'hover:bg-white/60 dark:hover:bg-slate-800/40 text-slate-600 dark:text-slate-300'
                     : 'opacity-50 hover:opacity-80 text-slate-400'
@@ -155,7 +155,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                 <div
                   className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center font-mono shrink-0 transition ${
                     isCurrent
-                      ? 'bg-brand-500 text-white shadow-xs'
+                      ? 'bg-[#DE5227] text-white shadow-xs'
                       : isCompleted
                       ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                       : 'bg-stone-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
@@ -164,7 +164,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   {isCompleted ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                 </div>
                 <div className="overflow-hidden min-w-0">
-                  <div className={`text-xs font-bold truncate ${isCurrent ? 'text-brand-600 dark:text-brand-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                  <div className={`text-xs font-bold truncate ${isCurrent ? 'text-[#DE5227] dark:text-orange-400' : 'text-slate-800 dark:text-slate-200'}`}>
                     {step.label}
                   </div>
                 </div>
@@ -176,13 +176,13 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
 
       {/* 3. STEP CONTENT BODY */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 flex flex-col justify-center">
-        <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl transition-all duration-300">
+        <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl transition-all duration-300">
           
           {/* STEP 1: WELCOME */}
           {currentStep === 0 && (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-200">
               <div className="text-center max-w-2xl mx-auto space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/25 text-brand-600 dark:text-brand-400 text-xs font-extrabold font-mono">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-[#DE5227]/25 text-[#DE5227] dark:text-orange-400 text-xs font-extrabold font-mono">
                   <Radio className="w-3.5 h-3.5" />
                   <span>COMMUNITY-FIRST CITIZEN JOURNALISM</span>
                 </div>
@@ -197,8 +197,8 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
 
               {/* 3 Value Pillars */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 space-y-3 shadow-2xs hover:border-brand-500/30 transition">
-                  <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 space-y-3 shadow-2xs hover:border-[#DE5227]/30 transition">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-[#DE5227] dark:text-orange-400 flex items-center justify-center">
                     <Radio className="w-5 h-5" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white font-serif">5km Hyperlocal Engine</h3>
@@ -207,7 +207,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   </p>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 space-y-3 shadow-2xs hover:border-brand-500/30 transition">
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 space-y-3 shadow-2xs hover:border-emerald-500/30 transition">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                     <DollarSign className="w-5 h-5" />
                   </div>
@@ -217,7 +217,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   </p>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 space-y-3 shadow-2xs hover:border-brand-500/30 transition">
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 space-y-3 shadow-2xs hover:border-blue-500/30 transition">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
@@ -234,7 +234,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
           {currentStep === 1 && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/25 text-brand-600 dark:text-brand-400 text-xs font-extrabold font-mono">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-[#DE5227]/25 text-[#DE5227] dark:text-orange-400 text-xs font-extrabold font-mono">
                   <Video className="w-3.5 h-3.5" />
                   <span>STEP 1: MEDIA EVIDENCE</span>
                 </div>
@@ -248,18 +248,18 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
                 {/* Format 1: Shorts */}
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border-2 border-brand-500/30 space-y-4 shadow-xs relative overflow-hidden">
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border-2 border-[#DE5227]/30 space-y-4 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-brand-500 text-white flex items-center justify-center shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-[#DE5227] text-white flex items-center justify-center shadow-xs">
                         <Smartphone className="w-4 h-4" />
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white">Short Video / Shorts</h4>
-                        <span className="text-[10px] font-mono text-brand-600 dark:text-brand-400 font-bold">9:16 Vertical Aspect Ratio</span>
+                        <span className="text-[10px] font-mono text-[#DE5227] dark:text-orange-400 font-bold">9:16 Vertical Aspect Ratio</span>
                       </div>
                     </div>
-                    <span className="text-[10px] bg-brand-500/15 text-brand-700 dark:text-brand-300 px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-[10px] bg-orange-500/15 text-[#DE5227] dark:text-orange-300 px-2 py-0.5 rounded-full font-bold">
                       Reels & Bytes
                     </span>
                   </div>
@@ -268,14 +268,14 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                     Designed for swift ground bytes, citizen interviews, pothole checks, and urgent civic alerts. Renders full-height in reader mobile feeds.
                   </p>
 
-                  <div className="bg-stone-200/70 dark:bg-slate-900/80 rounded-xl p-3 flex items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-300">
+                  <div className="bg-stone-100 dark:bg-slate-900/80 rounded-xl p-3 flex items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-300">
                     <span>Target Duration: 15s – 180s</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">Up to 2 GB</span>
                   </div>
                 </div>
 
                 {/* Format 2: Long Video */}
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border-2 border-stone-200 dark:border-slate-700 space-y-4 shadow-xs relative overflow-hidden">
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border-2 border-stone-200 dark:border-slate-700 space-y-4 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-700 text-white flex items-center justify-center shadow-xs">
@@ -286,7 +286,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                         <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">16:9 Landscape Aspect Ratio</span>
                       </div>
                     </div>
-                    <span className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-[10px] bg-stone-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">
                       Deep Dive
                     </span>
                   </div>
@@ -295,7 +295,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                     For in-depth ground investigations, hospital audits, school inspections, and full municipal townhall coverage.
                   </p>
 
-                  <div className="bg-stone-200/70 dark:bg-slate-900/80 rounded-xl p-3 flex items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-300">
+                  <div className="bg-stone-100 dark:bg-slate-900/80 rounded-xl p-3 flex items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-300">
                     <span>Target Duration: 3 min – 60 min+</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">Up to 2 GB</span>
                   </div>
@@ -323,7 +323,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
           {currentStep === 2 && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/25 text-brand-600 dark:text-brand-400 text-xs font-extrabold font-mono">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-[#DE5227]/25 text-[#DE5227] dark:text-orange-400 text-xs font-extrabold font-mono">
                   <MapPin className="w-3.5 h-3.5" />
                   <span>STEP 3: GEOFENCE BEAT</span>
                 </div>
@@ -335,26 +335,26 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-4 shadow-xs">
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-4 shadow-xs">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
                   3-Tier Cascading Geofence Taxonomy
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 font-mono">TIER 1</span>
                     <div className="text-xs font-bold text-slate-900 dark:text-white">All 36 States & UTs</div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">Bihar, Delhi NCR, Maharashtra, Karnataka, UP, etc.</p>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 font-mono">TIER 2</span>
                     <div className="text-xs font-bold text-slate-900 dark:text-white">Major Cities & Towns</div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">Patna, Bengaluru, Mumbai, Lucknow, Gaya, etc.</p>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 space-y-1">
-                    <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 font-mono">TIER 3 (HYPERLOCAL)</span>
+                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 space-y-1">
+                    <span className="text-[10px] font-bold text-[#DE5227] dark:text-orange-400 font-mono">TIER 3 (HYPERLOCAL)</span>
                     <div className="text-xs font-bold text-slate-900 dark:text-white">Local Wards & Areas</div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">Kankarbagh Ward 14, Indiranagar Ward 82, etc.</p>
                   </div>
@@ -362,7 +362,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
 
                 <div className="p-3 bg-stone-100 dark:bg-slate-900/60 rounded-xl flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
-                    <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" />
                     <span>Quick-Select Chips & Autocomplete available for rapid ward tagging</span>
                   </div>
                 </div>
@@ -379,7 +379,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   <span>TRANSPARENT TELEMETRY</span>
                 </div>
                 <h2 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white font-serif">
-                  $1.00 CPM Guaranteed Rate Card
+                  $1.00 CPM Guaranteed Rate Card (~₹86.5/1k reads)
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                   Earn dependable income for genuine community investigations. No opaque revenue sharing or hidden commissions.
@@ -387,16 +387,16 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
-                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">$1.00 USD</div>
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
+                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">₹86.50 ($1.00 USD)</div>
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white font-serif">Per 1,000 Verified Reads</h4>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Each verified read accrues directly to your creator balance in real-time as users engage with your ground report.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
-                  <div className="text-2xl font-black text-brand-600 dark:text-brand-400 font-mono">3 Views Max</div>
+                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
+                  <div className="text-2xl font-black text-[#DE5227] dark:text-orange-400 font-mono">3 Views Max</div>
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white font-serif">Anti-Fraud Deduplication</h4>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     To maintain trusted advertisers and sponsor pools, views are capped at 3 monetized reads per device/IP every 24 hours.
@@ -415,7 +415,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
           {currentStep === 4 && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/25 text-brand-600 dark:text-brand-400 text-xs font-extrabold font-mono">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-[#DE5227]/25 text-[#DE5227] dark:text-orange-400 text-xs font-extrabold font-mono">
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>TREASURY & PAYOUTS</span>
                 </div>
@@ -423,24 +423,24 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   Direct Disbursals via NPCI UPI & Bank IMPS
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                  Withdraw your accrued earnings as soon as your balance reaches the low $10.00 USD threshold.
+                  Withdraw your accrued earnings as soon as your balance reaches the low ₹850 (~$10.00 USD) threshold.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
-                  <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 font-mono">MINIMUM THRESHOLD</span>
-                  <div className="text-xl font-bold font-mono text-slate-900 dark:text-white">$10.00 USD</div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
+                  <span className="text-[10px] font-bold text-[#DE5227] dark:text-orange-400 font-mono">MINIMUM THRESHOLD</span>
+                  <div className="text-xl font-bold font-mono text-slate-900 dark:text-white">₹850 ($10 USD)</div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">Accessible threshold for frequent ground reporters</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
+                <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
                   <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">PAYOUT METHODS</span>
                   <div className="text-sm font-bold text-slate-900 dark:text-white">UPI & Bank IMPS</div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">Google Pay, PhonePe, Paytm, or direct IFSC account</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
+                <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
                   <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 font-mono">INR CONVERSION</span>
                   <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">~₹86.50 / USD</div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">Instant conversion at transparent real-time forex rates</p>
@@ -460,7 +460,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
           {currentStep === 5 && (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-200 text-center py-2">
               <div className="max-w-xl mx-auto space-y-3">
-                <div className="w-16 h-16 mx-auto rounded-3xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center shadow-inner">
+                <div className="w-16 h-16 mx-auto rounded-3xl bg-orange-500/10 text-[#DE5227] dark:text-orange-400 flex items-center justify-center shadow-inner">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
 
@@ -474,7 +474,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
               </div>
 
               {/* Publisher Checklist */}
-              <div className="max-w-md mx-auto p-4 rounded-2xl bg-[#FAF9F6] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 text-left space-y-2.5">
+              <div className="max-w-md mx-auto p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 text-left space-y-2.5">
                 <div className="text-xs font-bold text-slate-700 dark:text-slate-300 font-serif">
                   Publisher Agreement & Standards
                 </div>
@@ -497,7 +497,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                 <button
                   type="button"
                   onClick={() => onFinish('upload')}
-                  className="w-full sm:w-auto px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-black text-sm rounded-xl transition cursor-pointer shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#DE5227] hover:bg-[#C84318] text-white font-black text-sm rounded-xl transition cursor-pointer shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2"
                 >
                   <Upload className="w-4 h-4" />
                   <span>Publish Your First Ground Report</span>
@@ -537,9 +537,9 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   onClick={() => setCurrentStep(idx)}
                   className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                     idx === currentStep
-                      ? 'w-6 bg-brand-500'
+                      ? 'w-6 bg-[#DE5227]'
                       : idx < currentStep
-                      ? 'w-2.5 bg-brand-400'
+                      ? 'w-2.5 bg-orange-400'
                       : 'w-1.5 bg-stone-300 dark:bg-slate-700'
                   }`}
                   aria-label={`Jump to step ${idx + 1}`}
@@ -551,7 +551,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
+                className="px-5 py-2 bg-[#DE5227] hover:bg-[#C84318] text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
               >
                 <span>Next Step</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -560,7 +560,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
               <button
                 type="button"
                 onClick={() => onFinish('upload')}
-                className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
+                className="px-5 py-2 bg-[#DE5227] hover:bg-[#C84318] text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
               >
                 <span>Get Started</span>
                 <ArrowRight className="w-3.5 h-3.5" />

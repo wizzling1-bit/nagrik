@@ -16,6 +16,7 @@ import {
   Radio
 } from 'lucide-react';
 import { NagrikLogo } from '../../components/NagrikLogo';
+import { supabase, uploadFileToR2 } from '@/lib/supabase';
 
 interface CreatorBrandingTabProps {
   authEmail: string;
@@ -26,7 +27,7 @@ interface CreatorBrandingTabProps {
 export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
   authEmail,
   token,
-  apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+  apiBase = '/api'
 }) => {
   const [brandName, setBrandName] = useState('');
   const [brandEmail, setBrandEmail] = useState(authEmail || '');
@@ -39,29 +40,38 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
   const [savingProfile, setSavingProfile] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
 
-  // Fetch current profile from backend
+  // Fetch current profile from Supabase
   useEffect(() => {
-    if (!token) return;
     const fetchMe = async () => {
       try {
-        const res = await fetch(`${apiBase}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.user) {
-            if (data.user.name) setBrandName(data.user.name);
-            if (data.user.email) setBrandEmail(data.user.email);
-            if (data.user.profileImage) setProfileImage(data.user.profileImage);
-            if (data.user.bio) setBrandBio(data.user.bio);
-          }
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData.user?.id || (typeof window !== 'undefined' ? localStorage.getItem('creator_id') : null);
+        if (!userId) return;
+
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        const { data: creatorData } = await supabase
+          .from('creators')
+          .select('*')
+          .or(`id.eq.${userId},user_id.eq.${userId}`)
+          .maybeSingle();
+
+        if (userData || creatorData) {
+          if (userData?.name) setBrandName(userData.name);
+          if (userData?.email || authData.user?.email) setBrandEmail(userData?.email || authData.user?.email || '');
+          if (userData?.profile_image) setProfileImage(userData.profile_image);
+          if (creatorData?.bio) setBrandBio(creatorData?.bio);
         }
       } catch (err) {
-        console.warn('Failed to load user profile:', err);
+        console.warn('Failed to load user profile via Supabase:', err);
       }
     };
     fetchMe();
-  }, [token, apiBase]);
+  }, []);
 
   const handleCopyPublicLink = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nagrik.news';
@@ -74,56 +84,37 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !token) return;
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setStatusMsg('Please select a valid image file (JPEG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setStatusMsg('Avatar image size must be under 10 MB.');
+      return;
+    }
 
     setUploadingAvatar(true);
+    setStatusMsg('Uploading avatar to Cloudflare R2...');
+
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const presignRes = await fetch(`${apiBase}/content/upload-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          folder: 'profiles',
-          mimeType: file.type || 'image/jpeg',
-          fileExtension: ext
-        })
-      });
+      const uploadRes = await uploadFileToR2(file, 'profiles');
+      const finalUrl = uploadRes.publicUrl || uploadRes.mediaUrl;
+      setProfileImage(finalUrl);
 
-      const presignData = await presignRes.json();
-      if (!presignData.success || !presignData.uploadUrl) {
-        throw new Error(presignData.error || 'Failed to get upload URL');
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id;
+      if (userId) {
+        await supabase.from('users').update({ profile_image: finalUrl }).eq('id', userId);
       }
 
-      const uploadRes = await fetch(presignData.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type || 'image/jpeg' },
-        body: file
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error('R2 upload failed');
-      }
-
-      setProfileImage(presignData.publicUrl);
-
-      await fetch(`${apiBase}/auth/me`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ profileImage: presignData.publicUrl })
-      });
-
-      setStatusMsg('Avatar updated and synced to Cloudflare R2!');
-      setTimeout(() => setStatusMsg(''), 3000);
+      setStatusMsg('Avatar updated and synced successfully!');
+      setTimeout(() => setStatusMsg(''), 3500);
     } catch (err: any) {
-      console.warn('Avatar upload fallback used:', err);
-      const mockUrl = `https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev/media/profiles/${Date.now()}.jpg`;
-      setProfileImage(mockUrl);
+      console.error('Avatar upload failed:', err);
+      setStatusMsg(`Upload failed: ${err.message || 'Unable to upload avatar image'}`);
     } finally {
       setUploadingAvatar(false);
     }
@@ -131,26 +122,20 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
 
   const handleSaveBrandDetails = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
     setSavingProfile(true);
 
     try {
-      const res = await fetch(`${apiBase}/auth/me`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData.user?.id;
+      if (userId) {
+        await supabase.from('users').update({
           name: brandName,
-          bio: brandBio,
-          profileImage
-        })
-      });
+          profile_image: profileImage
+        }).eq('id', userId);
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to update profile');
+        await supabase.from('creators').update({
+          bio: brandBio
+        }).eq('user_id', userId);
       }
 
       setBrandSavedToast(true);
@@ -169,7 +154,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200/80 dark:border-slate-800/80">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
+            <span className="text-xs font-mono font-bold text-[#DE5227] dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-full border border-[#DE5227]/20">
               REPORTER IDENTITY
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
@@ -177,10 +162,10 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
               Cloudflare R2 Synced
             </span>
           </div>
-          <h1 className="text-2xl font-bold font-serif text-slate-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 dark:text-white">
             Channel & Profile
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Manage your verified stringer byline, press card portrait, and public attribution.
           </p>
         </div>
@@ -188,7 +173,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
         <button
           type="button"
           onClick={handleCopyPublicLink}
-          className="px-3.5 py-2 bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-brand-500 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          className="px-4 py-2.5 bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-[#DE5227] text-xs font-bold rounded-2xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
           <span>{copiedLink ? 'Channel URL Copied!' : 'Copy Public Channel'}</span>
@@ -203,8 +188,8 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
       )}
 
       {statusMsg && (
-        <div className="p-3 bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-xs rounded-2xl flex items-center gap-2 shadow-2xs">
-          <Check className="w-4 h-4 text-brand-500" />
+        <div className="p-3 bg-orange-500/10 border border-[#DE5227]/20 text-[#DE5227] dark:text-orange-400 text-xs rounded-2xl flex items-center gap-2 shadow-2xs">
+          <Check className="w-4 h-4 text-[#DE5227]" />
           <span>{statusMsg}</span>
         </div>
       )}
@@ -215,37 +200,32 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
         <div className="lg:col-span-7 space-y-6">
           
           {/* Avatar Card */}
-          <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-2xs">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
+            <h3 className="text-sm font-black font-serif text-slate-900 dark:text-white">
               Reporter Avatar & Press Portrait
             </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+              This portrait appears alongside your byline and on civic ground report verification cards.
+            </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-[#FAF8F5] dark:bg-slate-900/60 border border-stone-200/80 dark:border-slate-800 rounded-2xl">
-              <div className="relative shrink-0">
-                <div className="w-20 h-20 rounded-2xl bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 overflow-hidden flex items-center justify-center shadow-xs">
+            <div className="flex flex-col sm:flex-row items-center gap-5 pt-2">
+              <div className="relative w-24 h-24 rounded-3xl overflow-hidden bg-gradient-to-tr from-[#DE5227] to-amber-400 p-1 shrink-0 shadow-md">
+                <div className="w-full h-full rounded-[22px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center font-mono font-black text-2xl text-slate-800 dark:text-white">
                   {profileImage ? (
-                    <img src={profileImage} alt="" className="w-full h-full object-cover" />
+                    <img src={profileImage} alt="Reporter Avatar" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl font-black text-brand-600 dark:text-brand-400 font-mono">
-                      {brandName ? brandName.charAt(0).toUpperCase() : 'C'}
-                    </span>
+                    brandName ? brandName.charAt(0).toUpperCase() : 'C'
                   )}
                 </div>
-                {uploadingAvatar && (
-                  <div className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center">
-                    <RefreshCw className="w-5 h-5 text-white animate-spin" />
-                  </div>
-                )}
               </div>
 
-              <div className="space-y-2 text-center sm:text-left flex-1">
-                <div className="text-xs font-bold text-slate-900 dark:text-white">Press Photo (Cloudflare R2)</div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Displayed next to your ground investigations and mobile push notifications.
-                </p>
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold cursor-pointer transition shadow-2xs">
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>Upload Portrait</span>
+              <div className="space-y-2 text-center sm:text-left">
+                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Recommended: Square JPG or PNG, at least 400x400px.
+                </div>
+                <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#EDE5D8] hover:bg-[#E3D9C9] dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-xl text-xs font-bold cursor-pointer transition border border-[#DCD1BF] dark:border-slate-700 shadow-2xs">
+                  {uploadingAvatar ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                  <span>{uploadingAvatar ? 'Uploading to R2...' : 'Upload New Portrait'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -258,8 +238,8 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSaveBrandDetails} className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-2xs">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white">
+          <form onSubmit={handleSaveBrandDetails} className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
+            <h3 className="text-sm font-black font-serif text-slate-900 dark:text-white">
               Public Reporter Information
             </h3>
 
@@ -268,7 +248,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
                 <label className="text-xs font-bold text-slate-900 dark:text-white">Reporter Name</label>
                 <input
                   type="text"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                   value={brandName}
                   onChange={e => setBrandName(e.target.value)}
                   placeholder="e.g. Rahul Sharma"
@@ -280,7 +260,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
                 <label className="text-xs font-bold text-slate-900 dark:text-white">Registered Email</label>
                 <input
                   type="email"
-                  className="w-full px-3.5 py-2.5 bg-stone-100 dark:bg-slate-800/60 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                  className="w-full px-3.5 py-2.5 bg-[#F2ECE1] dark:bg-slate-800/60 border border-stone-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-500 dark:text-slate-400 cursor-not-allowed"
                   value={brandEmail}
                   disabled
                 />
@@ -291,7 +271,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
               <label className="text-xs font-bold text-slate-900 dark:text-white">Ground Beat Coverage</label>
               <input
                 type="text"
-                className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
                 value={beatLocation}
                 onChange={e => setBeatLocation(e.target.value)}
                 placeholder="e.g. Patna & Surrounding Municipal Wards"
@@ -302,7 +282,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
               <label className="text-xs font-bold text-slate-900 dark:text-white">Reporter Bio</label>
               <textarea
                 rows={3}
-                className="w-full px-3.5 py-2.5 bg-[#FAF8F5] dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 resize-none leading-relaxed font-medium"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-stone-200/90 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 resize-none leading-relaxed font-medium"
                 value={brandBio}
                 onChange={e => setBrandBio(e.target.value)}
                 placeholder="Covering civic governance, roads, infrastructure, and ward news across Patna and Bihar."
@@ -313,7 +293,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-60"
+                className="px-6 py-2.5 bg-[#DE5227] hover:bg-[#C84318] text-white rounded-xl text-xs font-bold cursor-pointer shadow-md shadow-orange-500/20 flex items-center gap-1.5 disabled:opacity-60"
               >
                 {savingProfile ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                 <span>Save Changes</span>
@@ -324,24 +304,24 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
 
         {/* Live Mobile Author Card Preview (5 cols) */}
         <div className="lg:col-span-5 sticky top-20 space-y-4">
-          <div className="bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-2xs">
+          <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)]">
             <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-slate-800 pb-3">
-              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase font-mono tracking-wider">
+              <span className="text-xs font-black text-slate-900 dark:text-white uppercase font-mono tracking-wider">
                 Live Byline Preview
               </span>
-              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full font-bold border border-emerald-200 dark:border-emerald-800">
                 MOBILE FEED
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
               How your author byline is displayed to readers on ground report articles:
             </p>
 
             {/* Author Byline Card */}
-            <div className="p-4 bg-[#FAF8F5] dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-800 space-y-3">
+            <div className="p-4 bg-[#F8F5EE] dark:bg-slate-900 rounded-2xl border border-[#DCD1BF] dark:border-slate-800 space-y-3 shadow-2xs">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-brand-500 text-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs font-mono font-black text-base">
+                <div className="w-12 h-12 rounded-2xl bg-[#DE5227] text-white overflow-hidden flex items-center justify-center shrink-0 shadow-xs font-mono font-black text-base">
                   {profileImage ? (
                     <img src={profileImage} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -368,7 +348,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
                   <Radio className="w-3 h-3 text-emerald-500" />
                   <span>5km Node Active</span>
                 </span>
-                <span className="text-brand-600 dark:text-brand-400 font-bold">$1.00 CPM Stringer</span>
+                <span className="text-[#DE5227] dark:text-orange-400 font-bold">$1.00 CPM Stringer</span>
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
 
   // Scroll-reveal observer
   const footerRef = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   // Parallax offset for skyline
   const [parallaxOffset, setParallaxOffset] = useState(0);
@@ -93,8 +93,8 @@ export const Footer: React.FC = () => {
     }, 600);
   };
 
-  const revealBase = 'transition-all duration-700 ease-out';
-  const revealHidden = 'opacity-0 translate-y-6';
+  const revealBase = 'transition-all duration-500 ease-out';
+  const revealHidden = 'opacity-100 translate-y-0';
   const revealVisible = 'opacity-100 translate-y-0';
 
   return (

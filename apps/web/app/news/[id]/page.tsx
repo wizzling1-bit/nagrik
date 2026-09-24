@@ -19,31 +19,47 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { NagrikLogo } from '@/components/NagrikLogo';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { supabase } from '@/lib/supabase';
 
 interface NewsPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getContent(id: string) {
   try {
-    const res = await fetch(`${API_BASE}/content/${id}`, {
-      next: { revalidate: 60 }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.success ? data.content : null;
-  } catch (err) {
-    console.error(`Failed to fetch content ${id}:`, err);
-    return null;
+    const { data, error } = await supabase
+      .from('contents')
+      .select('*, creator:creators(*, user:users(*)), category:categories(*)')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!error && data) {
+      const creatorObj = data.creator || {};
+      const userObj = creatorObj.user || {};
+      return {
+        ...data,
+        _id: data.id,
+        creator: {
+          id: creatorObj.id,
+          _id: creatorObj.id,
+          name: userObj.name || 'Citizen Journalist',
+          bio: creatorObj.bio,
+          profileImage: userObj.profile_image,
+          verificationStatus: creatorObj.verification_status || 'VERIFIED'
+        }
+      };
+    }
+  } catch (supaErr) {
+    console.warn(`[NewsPage] Supabase query notice for ${id}:`, supaErr);
   }
+  return null;
 }
 
 export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {
-  const content = await getContent(params.id);
+  const { id } = await params;
+  const content = await getContent(id);
 
   if (!content) {
     return {
@@ -85,7 +101,8 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
 }
 
 export default async function NewsDetailPage({ params }: NewsPageProps) {
-  const content = await getContent(params.id);
+  const { id } = await params;
+  const content = await getContent(id);
 
   if (!content) {
     return (
@@ -154,7 +171,9 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
     <div className="min-h-screen bg-[#F4EFE6] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c')
+        }}
       />
 
       {/* Main Article Container */}
@@ -169,7 +188,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
             </Link>
             <span>/</span>
             <span className="text-brand-600 dark:text-brand-400 bg-brand-500/10 dark:bg-brand-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold text-[10px] border border-brand-500/20">
-              {content.category?.name || 'नागरिक मुद्दा'}
+              {content.category?.name || 'Civic Issues'}
             </span>
           </div>
 
