@@ -53,20 +53,18 @@ void main() {
     expect(find.text('Real Stories'), findsOneWidget);
     expect(find.text('A Safer &'), findsOneWidget);
 
-    // 4. Language Selector
-    expect(find.text('Choose Language'), findsOneWidget);
-    expect(find.text('भाषा चुनें'), findsOneWidget);
-    expect(find.text('English'), findsOneWidget);
-    expect(find.text('हिंदी'), findsOneWidget);
-    expect(find.text('EN'), findsOneWidget);
-    expect(find.text('अ'), findsOneWidget);
+    // 4. Verify Language Selector is removed from entry screen
+    expect(find.text('Choose Language'), findsNothing);
+    expect(find.text('English'), findsNothing);
 
-    // 5. Location Selector
+    // 5. Enhanced Location Selector
     expect(find.text('Your Location'), findsOneWidget);
     expect(find.text('स्थान चुनें'), findsOneWidget);
+    expect(find.text('5KM WIRE'), findsOneWidget);
     expect(find.text('Use GPS'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Quick Pick:'), findsOneWidget);
+    expect(find.text('Popular Indian Hubs'), findsOneWidget);
 
     // 6. Primary CTA
     expect(find.text('Get Started'), findsOneWidget);

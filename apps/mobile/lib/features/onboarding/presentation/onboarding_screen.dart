@@ -7,10 +7,8 @@ import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/widgets/nagrik_logo.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/home/presentation/widgets/location_switcher_sheet.dart';
-import 'package:nagrik/features/onboarding/data/languages_data.dart';
 import 'package:nagrik/features/onboarding/data/locations_data.dart';
 import 'package:nagrik/features/onboarding/data/location_service.dart';
-import 'package:nagrik/features/onboarding/domain/models/app_language.dart';
 import 'package:nagrik/features/onboarding/domain/models/location_item.dart';
 import 'package:nagrik/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:nagrik/features/onboarding/presentation/widgets/civic_backdrop_data.dart';
@@ -22,8 +20,7 @@ import 'package:nagrik/features/onboarding/presentation/widgets/civic_backdrop_d
 /// - Top header with vector [NagrikLogo] and translucent Skip pill
 /// - Editorial hero headline: "Your City. Your People. Your News."
 /// - Lightweight 3-pillar benefit chips
-/// - Side-by-side language selector cards with script badges (EN / अ)
-/// - Unified location card with functional GPS detection and "All ▾" catalog sheet
+/// - Elevated location hero card with real-time geofence, GPS detection, and catalog browser
 /// - Horizontal quick-pick chips for prominent Indian hubs
 /// - Full-width signature brand orange CTA: "→ Get Started (It's free. No sign up needed.)"
 /// - Bottom trust indicators: Verified Local News • Ad-Transparent • Zero Hate.
@@ -68,6 +65,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     ),
     kIndianLocations.firstWhere(
       (l) => l.city.toLowerCase() == 'bengaluru',
+      orElse: () => kIndianLocations[0],
+    ),
+    kIndianLocations.firstWhere(
+      (l) => l.city.toLowerCase() == 'varanasi',
+      orElse: () => kIndianLocations[0],
+    ),
+    kIndianLocations.firstWhere(
+      (l) => l.city.toLowerCase() == 'lucknow',
+      orElse: () => kIndianLocations[0],
+    ),
+    kIndianLocations.firstWhere(
+      (l) => l.city.toLowerCase() == 'pune',
       orElse: () => kIndianLocations[0],
     ),
   ];
@@ -189,7 +198,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final selectedLanguage = ref.watch(selectedLanguageProvider);
     final selectedLocation = ref.watch(selectedLocationProvider);
     final mediaQuery = MediaQuery.of(context);
     final isReducedMotion = mediaQuery.disableAnimations;
@@ -313,18 +321,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                       cardBg, borderColor, textSecondary),
 
                                   const SizedBox(height: 20),
-
-                                  // Language Selection Section
-                                  _buildLanguageSection(
-                                    selectedLanguage,
-                                    brandOrange,
-                                    cardBg,
-                                    borderColor,
-                                    textSecondary,
-                                    textTertiary,
-                                  ),
-
-                                  const SizedBox(height: 16),
 
                                   // Location Selection Section
                                   _buildLocationSection(
@@ -642,208 +638,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
-  // 4. LANGUAGE SELECTION SECTION
-  // ---------------------------------------------------------------------------
-  Widget _buildLanguageSection(
-    AppLanguage selectedLanguage,
-    Color brandOrange,
-    Color cardBg,
-    Color borderColor,
-    Color textSecondary,
-    Color textTertiary,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cardBg.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: borderColor,
-          width: 0.85,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.language_rounded,
-                    size: 16,
-                    color: brandOrange,
-                  ),
-                  const SizedBox(width: 7),
-                  const Text(
-                    'Choose Language',
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Flexible(
-                child: Text(
-                  'भाषा चुनें',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: textTertiary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Side-by-Side Language Cards
-          Row(
-            children: [
-              for (final lang in kSupportedLanguages) ...[
-                Expanded(
-                  child: _buildLanguageCard(
-                    lang: lang,
-                    isSelected: selectedLanguage.code == lang.code,
-                    brandOrange: brandOrange,
-                    cardBg: cardBg,
-                    borderColor: borderColor,
-                    textSecondary: textSecondary,
-                  ),
-                ),
-                if (lang != kSupportedLanguages.last) const SizedBox(width: 10),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageCard({
-    required AppLanguage lang,
-    required bool isSelected,
-    required Color brandOrange,
-    required Color cardBg,
-    required Color borderColor,
-    required Color textSecondary,
-  }) {
-    final isEnglish = lang.code == 'en';
-    final displayName = lang.code == 'hi' ? 'हिंदी' : lang.nativeName;
-    final badgeText = isEnglish ? 'EN' : 'अ';
-    final subtitle = isEnglish ? 'Hello, Local!' : 'नमस्ते, स्थानीय खबरें!';
-
-    return Semantics(
-      button: true,
-      selected: isSelected,
-      label: 'Select $displayName',
-      child: GestureDetector(
-        onTap: () {
-          NagrikMotion.selectionClick();
-          ref.read(onboardingStateProvider.notifier).selectLanguage(lang);
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? brandOrange.withValues(alpha: 0.10)
-                : cardBg.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? brandOrange : borderColor,
-              width: isSelected ? 1.5 : 0.85,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: brandOrange.withValues(alpha: 0.20),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              // Script Badge (EN / अ)
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? brandOrange
-                      : Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    badgeText,
-                    style: TextStyle(
-                      fontSize: isEnglish ? 11.5 : 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 7),
-              // Name and Subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      displayName,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: isEnglish ? -0.1 : 0,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w400,
-                        color: textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              // Check Indicator
-              if (isSelected)
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: brandOrange,
-                  size: 16,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 5. LOCATION SELECTION SECTION
+  // 4. ELEVATED LOCATION SELECTION SECTION
   // ---------------------------------------------------------------------------
   Widget _buildLocationSection(
     BuildContext context,
@@ -855,256 +650,460 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     Color textTertiary,
   ) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
+        color: cardBg.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: borderColor,
-          width: 0.85,
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Header
+          // Section Header Row with Live Geofence Telemetry
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
+              // Glowing Location Pin Badge
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: brandOrange.withValues(alpha: 0.15),
+                  border: Border.all(
+                    color: brandOrange.withValues(alpha: 0.35),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
                     Icons.location_on_rounded,
-                    size: 16,
+                    size: 18,
                     color: brandOrange,
                   ),
-                  const SizedBox(width: 7),
-                  const Text(
-                    'Your Location',
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Flexible(
-                child: Text(
-                  'स्थान चुनें',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: textTertiary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
+              const SizedBox(width: 10),
 
-          // Main Location Card
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0B0F17),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: borderColor,
-                width: 0.85,
-              ),
-            ),
-            child: Row(
-              children: [
-                // Pin Icon
-                Icon(
-                  Icons.location_on_rounded,
-                  color: brandOrange,
-                  size: 19,
-                ),
-                const SizedBox(width: 8),
-
-                // Title and Subtitle (Tap to open full catalog)
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _openLocationPicker,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+              // Title and Description
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 2,
                       children: [
-                        Text(
-                          selectedLocation?.displayName ?? 'Select city / town',
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: -0.1,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          selectedLocation != null
-                              ? '${selectedLocation.city}, ${selectedLocation.state}'
-                              : 'Get news from your area',
+                        const Text(
+                          'Your Location',
                           style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w400,
-                            color: textSecondary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                            color: Colors.white,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.10),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            'स्थान चुनें',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: textTertiary,
+                            ),
+                          ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Hyperlocal stories & civic alerts within your 5km area',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                        color: textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Live Geofence Radar Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF091422),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF1E3A5F).withValues(alpha: 0.6),
+                    width: 0.9,
                   ),
                 ),
-
-                const SizedBox(width: 6),
-
-                // Action Buttons Row: Use GPS + All ▾
-                Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // GPS Button
-                    Semantics(
-                      button: true,
-                      label: 'Detect GPS location',
-                      child: GestureDetector(
-                        onTap: _isDetectingGps ? null : _detectGpsLocation,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: brandOrange.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: brandOrange.withValues(alpha: 0.40),
-                              width: 0.85,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_isDetectingGps)
-                                SizedBox(
-                                  width: 11,
-                                  height: 11,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 1.6,
-                                    valueColor:
-                                        AlwaysStoppedAnimation(brandOrange),
-                                  ),
-                                )
-                              else
-                                Icon(
-                                  Icons.my_location_rounded,
-                                  size: 12,
-                                  color: brandOrange,
-                                ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _isDetectingGps ? 'Locating...' : 'Use GPS',
-                                style: TextStyle(
-                                  color: brandOrange,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF10B981),
                       ),
                     ),
-
                     const SizedBox(width: 5),
-
-                    // "All ▾" Button
-                    Semantics(
-                      button: true,
-                      label: 'Browse all locations',
-                      child: GestureDetector(
-                        onTap: _openLocationPicker,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.14),
-                              width: 0.85,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'All',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(width: 2),
-                              Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 13,
-                                color: Colors.white70,
-                              ),
-                            ],
-                          ),
-                        ),
+                    Text(
+                      '5KM WIRE',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF10B981),
                       ),
                     ),
                   ],
                 ),
-              ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // Hero Active Location Showcase Card
+          Semantics(
+            button: true,
+            label: 'Current location: ${selectedLocation?.displayName ?? "Select city or town"}',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openLocationPicker,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF090E17),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: selectedLocation != null
+                        ? brandOrange.withValues(alpha: 0.45)
+                        : borderColor,
+                    width: selectedLocation != null ? 1.2 : 0.85,
+                  ),
+                  boxShadow: selectedLocation != null
+                      ? [
+                          BoxShadow(
+                            color: brandOrange.withValues(alpha: 0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    // Radar Pin Graphic
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: brandOrange.withValues(alpha: 0.12),
+                        border: Border.all(
+                          color: brandOrange.withValues(alpha: 0.30),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          selectedLocation?.isCurrentLocation == true
+                              ? Icons.near_me_rounded
+                              : Icons.location_city_rounded,
+                          color: brandOrange,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Main Location Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  selectedLocation?.displayName ?? 'Select city / town',
+                                  style: const TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: -0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (selectedLocation != null) ...[
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.verified_rounded,
+                                  size: 14,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            selectedLocation != null
+                                ? '${selectedLocation.city}, ${selectedLocation.state} • Geofenced'
+                                : 'Tap to choose from 100+ Indian locations',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              color: textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Change / "All" Indicator
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          width: 0.85,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'All',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 3),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 15,
+                            color: Colors.white70,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 
-          const SizedBox(height: 11),
+          const SizedBox(height: 12),
 
-          // Quick Pick Hubs Row
+          // Dual Action Row: GPS Detection + Search Directory
+          Row(
+            children: [
+              // GPS Auto-Detection Button
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  label: 'Detect GPS location',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _isDetectingGps ? null : _detectGpsLocation,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: brandOrange.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: brandOrange.withValues(alpha: 0.45),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_isDetectingGps)
+                            SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.8,
+                                valueColor: AlwaysStoppedAnimation(brandOrange),
+                              ),
+                            )
+                          else
+                            Icon(
+                              Icons.my_location_rounded,
+                              size: 14,
+                              color: brandOrange,
+                            ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _isDetectingGps ? 'Locating...' : 'Use GPS',
+                            style: TextStyle(
+                              color: brandOrange,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Browse Directory / Search Button
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  label: 'Browse all locations',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _openLocationPicker,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_rounded,
+                            size: 14,
+                            color: Colors.white70,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Search All',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // Quick Pick Hubs Carousel Header
           Row(
             children: [
               Text(
                 'Quick Pick:',
                 style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
                   color: textTertiary,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
+              Text(
+                'Popular Indian Hubs',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
+                  color: textSecondary,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Horizontal Scrolling Quick Pick City Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                for (final item in _kQuickCities) ...[
+                  _buildQuickCityChip(
+                    item: item,
+                    isSelected: selectedLocation?.city.toLowerCase() ==
+                        item.city.toLowerCase(),
+                    brandOrange: brandOrange,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Privacy & Local Guarantee Note
+          Row(
+            children: [
+              Icon(
+                Icons.verified_user_outlined,
+                size: 12,
+                color: textTertiary,
+              ),
+              const SizedBox(width: 6),
               Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: [
-                      for (final item in _kQuickCities) ...[
-                        _buildQuickCityChip(
-                          item: item,
-                          isSelected: selectedLocation?.city.toLowerCase() ==
-                              item.city.toLowerCase(),
-                          brandOrange: brandOrange,
-                          cardBg: cardBg,
-                          borderColor: borderColor,
-                        ),
-                        const SizedBox(width: 6),
-                      ],
-                    ],
+                child: Text(
+                  'Location is used only to show nearby reports. Never shared.',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w400,
+                    color: textTertiary,
                   ),
                 ),
               ),
@@ -1123,30 +1122,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     required Color borderColor,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         NagrikMotion.selectionClick();
         ref.read(onboardingStateProvider.notifier).selectLocation(item);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected
-              ? brandOrange.withValues(alpha: 0.20)
-              : cardBg.withValues(alpha: 0.8),
+              ? brandOrange
+              : const Color(0xFF0B1019),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? brandOrange : borderColor,
-            width: isSelected ? 1.2 : 0.85,
+            width: isSelected ? 1.2 : 0.9,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: brandOrange.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
-        child: Text(
-          item.city,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : Colors.white70,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected) ...[
+              const Icon(
+                Icons.check_rounded,
+                size: 13,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              item.city,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -27,7 +27,7 @@ void main() {
   );
 
   testWidgets(
-    'first time install shows unified single screen with language and location setup',
+    'first time install shows streamlined entry screen with location setup',
     (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
@@ -36,11 +36,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Single screen renders language and location simultaneously
-      expect(find.text('Choose Language'), findsOneWidget);
+      // Screen renders location setup with zero language distraction
+      expect(find.text('Choose Language'), findsNothing);
       expect(find.text('Your Location'), findsOneWidget);
-      expect(find.text('English'), findsOneWidget);
-      expect(find.text('हिंदी'), findsOneWidget);
+      expect(find.text('5KM WIRE'), findsOneWidget);
+      expect(find.text('Use GPS'), findsOneWidget);
       expect(find.text('Get Started'), findsOneWidget);
 
       // Verify no legacy multi-step page indicator exists
@@ -49,7 +49,7 @@ void main() {
   );
 
   testWidgets(
-    'tapping Hindi language pill switches selected language to Hindi on the same screen',
+    'tapping quick pick city chip selects location on the entry screen',
     (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
@@ -58,13 +58,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap Hindi pill
-      final hindiPill = find.text('हिंदी');
-      expect(hindiPill, findsOneWidget);
-      await tester.tap(hindiPill);
+      // Tap Patna quick chip
+      final patnaChip = find.text('Patna');
+      expect(patnaChip, findsWidgets);
+      await tester.ensureVisible(patnaChip.first);
+      await tester.tap(patnaChip.first);
       await tester.pumpAndSettle();
 
-      // Verifies screen stays on onboarding without page transition
+      // Verifies screen updates and stays on onboarding without page transition
+      expect(find.textContaining('Patna'), findsWidgets);
       expect(find.text('Get Started'), findsOneWidget);
     },
   );
