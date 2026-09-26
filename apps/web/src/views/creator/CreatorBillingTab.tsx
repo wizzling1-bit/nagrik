@@ -20,6 +20,7 @@ import {
 import { CreatorStats } from './types';
 import { Pagination } from '../../components/Pagination';
 import { supabase } from '@/lib/supabase';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface CreatorBillingTabProps {
   stats: CreatorStats | null;
@@ -38,6 +39,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
   fetchDashboard,
   fetchPayouts
 }) => {
+  const { rate, usdToInr } = useCurrency();
   const [showWithdrawForm, setShowWithdrawForm] = useState(false);
   const [showMethodModal, setShowMethodModal] = useState(false);
   const [payoutType, setPayoutType] = useState<'UPI' | 'BANK'>('UPI');
@@ -324,8 +326,8 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
 
         <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400">
           <span>$0.00 (₹0)</span>
-          <span>$5.00 (₹432)</span>
-          <span className="font-bold text-slate-900 dark:text-white">$10.00 (~₹865 INR Payout Goal)</span>
+          <span>$5.00 (~₹{Math.round(5 * rate)})</span>
+          <span className="font-bold text-slate-900 dark:text-white">$10.00 (~₹{Math.round(10 * rate)} INR Payout Goal)</span>
         </div>
       </div>
 
@@ -337,7 +339,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
             <CreditCard className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
-            ₹{(availRev * 86.5).toFixed(2)}
+            ₹{usdToInr(availRev).toFixed(2)}
           </div>
           <div className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400">
             ${availRev.toFixed(2)} USD
@@ -350,7 +352,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
             <Wallet className="w-4 h-4 text-[#DE5227]" />
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
-            ₹{(paidRev * 86.5).toFixed(2)}
+            ₹{usdToInr(paidRev).toFixed(2)}
           </div>
           <div className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400">
             {payoutRequests.filter(r => r.status === 'PAID').length} Completed Transfers (${paidRev.toFixed(2)} USD)
@@ -420,7 +422,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                       ${Number(r.amount || 10).toFixed(2)}
                     </td>
                     <td className="p-4 font-mono text-slate-500 dark:text-slate-400 font-bold">
-                      ₹{(Number(r.amount || 10) * 86.5).toFixed(2)}
+                      ₹{usdToInr(Number(r.amount || 10)).toFixed(2)}
                     </td>
                     <td className="p-4 font-mono text-slate-600 dark:text-slate-400 uppercase text-[11px]">
                       {r.payoutMethod || 'UPI'}
@@ -468,7 +470,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
               <div className="space-y-0.5">
                 <h3 className="font-bold text-slate-900 dark:text-white text-base font-serif">Request Revenue Disbursal</h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Available balance: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">₹{(availRev * 86.5).toFixed(2)} (~${availRev.toFixed(2)} USD)</strong>
+                  Available balance: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">₹{usdToInr(availRev).toFixed(2)} (~${availRev.toFixed(2)} USD)</strong>
                 </p>
               </div>
               <button onClick={() => setShowWithdrawForm(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">
@@ -495,7 +497,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
                   />
                 </div>
                 <div className="flex justify-between text-[10px] text-slate-400 font-mono pt-1">
-                  <span>Minimum $10.00 (~₹865)</span>
+                  <span>Minimum $10.00 (~₹{Math.round(10 * rate)})</span>
                   <button
                     type="button"
                     onClick={() => setWithdrawAmount(availRev.toFixed(2))}
@@ -591,7 +593,7 @@ export const CreatorBillingTab: React.FC<CreatorBillingTabProps> = ({
               <div className="p-3 bg-white dark:bg-slate-900/80 rounded-xl border border-stone-200/60 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
                 <span>Estimated Payout:</span>
                 <span className="font-bold text-slate-900 dark:text-white">
-                  ₹{(parseFloat(withdrawAmount || '0') * 86.5).toFixed(2)} INR
+                  ₹{usdToInr(parseFloat(withdrawAmount || '0')).toFixed(2)} INR
                 </span>
               </div>
 

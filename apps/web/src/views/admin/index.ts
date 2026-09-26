@@ -7,5 +7,7 @@ export * from './AdminCategoriesTab';
 export * from './AdminCmsTab';
 export * from './AdminSettingsTab';
 export * from './AdminAuditTab';
+export * from './AdminDemoPayoutsManager';
 export * from './AdminLayout';
+
 export { AdminLayout as AdminView } from './AdminLayout';

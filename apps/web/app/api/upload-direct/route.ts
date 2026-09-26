@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     // 2. Verify R2 credentials configured
     if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
       return NextResponse.json(
-        { success: false, error: 'Cloudflare R2 storage credentials are not configured on server' },
+        { success: false, error: 'Media storage service is temporarily unconfigured' },
         { status: 500 }
       );
     }
@@ -119,9 +119,9 @@ export async function POST(req: Request) {
       key,
     });
   } catch (error: any) {
-    console.error('Direct R2 upload error:', error);
+    console.error('Direct media upload error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to upload file to Cloudflare R2' },
+      { success: false, error: error.message || 'Failed to upload media file' },
       { status: 500 }
     );
   }

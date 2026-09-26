@@ -73,3 +73,6 @@ apps/web/src/views/fix.js
 .gemini/
 .opencode/
 .qoder/
+.superpowers/
+.impeccable/
+skills-lock.json

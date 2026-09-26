@@ -631,6 +631,22 @@ export const ContentsDb = {
     moderationStatus?: ModerationStatus;
     rejectionReason?: string;
     publicationStatus?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+    publishedAt?: string | Date;
+    createdAt?: string | Date;
+    stateCode?: number;
+    districtCode?: number;
+    subdistrictCode?: number;
+    localBodyCode?: number;
+    locationVillage?: string;
+    locationSubdistrict?: string;
+    locationDistrict?: string;
+    locationPincode?: string;
+    coordinates?: any;
+    views?: number;
+    eligibleViews?: number;
+    likes?: number;
+    shares?: number;
+    saves?: number;
   }) {
     let resolvedCategoryId = content.categoryId;
     if (resolvedCategoryId && !isUuid(resolvedCategoryId)) {
@@ -639,6 +655,19 @@ export const ContentsDb = {
     }
 
     const id = uuidv4();
+    const publishedAtStr = content.publishedAt ? new Date(content.publishedAt).toISOString() : new Date().toISOString();
+    const createdAtStr = content.createdAt ? new Date(content.createdAt).toISOString() : publishedAtStr;
+
+    const loc = (content.location || {}) as any;
+    const stateCode = content.stateCode ?? loc.stateCode ?? null;
+    const districtCode = content.districtCode ?? loc.districtCode ?? null;
+    const subdistrictCode = content.subdistrictCode ?? loc.subdistrictCode ?? null;
+    const localBodyCode = content.localBodyCode ?? loc.localBodyCode ?? null;
+    const locationVillage = content.locationVillage ?? loc.village ?? null;
+    const locationSubdistrict = content.locationSubdistrict ?? loc.subdistrict ?? null;
+    const locationDistrict = content.locationDistrict ?? loc.district ?? loc.city ?? null;
+    const locationPincode = content.locationPincode ?? loc.pincode ?? null;
+
     const doc = {
       id,
       _id: id,
@@ -654,25 +683,41 @@ export const ContentsDb = {
       categoryId: resolvedCategoryId,
       category_id: resolvedCategoryId,
       location: content.location,
+      state_code: stateCode,
+      stateCode,
+      district_code: districtCode,
+      districtCode,
+      subdistrict_code: subdistrictCode,
+      subdistrictCode,
+      local_body_code: localBodyCode,
+      localBodyCode,
+      location_village: locationVillage,
+      locationVillage,
+      location_subdistrict: locationSubdistrict,
+      locationSubdistrict,
+      location_district: locationDistrict,
+      locationDistrict,
+      location_pincode: locationPincode,
+      locationPincode,
       moderationStatus: content.moderationStatus || ModerationStatus.PENDING_REVIEW,
       moderation_status: content.moderationStatus || ModerationStatus.PENDING_REVIEW,
       rejectionReason: content.rejectionReason || null,
       rejection_reason: content.rejectionReason || null,
       publicationStatus: content.publicationStatus || 'PUBLISHED',
       publication_status: content.publicationStatus || 'PUBLISHED',
-      views: 0,
-      eligibleViews: 0,
-      eligible_views: 0,
-      likes: 0,
-      shares: 0,
-      saves: 0,
-      publishedAt: new Date().toISOString(),
-      published_at: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      updatedAt_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      views: content.views || 0,
+      eligibleViews: content.eligibleViews || 0,
+      eligible_views: content.eligibleViews || 0,
+      likes: content.likes || 0,
+      shares: content.shares || 0,
+      saves: content.saves || 0,
+      publishedAt: publishedAtStr,
+      published_at: publishedAtStr,
+      createdAt: createdAtStr,
+      created_at: createdAtStr,
+      updatedAt: createdAtStr,
+      updatedAt_at: createdAtStr,
+      updated_at: createdAtStr
     };
 
     if (isLiveSupabaseConfigured()) {
@@ -687,11 +732,20 @@ export const ContentsDb = {
           thumbnail_url: doc.thumbnail_url,
           category_id: isUuid(doc.category_id) ? doc.category_id : null,
           location: doc.location,
+          state_code: doc.state_code,
+          district_code: doc.district_code,
+          subdistrict_code: doc.subdistrict_code,
+          local_body_code: doc.local_body_code,
+          location_village: doc.location_village,
+          location_subdistrict: doc.location_subdistrict,
+          location_district: doc.location_district,
+          location_pincode: doc.location_pincode,
           moderation_status: doc.moderation_status,
           rejection_reason: doc.rejection_reason,
           publication_status: doc.publication_status,
-          views: 0,
-          eligible_views: 0
+          views: doc.views,
+          eligible_views: doc.eligible_views,
+          published_at: doc.published_at
         }]).select().single();
         if (!error && data) {
           return normalizeDoc({ ...doc, ...data });
@@ -935,8 +989,469 @@ export const ContentsDb = {
       return true;
     }
     return true;
+  },
+
+  async getPersonalizedFeed(options: PersonalizedFeedOptions) {
+    if (isLiveSupabaseConfigured()) {
+      try {
+        let resolvedCategoryId = options.categoryId;
+        if (resolvedCategoryId && !isUuid(resolvedCategoryId)) {
+          const cat = await CategoriesDb.findBySlug(resolvedCategoryId);
+          if (cat) resolvedCategoryId = cat.id;
+        } else if (options.categorySlug) {
+          const cat = await CategoriesDb.findBySlug(options.categorySlug);
+          if (cat) resolvedCategoryId = cat.id;
+        }
+
+        const { data, error } = await supabase.rpc('get_personalized_feed', {
+          p_lat: options.lat ?? null,
+          p_lng: options.lng ?? null,
+          p_state_code: options.stateCode ?? null,
+          p_district_code: options.districtCode ?? null,
+          p_subdistrict_code: options.subdistrictCode ?? null,
+          p_local_body_code: options.localBodyCode ?? null,
+          p_pincode: options.pincode ?? null,
+          p_area: options.area ?? options.village ?? null,
+          p_city: options.city ?? null,
+          p_district: options.district ?? null,
+          p_state: options.state ?? null,
+          p_content_type: options.contentType ?? null,
+          p_category_id: (resolvedCategoryId && isUuid(resolvedCategoryId)) ? resolvedCategoryId : null,
+          p_page: options.page || 1,
+          p_limit: options.limit || 20,
+          p_cursor: options.cursor ?? null
+        });
+
+        if (!error && data && data.items) {
+          return data;
+        }
+        if (error) {
+          console.warn('[ContentsDb] get_personalized_feed RPC error, falling back to memory store:', error.message);
+        }
+      } catch (err: any) {
+        console.warn('[ContentsDb] get_personalized_feed live error, falling back to memory store:', err.message);
+      }
+    }
+
+    // Fallback in-memory implementation for offline local dev & test suite
+    const page = Math.max(1, options.page || 1);
+    const limit = Math.min(50, Math.max(1, options.limit || 20));
+    const skip = (page - 1) * limit;
+
+    // Filter eligible published & approved content
+    const candidates = memoryStore.contents.filter(c => {
+      const isApproved = (c.moderationStatus === ModerationStatus.APPROVED || c.moderation_status === ModerationStatus.APPROVED);
+      const isPublished = (c.publicationStatus === 'PUBLISHED' || c.publication_status === 'PUBLISHED');
+      if (!isApproved || !isPublished) return false;
+
+      if (options.contentType && c.type !== options.contentType) return false;
+
+      if (options.categoryId) {
+        const catMatch = c.categoryId === options.categoryId || c.category_id === options.categoryId ||
+          (typeof c.categoryId === 'object' && (c.categoryId?.id === options.categoryId || c.categoryId?._id === options.categoryId));
+        if (!catMatch) return false;
+      }
+
+      if (options.categorySlug) {
+        const cat = memoryStore.categories.find(k => k.slug === options.categorySlug || k.id === options.categorySlug);
+        if (cat) {
+          const catMatch = c.categoryId === cat.id || c.category_id === cat.id ||
+            (typeof c.categoryId === 'object' && c.categoryId?.slug === options.categorySlug);
+          if (!catMatch) return false;
+        }
+      }
+
+      return true;
+    });
+
+    const totalItems = candidates.length;
+    if (totalItems === 0) {
+      return {
+        success: true,
+        items: [],
+        pagination: {
+          page,
+          limit,
+          totalItems: 0,
+          totalPages: 1,
+          cursor: null
+        }
+      };
+    }
+
+    const userLat = typeof options.lat === 'number' && !isNaN(options.lat) ? options.lat : null;
+    const userLng = typeof options.lng === 'number' && !isNaN(options.lng) ? options.lng : null;
+    const hasUserCoords = userLat !== null && userLng !== null;
+
+    const scoredCandidates = candidates.map(c => {
+      let cLat: number | null = null;
+      let cLng: number | null = null;
+      const coords = c.location?.coordinates || c.coordinates || c.coordinates_geo;
+      if (coords) {
+        if (typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
+          cLat = coords.latitude;
+          cLng = coords.longitude;
+        } else if (typeof coords.lat === 'number' && typeof coords.lng === 'number') {
+          cLat = coords.lat;
+          cLng = coords.lng;
+        } else if (Array.isArray(coords) && coords.length >= 2) {
+          cLng = Number(coords[0]);
+          cLat = Number(coords[1]);
+        }
+      }
+
+      let distKm: number | null = null;
+      let spatialScore: number | null = null;
+      if (hasUserCoords && cLat !== null && cLng !== null) {
+        distKm = calculateHaversineDistanceKm(userLat!, userLng!, cLat, cLng);
+        spatialScore = calculateSpatialScore(distKm);
+      }
+
+      const adminScore = calculateAdminScore(c, options);
+      const locationScore = Math.max(spatialScore ?? 0, adminScore ?? 10);
+      const locationTier = getLocationTier(locationScore);
+
+      const publishedTimeStr = c.publishedAt || c.published_at || c.createdAt || c.created_at;
+      const freshnessScore = calculateFreshnessScore(publishedTimeStr);
+
+      const creator = memoryStore.creators.find(cr => 
+        cr.id === c.creatorId || cr.id === c.creator_id || cr._id === c.creatorId || cr._id === c.creator_id ||
+        (typeof c.creatorId === 'object' && cr.id === c.creatorId?.id)
+      );
+      const verificationStatus = creator?.verificationStatus || creator?.verification_status || 
+        (typeof c.creatorId === 'object' ? c.creatorId?.verificationStatus : 'UNVERIFIED');
+      const qualityScore = calculateQualityScore(verificationStatus);
+
+      const engagementScore = calculateEngagementScore(c.likes, c.shares, c.saves, c.views);
+      const rawRankScore = locationScore + freshnessScore + qualityScore + engagementScore;
+
+      return {
+        content: c,
+        creator,
+        distKm,
+        locationScore,
+        locationTier,
+        freshnessScore,
+        qualityScore,
+        engagementScore,
+        rawRankScore,
+        publishedTime: new Date(publishedTimeStr || 0).getTime()
+      };
+    });
+
+    // Sort by rawRankScore DESC, publishedTime DESC for anti-repetition window
+    scoredCandidates.sort((a, b) => {
+      if (b.rawRankScore !== a.rawRankScore) {
+        return b.rawRankScore - a.rawRankScore;
+      }
+      return b.publishedTime - a.publishedTime;
+    });
+
+    const creatorCounts: Record<string, number> = {};
+    const categoryCounts: Record<string, number> = {};
+    const areaCounts: Record<string, number> = {};
+
+    const diversifiedCandidates = scoredCandidates.map(sc => {
+      const c = sc.content;
+      const creatorKey = c.creator_id || c.creatorId || (typeof c.creatorId === 'object' ? c.creatorId.id : 'unknown');
+      const categoryKey = c.category_id || c.categoryId || (typeof c.categoryId === 'object' ? c.categoryId.id : 'unknown');
+      const areaKey = c.location_village || c.location?.village || c.location?.area || c.location_district || c.location?.district || c.location?.city || 'unknown';
+
+      const rankByCreator = (creatorCounts[creatorKey] || 0) + 1;
+      creatorCounts[creatorKey] = rankByCreator;
+
+      const rankByCategory = (categoryCounts[categoryKey] || 0) + 1;
+      categoryCounts[categoryKey] = rankByCategory;
+
+      const rankByArea = (areaCounts[areaKey] || 0) + 1;
+      areaCounts[areaKey] = rankByArea;
+
+      const penalty = (rankByCreator - 1) * 8.0 + (rankByCategory - 1) * 3.0 + (rankByArea - 1) * 4.0;
+      const finalRankScore = Math.round((sc.rawRankScore - penalty) * 100) / 100;
+
+      return {
+        ...sc,
+        rankByCreator,
+        rankByCategory,
+        rankByArea,
+        finalRankScore
+      };
+    });
+
+    // Final sorting: finalRankScore DESC, publishedTime DESC
+    diversifiedCandidates.sort((a, b) => {
+      if (b.finalRankScore !== a.finalRankScore) {
+        return b.finalRankScore - a.finalRankScore;
+      }
+      return b.publishedTime - a.publishedTime;
+    });
+
+    const paginated = diversifiedCandidates.slice(skip, skip + limit);
+
+    // Fetch active ads for interleaving
+    const activeAds = await AdvertisementsDb.findActive();
+
+    // Fetch system ad frequency
+    const setting = await SystemSettingsDb.get();
+    const adFrequency = setting?.adFeedFrequency ?? setting?.ad_feed_frequency ?? BUSINESS_RULES.DEFAULT_AD_FEED_FREQUENCY ?? 4;
+
+    const items: any[] = [];
+    let adIndex = 0;
+
+    for (let i = 0; i < paginated.length; i++) {
+      const item = paginated[i];
+      const c = item.content;
+
+      let creatorObj = item.creator;
+      let userObj: any = null;
+      if (creatorObj) {
+        userObj = memoryStore.users.find(u => u.id === creatorObj.userId || u.id === creatorObj.user_id);
+      } else if (typeof c.creatorId === 'object' && c.creatorId !== null) {
+        creatorObj = c.creatorId;
+      }
+
+      const creatorFormatted = {
+        id: creatorObj?.id || c.creator_id || c.creatorId || 'anonymous',
+        name: userObj?.name || creatorObj?.name || (typeof c.creatorId === 'object' ? c.creatorId?.name : 'Nagrik Contributor'),
+        profileImage: userObj?.profileImage || creatorObj?.profileImage || (typeof c.creatorId === 'object' ? c.creatorId?.profileImage : null),
+        verificationStatus: creatorObj?.verificationStatus || creatorObj?.verification_status || 'UNVERIFIED'
+      };
+
+      const categoryObj = memoryStore.categories.find(cat => cat.id === c.categoryId || cat.id === c.category_id || cat.slug === c.categoryId);
+
+      const contentData = {
+        ...c,
+        id: c.id || c._id,
+        _id: c.id || c._id,
+        creatorId: creatorFormatted,
+        creator: creatorFormatted,
+        categoryId: categoryObj ? normalizeDoc(categoryObj) : c.categoryId,
+        category_id: categoryObj?.id || c.category_id || c.categoryId,
+        categoryName: categoryObj?.name || c.categoryName || 'General',
+        mediaUrl: c.mediaUrl || c.media_url,
+        media_url: c.mediaUrl || c.media_url,
+        thumbnailUrl: c.thumbnailUrl || c.thumbnail_url,
+        thumbnail_url: c.thumbnailUrl || c.thumbnail_url,
+        moderationStatus: c.moderationStatus || c.moderation_status,
+        publicationStatus: c.publicationStatus || c.publication_status,
+        views: c.views || 0,
+        eligibleViews: c.eligibleViews || c.eligible_views || 0,
+        likes: c.likes || 0,
+        shares: c.shares || 0,
+        saves: c.saves || 0,
+        publishedAt: c.publishedAt || c.published_at || c.createdAt || c.created_at,
+        createdAt: c.createdAt || c.created_at,
+        relevanceScore: item.finalRankScore,
+        locationScore: item.locationScore,
+        freshnessScore: item.freshnessScore,
+        qualityScore: item.qualityScore,
+        engagementScore: item.engagementScore,
+        locationTier: item.locationTier,
+        distanceKm: item.distKm !== null ? Math.round(item.distKm * 100) / 100 : null
+      };
+
+      items.push({ itemType: 'CONTENT', data: normalizeDoc(contentData) });
+
+      if ((i + 1) % adFrequency === 0 && activeAds.length > 0) {
+        const ad = activeAds[adIndex % activeAds.length];
+        items.push({ itemType: 'ADVERTISEMENT', data: ad });
+        adIndex++;
+      }
+    }
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+    const cursor = paginated.length > 0 ? String(page * limit) : null;
+
+    return {
+      success: true,
+      items,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        cursor
+      }
+    };
   }
 };
+
+// ==========================================================
+// PROXIMITY & LOCATION RANKING HELPERS
+// ==========================================================
+export interface PersonalizedFeedOptions {
+  country?: string;
+  state?: string;
+  city?: string;
+  district?: string;
+  subdistrict?: string;
+  village?: string;
+  area?: string;
+  pincode?: string;
+  lat?: number;
+  lng?: number;
+  stateCode?: number;
+  districtCode?: number;
+  subdistrictCode?: number;
+  localBodyCode?: number;
+  categoryId?: string;
+  categorySlug?: string;
+  contentType?: ContentType | string;
+  page?: number;
+  limit?: number;
+  cursor?: string;
+}
+
+export function calculateHaversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function calculateSpatialScore(distKm: number | null): number | null {
+  if (distKm === null || isNaN(distKm)) return null;
+  if (distKm <= 3.0) return 100.0;
+  if (distKm <= 10.0) return 85.0;
+  if (distKm <= 25.0) return 75.0;
+  if (distKm <= 50.0) return 60.0;
+  if (distKm <= 100.0) return 50.0;
+  if (distKm <= 200.0) return 40.0;
+  if (distKm <= 500.0) return 25.0;
+  return 10.0;
+}
+
+export function calculateAdminScore(c: any, options: PersonalizedFeedOptions): number {
+  const clean = (val: any) => (val ? String(val).trim().toLowerCase() : '');
+
+  const optLocalBody = options.localBodyCode;
+  const optSubdistrictCode = options.subdistrictCode;
+  const optDistrictCode = options.districtCode;
+  const optStateCode = options.stateCode;
+
+  const optPincode = clean(options.pincode);
+  const optArea = clean(options.area || options.village);
+  const optSubdistrict = clean(options.subdistrict);
+  const optDistrict = clean(options.district || options.city);
+  const optState = clean(options.state);
+
+  const cLocalBody = c.local_body_code ?? c.localBodyCode ?? c.location?.localBodyCode;
+  const cSubdistrictCode = c.subdistrict_code ?? c.subdistrictCode ?? c.location?.subdistrictCode;
+  const cDistrictCode = c.district_code ?? c.districtCode ?? c.location?.districtCode;
+  const cStateCode = c.state_code ?? c.stateCode ?? c.location?.stateCode;
+
+  const cPincode = clean(c.location_pincode ?? c.locationPincode ?? c.location?.pincode);
+  const cVillage = clean(c.location_village ?? c.locationVillage ?? c.location?.village);
+  const cArea = clean(c.location?.area);
+  const cSubdistrict = clean(c.location_subdistrict ?? c.locationSubdistrict ?? c.location?.subdistrict);
+  const cDistrict = clean(c.location_district ?? c.locationDistrict ?? c.location?.district ?? c.location?.city);
+  const cCity = clean(c.location?.city);
+  const cState = clean(c.location?.state);
+
+  // 1. Exact Village / Local Body / Exact Area match (100)
+  if (
+    (optLocalBody !== undefined && optLocalBody !== null && cLocalBody === optLocalBody) ||
+    (optPincode && cPincode === optPincode) ||
+    (optArea && (cVillage === optArea || cArea === optArea))
+  ) {
+    return 100.0;
+  }
+
+  // 2. Nearby Area in same Sub-District (85)
+  if (
+    (optSubdistrictCode !== undefined && optSubdistrictCode !== null && cSubdistrictCode === optSubdistrictCode && cLocalBody && cLocalBody !== optLocalBody) ||
+    (optArea && (
+      (cVillage && cVillage.includes(optArea) && cVillage !== optArea) ||
+      (cArea && cArea.includes(optArea) && cArea !== optArea)
+    ))
+  ) {
+    return 85.0;
+  }
+
+  // 3. Same Sub-District (75)
+  if (
+    (optSubdistrictCode !== undefined && optSubdistrictCode !== null && cSubdistrictCode === optSubdistrictCode) ||
+    (optSubdistrict && cSubdistrict === optSubdistrict) ||
+    (optArea && cSubdistrict === optArea)
+  ) {
+    return 75.0;
+  }
+
+  // 4. Nearby Sub-District within same District (60)
+  if (
+    optDistrictCode !== undefined && optDistrictCode !== null && cDistrictCode === optDistrictCode && cSubdistrictCode && cSubdistrictCode !== optSubdistrictCode
+  ) {
+    return 60.0;
+  }
+
+  // 5. Same District (50)
+  if (
+    (optDistrictCode !== undefined && optDistrictCode !== null && cDistrictCode === optDistrictCode) ||
+    (optDistrict && (cDistrict === optDistrict || cCity === optDistrict)) ||
+    (options.city && (cDistrict === clean(options.city) || cCity === clean(options.city)))
+  ) {
+    return 50.0;
+  }
+
+  // 6. Nearby District / Same State vicinity (40)
+  if (
+    (optStateCode !== undefined && optStateCode !== null && cStateCode === optStateCode && cDistrictCode && optDistrictCode && cDistrictCode !== optDistrictCode) ||
+    (optDistrict && cDistrict && cDistrict !== optDistrict && cDistrict !== 'statewide' && cDistrict !== 'all' && cDistrictCode && cState && optState && cState === optState)
+  ) {
+    return 40.0;
+  }
+
+  // 7. Same State (25)
+  if (
+    (optStateCode !== undefined && optStateCode !== null && cStateCode === optStateCode) ||
+    (optState && cState === optState)
+  ) {
+    return 25.0;
+  }
+
+  // 8. Wider / National News (10)
+  return 10.0;
+}
+
+export function getLocationTier(score: number): 'LOCAL_AREA' | 'NEARBY_AREA' | 'SUB_DISTRICT' | 'NEARBY_SUB_DISTRICT' | 'DISTRICT' | 'NEARBY_DISTRICT' | 'STATE' | 'NATIONAL' {
+  if (score >= 95.0) return 'LOCAL_AREA';
+  if (score >= 80.0) return 'NEARBY_AREA';
+  if (score >= 70.0) return 'SUB_DISTRICT';
+  if (score >= 55.0) return 'NEARBY_SUB_DISTRICT';
+  if (score >= 45.0) return 'DISTRICT';
+  if (score >= 35.0) return 'NEARBY_DISTRICT';
+  if (score >= 20.0) return 'STATE';
+  return 'NATIONAL';
+}
+
+export function calculateFreshnessScore(publishedAt: string | Date | undefined): number {
+  if (!publishedAt) return 0;
+  const ageHours = Math.max(0, (Date.now() - new Date(publishedAt).getTime()) / (1000 * 3600));
+  if (ageHours < 1.0) return 50.0;
+  if (ageHours < 6.0) return 35.0;
+  if (ageHours < 24.0) return 20.0;
+  if (ageHours < 72.0) return 10.0;
+  if (ageHours >= 168.0) return 0.0;
+  return Math.max(0.0, 10.0 * (1.0 - (ageHours - 72.0) / 96.0));
+}
+
+export function calculateQualityScore(verificationStatus: string | undefined): number {
+  if (verificationStatus === 'VERIFIED') return 10.0;
+  if (verificationStatus === 'PENDING') return 3.0;
+  return 0.0;
+}
+
+export function calculateEngagementScore(likes = 0, shares = 0, saves = 0, views = 0): number {
+  return Math.min(
+    15.0,
+    (likes * 1.0) + (shares * 2.0) + (saves * 1.5) + (Math.log(Math.max(1, views)) * 0.5)
+  );
+}
 
 // ==========================================================
 // VIDEO VIEWS REPOSITORY (3-View Ceiling Rule: User & Device)

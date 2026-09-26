@@ -35,6 +35,7 @@ import {
   Tooltip as RechartsTooltip
 } from 'recharts';
 import { CreatorStats, CreatorTab } from './types';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface CreatorDashboardInspirationTabProps {
   stats: CreatorStats | null;
@@ -53,6 +54,7 @@ export const CreatorDashboardInspirationTab: React.FC<CreatorDashboardInspiratio
   user,
   setActiveTabNav
 }) => {
+  const { rate, usdToInr } = useCurrency();
   const [timeframe, setTimeframe] = useState<'monthly' | 'weekly' | 'yearly'>('monthly');
 
   // Authoritative identity
@@ -63,7 +65,7 @@ export const CreatorDashboardInspirationTab: React.FC<CreatorDashboardInspiratio
   const totalViews = Number(stats?.totalViews ?? stats?.totalEligibleViews ?? 0);
   const reportsPublished = contents.length;
   const totalEarningsUSD = Number(stats?.lifetimeEarnings ?? stats?.availableBalance ?? (totalViews * 0.001000));
-  const totalEarningsINR = totalEarningsUSD * 86.5;
+  const totalEarningsINR = usdToInr(totalEarningsUSD);
   const activeReach = totalViews > 0 ? Math.round(totalViews * 0.65) : 0;
 
   // Report status counters
@@ -99,19 +101,19 @@ export const CreatorDashboardInspirationTab: React.FC<CreatorDashboardInspiratio
       });
 
       const reads = inWindowContents.reduce((acc, c) => acc + (c.eligibleViews || c.eligible_views || c.views || 0), 0);
-      const inr = Number(((reads / 1000) * 86.5).toFixed(2));
+      const inr = Number(usdToInr((reads / 1000) * 1.0).toFixed(2));
 
       points.push({ label, reads, inr });
     }
 
     return points;
-  }, [contents, timeframe]);
+  }, [contents, timeframe, rate, usdToInr]);
 
   // Recent reports mapped directly from live contents
   const recentReports = useMemo(() => {
     return contents.slice(0, 5).map((c) => {
       const viewsCount = Number(c.eligibleViews ?? c.eligible_views ?? c.views ?? 0);
-      const inrYield = (viewsCount / 1000) * 86.5;
+      const inrYield = usdToInr((viewsCount / 1000) * 1.0);
       const locStr = c.location_city && c.location_state
         ? `${c.location_city}, ${c.location_state}`
         : c.location?.city
@@ -298,7 +300,7 @@ export const CreatorDashboardInspirationTab: React.FC<CreatorDashboardInspiratio
               <div className="p-3.5 rounded-2xl bg-[#F8F5EE] dark:bg-slate-800/60 border border-[#DE5227]/30 dark:border-slate-700/60 shadow-2xs">
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Guaranteed CPM</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-lg font-black font-serif text-slate-900 dark:text-white">₹86.50</span>
+                  <span className="text-lg font-black font-serif text-slate-900 dark:text-white">₹{rate.toFixed(2)}</span>
                   <span className="text-[11px] font-extrabold text-[#DE5227]">/ 1k reads</span>
                 </div>
               </div>

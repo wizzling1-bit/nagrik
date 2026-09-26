@@ -1,7 +1,24 @@
 version: '3.8'
 
 services:
-  # Backend API Service (Express + Supabase + Cloudflare R2)
+  # Web Application (Next.js App Router + Supabase-first client + Cloudflare R2)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: naagrik-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL:-https://sbcvvcqsmgihhzuifafq.supabase.co}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL:-https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api/v1}
+
+  # Legacy API Service (Retained for backward compatibility / adapter fallback)
   api:
     build:
       context: .
@@ -18,29 +35,13 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-naagrik-media}
-      - S3_PUBLIC_DOMAIN=${S3_PUBLIC_DOMAIN:-https://pub-r2.naagrik.news}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-nagrik-media}
+      - R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL:-https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # Web Application (Next.js 14 App Router)
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: naagrik-web
-    restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
-      - NEXT_PUBLIC_SITE_URL=http://localhost:3000

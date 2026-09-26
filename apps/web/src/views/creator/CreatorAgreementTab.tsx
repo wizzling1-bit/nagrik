@@ -1,7 +1,9 @@
 import React from 'react';
 import { ShieldCheck, CheckCircle2, Lock, Award, FileText, Check, Shield } from 'lucide-react';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export const CreatorAgreementTab: React.FC = () => {
+  const { rate } = useCurrency();
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       
@@ -54,7 +56,7 @@ export const CreatorAgreementTab: React.FC = () => {
                 1
               </span>
               <h3 className="font-bold text-slate-900 dark:text-white text-sm font-serif">
-                $1.00 Guaranteed CPM Monetization (~₹86.5/1k reads)
+                $1.00 Guaranteed CPM Monetization (~₹{rate.toFixed(2)}/1k reads)
               </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs font-medium">
@@ -88,7 +90,7 @@ export const CreatorAgreementTab: React.FC = () => {
               </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs font-medium">
-              Withdrawal requests above the <strong className="text-slate-900 dark:text-white font-mono">$10.00 USD minimum threshold</strong> (~₹865 INR) are transferred directly to your verified Indian UPI ID (GPay, PhonePe, Paytm, BHIM) or Bank Account within 24 hours. Zero platform commission is deducted.
+              Withdrawal requests above the <strong className="text-slate-900 dark:text-white font-mono">$10.00 USD minimum threshold</strong> (~₹{Math.round(10 * rate)} INR) are transferred directly to your verified Indian UPI ID (GPay, PhonePe, Paytm, BHIM) or Bank Account within 24 hours. Zero platform commission is deducted.
             </p>
           </div>
 

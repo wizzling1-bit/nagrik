@@ -17,7 +17,11 @@ export class AuthController {
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
-      const userRole = role || UserRole.CREATOR;
+      // Security enforcement: Public registrations cannot assign ADMIN role
+      let userRole = UserRole.CREATOR;
+      if (role && (role === UserRole.USER || role === 'USER')) {
+        userRole = UserRole.USER;
+      }
 
       const user = await UsersDb.create({
         name,

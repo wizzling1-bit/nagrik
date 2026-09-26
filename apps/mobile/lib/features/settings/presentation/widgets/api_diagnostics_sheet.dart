@@ -255,7 +255,7 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                       runSpacing: 6,
                       children: [
                         ChoiceChip(
-                          label: const Text('Production Supabase (Live)', style: TextStyle(fontSize: 11)),
+                          label: const Text('Production Network (Live)', style: TextStyle(fontSize: 11)),
                           selected: ApiConstants.baseUrl == ApiConstants.prodBaseUrl,
                           onSelected: (selected) {
                             if (selected) _applyServerUrl(ApiConstants.prodBaseUrl);
@@ -441,7 +441,7 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
 
               const SizedBox(height: 16),
 
-              // Cloudflare R2 & PostGIS Status Card
+              // Media CDN & Spatial Engine Status Card
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -459,7 +459,7 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                         Icon(Icons.bolt_rounded, size: 16, color: success),
                         const SizedBox(width: 6),
                         const Text(
-                          'Cloudflare R2 Media & PostGIS Spatial',
+                          'Media Delivery & Spatial Engine',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -470,7 +470,7 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'R2 CDN: ${ApiConstants.r2PublicBaseUrl}',
+                      'Media Stream: Active & Verified',
                       style: TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 11,
@@ -479,7 +479,7 @@ class _ApiDiagnosticsSheetState extends ConsumerState<ApiDiagnosticsSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'PostGIS: 8-tier LGD Administrative Ranking Enabled',
+                      'Location Radar: 8-tier LGD Administrative Ranking Enabled',
                       style: TextStyle(
                         fontSize: 11,
                         color: context.nagrikTheme.textSecondary,

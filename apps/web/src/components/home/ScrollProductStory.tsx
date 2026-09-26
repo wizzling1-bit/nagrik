@@ -19,9 +19,11 @@ import {
   Check
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export const ScrollProductStory: React.FC = () => {
   const { language } = useLanguage();
+  const { rate } = useCurrency();
   const [activeStep, setActiveStep] = useState<number>(0);
   const activeStepRef = useRef<number>(0);
   const progressLineRef = useRef<HTMLDivElement>(null);
@@ -72,7 +74,7 @@ export const ScrollProductStory: React.FC = () => {
       tag: language === 'hi' ? 'पात्र रीच से कमाई' : 'Earn Day One',
       title: language === 'hi' ? 'पारदर्शी भुगतान प्राप्त करें' : 'Direct, transparent contributor earnings',
       desc: language === 'hi'
-        ? 'प्रत्येक 1,000 सत्यापित व्यू पर $1.00 (~₹86) की फ्लैट दर से कमाई जुड़ती है। ₹850 ($10) होते ही सीधे यूपीआई या बैंक में निकासी करें।'
+        ? `प्रत्येक 1,000 सत्यापित व्यू पर $1.00 (~₹${Math.round(rate)}) की फ्लैट दर से कमाई जुड़ती है। ₹${Math.round(rate * 10)} ($10) होते ही सीधे यूपीआई या बैंक में निकासी करें।`
         : 'Every view and share earns you real money. Our clear formula means you always know what you\'re owed.',
       highlight: language === 'hi' ? 'सीधा UPI ट्रांसफर' : 'Direct UPI & Bank Payouts'
     }
@@ -175,10 +177,10 @@ export const ScrollProductStory: React.FC = () => {
 
   // Shared Product Canvas Body (used for both desktop sticky canvas & mobile interactive canvas)
   const renderCanvasBody = () => (
-    <div className="rounded-3xl bg-[#141B29] border border-slate-700/80 p-4 sm:p-6 shadow-2xl text-white overflow-hidden relative min-h-[420px] sm:min-h-[480px] flex flex-col justify-between">
+    <div className="rounded-3xl bg-[#0B0F17] border border-white/10 p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.06)] text-white overflow-hidden relative min-h-[420px] sm:min-h-[480px] flex flex-col justify-between">
       
       {/* Product Canvas Topbar */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-xs font-mono">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono">
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
           <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
@@ -197,7 +199,7 @@ export const ScrollProductStory: React.FC = () => {
         {/* ── STAGE 01: CAPTURE LOCALLY ── */}
         {activeStep === 0 && (
           <div className="space-y-4 text-left">
-            <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 aspect-video max-h-[280px]">
+            <div className="relative rounded-2xl overflow-hidden bg-black/60 border border-white/10 aspect-video max-h-[280px]">
               <img
                 src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80"
                 alt="On-scene recording"
@@ -242,7 +244,7 @@ export const ScrollProductStory: React.FC = () => {
         {/* ── STAGE 02: UPLOAD EASILY ── */}
         {activeStep === 1 && (
           <div className="space-y-3 sm:space-y-4 text-left">
-            <div className="p-4 sm:p-6 rounded-2xl bg-[#0E1524] border border-slate-800 space-y-3 sm:space-y-4">
+            <div className="p-4 sm:p-6 rounded-2xl bg-[#101622] border border-white/[0.08] space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-slate-400">STUDIO DROPZONE</span>
                 <span className="text-emerald-400 font-bold">Uploading 94%</span>
@@ -254,7 +256,7 @@ export const ScrollProductStory: React.FC = () => {
               </div>
 
               {/* File details card */}
-              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-[#141C2E] border border-slate-700/80">
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-[#141D2B] border border-white/10">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#DE5227]/20 text-[#DE5227] flex items-center justify-center shrink-0">
                   <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
@@ -270,11 +272,11 @@ export const ScrollProductStory: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs font-mono text-slate-400 pt-1">
-                <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                <div className="p-2.5 rounded-lg bg-black/30 border border-white/[0.06]">
                   <span className="text-slate-400 block text-xs">LOCALITY RADIUS</span>
                   <span className="text-white font-bold text-xs">5.0 km Ward Geofence</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                <div className="p-2.5 rounded-lg bg-black/30 border border-white/[0.06]">
                   <span className="text-slate-400 block text-xs">CONTENT LICENSE</span>
                   <span className="text-emerald-400 font-bold text-xs">100% Contributor IP</span>
                 </div>
@@ -286,7 +288,7 @@ export const ScrollProductStory: React.FC = () => {
         {/* ── STAGE 03: REVIEW CAREFULLY ── */}
         {activeStep === 2 && (
           <div className="space-y-3 sm:space-y-4 text-left">
-            <div className="p-4 sm:p-6 rounded-2xl bg-[#0E1524] border border-slate-800 space-y-3 sm:space-y-4">
+            <div className="p-4 sm:p-6 rounded-2xl bg-[#101622] border border-white/[0.08] space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-[#DE5227]" />
@@ -301,19 +303,19 @@ export const ScrollProductStory: React.FC = () => {
 
               {/* Verification Checklist */}
               <div className="space-y-2 sm:space-y-2.5 text-xs font-mono">
-                <div className="p-2.5 sm:p-3 rounded-xl bg-[#141C2E] border border-slate-700/80 flex items-center justify-between">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-[#141D2B] border border-white/10 flex items-center justify-between">
                   <span className="text-slate-300">GPS Locality Confirmation (5km)</span>
                   <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0 ml-2">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Matched
                   </span>
                 </div>
-                <div className="p-2.5 sm:p-3 rounded-xl bg-[#141C2E] border border-slate-700/80 flex items-center justify-between">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-[#141D2B] border border-white/10 flex items-center justify-between">
                   <span className="text-slate-300">Anti-Duplicate Visual Scan</span>
                   <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0 ml-2">
                     <CheckCircle2 className="w-3.5 h-3.5" /> 0 Matches
                   </span>
                 </div>
-                <div className="p-2.5 sm:p-3 rounded-xl bg-[#141C2E] border border-slate-700/80 flex items-center justify-between">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-[#141D2B] border border-white/10 flex items-center justify-between">
                   <span className="text-slate-300">Civic Fact Verification</span>
                   <span className="text-emerald-400 font-bold flex items-center gap-1 shrink-0 ml-2">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Eyewitness
@@ -321,7 +323,7 @@ export const ScrollProductStory: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400 font-mono gap-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 border-t border-white/10 text-xs text-slate-400 font-mono gap-1">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3 h-3 text-slate-500" />
                   Turnaround: 18 minutes
@@ -335,7 +337,7 @@ export const ScrollProductStory: React.FC = () => {
         {/* ── STAGE 04: PUBLISH & TRACK ── */}
         {activeStep === 3 && (
           <div className="space-y-3 sm:space-y-4 text-left">
-            <div className="p-4 sm:p-6 rounded-2xl bg-[#0E1524] border border-slate-800 space-y-3 sm:space-y-5">
+            <div className="p-4 sm:p-6 rounded-2xl bg-[#101622] border border-white/[0.08] space-y-3 sm:space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
@@ -350,26 +352,26 @@ export const ScrollProductStory: React.FC = () => {
 
               {/* Live Analytics Tickers */}
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                <div className="p-2.5 sm:p-3.5 rounded-xl bg-[#141C2E] border border-slate-700/80 text-left">
+                <div className="p-2.5 sm:p-3.5 rounded-xl bg-[#141D2B] border border-white/10 text-left">
                   <div className="text-xs font-mono text-slate-400 uppercase">Verified Reads</div>
                   <div className="text-lg sm:text-2xl font-black font-mono text-white mt-1">14,820</div>
                   <div className="text-xs font-mono text-emerald-400 mt-0.5">↑ 182/hr</div>
                 </div>
 
-                <div className="p-2.5 sm:p-3.5 rounded-xl bg-[#141C2E] border border-slate-700/80 text-left">
+                <div className="p-2.5 sm:p-3.5 rounded-xl bg-[#141D2B] border border-white/10 text-left">
                   <div className="text-xs font-mono text-slate-400 uppercase">Dwell Time</div>
                   <div className="text-lg sm:text-2xl font-black font-mono text-white mt-1">2m 44s</div>
                   <div className="text-xs font-mono text-slate-400 mt-0.5">94% read</div>
                 </div>
 
-                <div className="p-2.5 sm:p-3.5 rounded-xl bg-[#141C2E] border border-slate-700/80 text-left">
+                <div className="p-2.5 sm:p-3.5 rounded-xl bg-[#141D2B] border border-white/10 text-left">
                   <div className="text-xs font-mono text-slate-400 uppercase">5km Ward Reach</div>
                   <div className="text-lg sm:text-2xl font-black font-mono text-[#DE5227] mt-1">96.8%</div>
                   <div className="text-xs font-mono text-slate-400 mt-0.5">Patna 12</div>
                 </div>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs font-mono">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-black/30 border border-white/[0.06] flex items-center justify-between text-xs font-mono">
                 <span className="text-slate-400">Target Community:</span>
                 <span className="text-white font-bold truncate ml-2">Patna Ward 12 & 13 Residents</span>
               </div>
@@ -380,7 +382,7 @@ export const ScrollProductStory: React.FC = () => {
         {/* ── STAGE 05: EARN FAIRLY ── */}
         {activeStep === 4 && (
           <div className="space-y-3 sm:space-y-4 text-left">
-            <div className="p-4 sm:p-6 rounded-2xl bg-[#0E1524] border border-slate-800 space-y-3 sm:space-y-5">
+            <div className="p-4 sm:p-6 rounded-2xl bg-[#101622] border border-white/[0.08] space-y-3 sm:space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-[#DE5227]" />
@@ -394,18 +396,18 @@ export const ScrollProductStory: React.FC = () => {
               </div>
 
               {/* Financial Math Ledger */}
-              <div className="p-3 sm:p-4 rounded-xl bg-[#141C2E] border border-slate-700/80 space-y-2 text-xs font-mono">
+              <div className="p-3 sm:p-4 rounded-xl bg-[#141D2B] border border-white/10 space-y-2 text-xs font-mono">
                 <div className="flex items-center justify-between text-slate-400">
                   <span>14,820 Reads × $1.00 CPM</span>
                   <span className="text-white font-bold">$14.82 USD</span>
                 </div>
                 <div className="flex items-center justify-between text-slate-400">
-                  <span>1 USD ≈ ₹86 INR</span>
-                  <span className="text-emerald-400 font-bold">₹1,274.52 INR</span>
+                  <span>1 USD ≈ ₹{rate.toFixed(2)} INR</span>
+                  <span className="text-emerald-400 font-bold">₹{(14.82 * rate).toFixed(2)} INR</span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs sm:text-sm font-bold text-white">
+                <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs sm:text-sm font-bold text-white">
                   <span>Total Approved Balance</span>
-                  <span className="text-[#DE5227] font-mono">₹3,450.00 INR</span>
+                  <span className="text-[#DE5227] font-mono">₹{(40.12 * rate).toFixed(2)} INR</span>
                 </div>
               </div>
 
@@ -431,7 +433,7 @@ export const ScrollProductStory: React.FC = () => {
       </div>
 
       {/* Product Stage Bottom Step Indicator */}
-      <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
+      <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-slate-400">
         <div className="flex items-center gap-2">
           <span className="text-orange-400 font-bold">STAGE {steps[activeStep].num}</span>
           <span className="text-slate-400">/ 05</span>
@@ -456,7 +458,7 @@ export const ScrollProductStory: React.FC = () => {
   );
 
   return (
-    <section id="story" className="py-20 sm:py-28 lg:py-32 bg-[#F5F0E8]/70 dark:bg-[#0C1018]/70 backdrop-blur-xs border-y border-stone-300/70 dark:border-slate-800/80 transition-colors duration-200">
+    <section id="story" className="py-20 sm:py-28 lg:py-32 bg-[#F5F0E8]/70 dark:bg-[#0A0D14]/80 backdrop-blur-xs border-y border-stone-300/70 dark:border-white/[0.08] transition-colors duration-200">
       <div className="max-w-[1380px] mx-auto px-6 sm:px-10 lg:px-12">
         
         {/* Section Header */}
@@ -502,7 +504,7 @@ export const ScrollProductStory: React.FC = () => {
                       ? 'bg-gradient-to-r from-[#DE5227] to-[#C84318] text-white font-bold shadow-lg shadow-orange-500/25 ring-2 ring-[#DE5227]/40 scale-102'
                       : isPassed
                       ? 'bg-orange-50 dark:bg-[#DE5227]/10 text-[#C84318] dark:text-orange-300 border border-orange-200/80 dark:border-[#DE5227]/30'
-                      : 'bg-surface-card dark:bg-surface-card text-slate-700 dark:text-slate-300 border border-stone-200/90 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
+                      : 'bg-surface-card text-slate-700 dark:text-slate-300 border border-stone-200/90 dark:border-white/10 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <span className={`px-1.5 py-0.5 rounded-md font-bold text-[10px] ${
@@ -510,7 +512,7 @@ export const ScrollProductStory: React.FC = () => {
                       ? 'bg-white/20 text-white'
                       : isPassed
                       ? 'bg-[#DE5227]/15 text-[#C84318] dark:text-orange-300'
-                      : 'bg-stone-100 dark:bg-slate-800 text-content-secondary'
+                      : 'bg-stone-100 dark:bg-white/[0.06] text-content-secondary'
                   }`}>
                     {step.num}
                   </span>
@@ -524,7 +526,7 @@ export const ScrollProductStory: React.FC = () => {
           {renderCanvasBody()}
 
           {/* Active Chapter Narrative Card on Mobile */}
-          <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="p-6 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/10 shadow-sm space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-mono font-bold text-content-secondary">
                 CHAPTER {steps[activeStep].num} • {steps[activeStep].tag}
@@ -551,7 +553,7 @@ export const ScrollProductStory: React.FC = () => {
           <div className="lg:col-span-5 relative py-4 text-left">
             
             {/* Background Stepper Track Spine */}
-            <div className="absolute left-6 -translate-x-1/2 top-10 bottom-12 w-[2px] bg-stone-300/80 dark:bg-slate-800 pointer-events-none rounded-full" />
+            <div className="absolute left-6 -translate-x-1/2 top-10 bottom-12 w-[2px] bg-stone-300/80 dark:bg-white/10 pointer-events-none rounded-full" />
 
             {/* Active Glowing Stepper Fill Bar (Smooth Continuous Motion) */}
             <div
@@ -584,7 +586,7 @@ export const ScrollProductStory: React.FC = () => {
                           ? 'bg-gradient-to-br from-[#DE5227] via-[#E85D32] to-[#B83810] text-white shadow-[0_0_24px_rgba(222,82,39,0.5),0_4px_12px_rgba(0,0,0,0.15)] ring-4 ring-[#DE5227]/25 dark:ring-[#DE5227]/35 scale-110 border border-orange-300/40'
                           : isPassed
                           ? 'bg-orange-50/90 dark:bg-[#DE5227]/15 border-2 border-[#DE5227]/60 text-[#DE5227] dark:text-orange-400 shadow-xs group-hover:scale-105 group-hover:border-[#DE5227]'
-                          : 'bg-surface-card dark:bg-surface-card border-2 border-stone-200/90 dark:border-slate-800 text-content-tertiary shadow-xs group-hover:border-orange-400/60 group-hover:text-slate-800 dark:group-hover:text-slate-200 group-hover:scale-105'
+                          : 'bg-surface-card border-2 border-stone-200/90 dark:border-white/10 text-content-tertiary shadow-xs group-hover:border-orange-400/60 group-hover:text-slate-800 dark:group-hover:text-slate-200 group-hover:scale-105'
                       }`}
                     >
                       {/* Active Pulse Beacon Indicator */}
@@ -609,8 +611,8 @@ export const ScrollProductStory: React.FC = () => {
                     <div
                       className={`p-6 sm:p-7 rounded-2xl transition-all duration-300 border relative overflow-hidden ${
                         isActive
-                          ? 'bg-surface-card dark:bg-surface-card border-stone-300/90 dark:border-slate-700 shadow-xl shadow-orange-950/5 dark:shadow-black/40 ring-1 ring-[#DE5227]/25 translate-x-1.5'
-                          : 'bg-surface-muted dark:bg-[#0F1520]/50 border-stone-200/70 dark:border-slate-800/70 hover:bg-surface-card dark:hover:bg-surface-card hover:border-stone-300 dark:hover:border-slate-700'
+                          ? 'bg-surface-card border-stone-300/90 dark:border-white/20 shadow-xl shadow-orange-950/5 dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8),0_0_20px_rgba(222,82,39,0.08)] ring-1 ring-[#DE5227]/25 translate-x-1.5'
+                          : 'bg-surface-muted dark:bg-[#0B0F17]/60 border-stone-200/70 dark:border-white/[0.08] hover:bg-surface-card dark:hover:bg-[#101520] hover:border-stone-300 dark:hover:border-white/15'
                       }`}
                     >
                       {/* Active Card Left Accent Indicator */}
@@ -654,7 +656,7 @@ export const ScrollProductStory: React.FC = () => {
           <div className="lg:col-span-7 lg:sticky lg:top-28 pb-12 relative">
             {/* Organic Asymmetric Annotation Floating Over Stage */}
             <div className="absolute -top-7 right-4 z-20 select-none pointer-events-none hidden lg:block animate-scribble-float-2">
-              <span className="font-script text-purple-700 dark:text-purple-300 text-xl font-bold rotate-2 block bg-surface-card/90 dark:bg-slate-900/90 px-3.5 py-1 rounded-full border border-purple-300/60 dark:border-purple-800/60 shadow-xs">
+              <span className="font-script text-purple-700 dark:text-purple-300 text-xl font-bold rotate-2 block bg-surface-card/90 dark:bg-[#0F1420]/90 px-3.5 py-1 rounded-full border border-purple-300/60 dark:border-purple-800/60 shadow-xs">
                 ~ from ground byte to national broadcast 📡
               </span>
             </div>

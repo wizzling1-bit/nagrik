@@ -850,17 +850,17 @@ export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   <span>Live</span>
                 </div>
-                <div className="text-[11px] text-slate-400">Supabase DB</div>
+                <div className="text-[11px] text-slate-400">Core Database</div>
               </div>
 
               <div className="p-3.5 bg-[#141C2B] rounded-2xl border border-slate-800/80 space-y-1">
                 <div className="text-base font-black text-white font-sans">Active</div>
-                <div className="text-[11px] text-slate-400">Cloudflare R2</div>
+                <div className="text-[11px] text-slate-400">Media CDN</div>
               </div>
 
               <div className="p-3.5 bg-[#141C2B] rounded-2xl border border-slate-800/80 space-y-1">
-                <div className="text-base font-black text-white font-sans">GoTrue</div>
-                <div className="text-[11px] text-slate-400">Auth Engine</div>
+                <div className="text-base font-black text-white font-sans">Active</div>
+                <div className="text-[11px] text-slate-400">Auth Gateway</div>
               </div>
 
               <div className="p-3.5 bg-[#141C2B] rounded-2xl border border-slate-800/80 space-y-1">

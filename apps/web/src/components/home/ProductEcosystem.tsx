@@ -18,6 +18,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCurrency } from '../../context/CurrencyContext';
 
 interface ProductEcosystemProps {
   onOpenAppModal?: () => void;
@@ -25,6 +26,7 @@ interface ProductEcosystemProps {
 
 export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppModal }) => {
   const { language } = useLanguage();
+  const { rate } = useCurrency();
 
   return (
     <section id="ecosystem" className="py-20 sm:py-28 lg:py-32 max-w-[1380px] mx-auto px-6 sm:px-10 lg:px-12 text-left transition-colors duration-200">
@@ -48,13 +50,13 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
       </div>
 
       {/* ── INTERCONNECTED ARCHITECTURAL FLOW (Phone → Studio → Audience) ── */}
-      <div className="rounded-3xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 p-6 sm:p-8 lg:p-10 text-slate-900 dark:text-white shadow-xl dark:shadow-2xl relative overflow-hidden mb-12 sm:mb-16 transition-all duration-200">
+      <div className="rounded-3xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] p-6 sm:p-8 lg:p-10 text-slate-900 dark:text-white shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative overflow-hidden mb-12 sm:mb-16 transition-all duration-200">
         
         {/* Subtle Ambient Radial Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#DE5227]/5 dark:bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Workflow Header Strip */}
-        <div className="hidden sm:flex items-center justify-between pb-5 mb-6 border-b border-stone-200/80 dark:border-slate-800/80 text-xs font-mono relative z-10">
+        <div className="hidden sm:flex items-center justify-between pb-5 mb-6 border-b border-stone-200/80 dark:border-white/[0.08] text-xs font-mono relative z-10">
           <div className="flex items-center gap-2 text-content-secondary">
             <span className="w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" />
             <span className="font-bold text-slate-900 dark:text-slate-200 tracking-wide uppercase">
@@ -70,7 +72,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
         <div className="flex flex-col lg:flex-row items-stretch justify-between gap-4 lg:gap-0 relative z-10">
           
           {/* NODE 1: ON-THE-SCENE REPORTER */}
-          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-surface-elevated border border-stone-200/90 dark:border-slate-700/70 space-y-4 relative group hover:border-stone-300 dark:hover:border-slate-500 transition-all duration-200 flex flex-col justify-between shadow-2xs">
+          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#101622] border border-stone-200/90 dark:border-white/[0.08] space-y-4 relative group hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_rgba(0,0,0,0.6)] transition-all duration-200 flex flex-col justify-between shadow-2xs">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold">
@@ -119,7 +121,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
           </div>
 
           {/* NODE 2: CREATOR STUDIO CONSOLE (FEATURED) */}
-          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-surface-elevated border-2 border-[#DE5227]/70 shadow-[0_4px_24px_rgba(222,82,39,0.12)] space-y-4 relative group hover:border-[#DE5227] transition-all duration-200 flex flex-col justify-between">
+          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#141B26] border-2 border-[#DE5227]/70 dark:border-[#DE5227] shadow-[0_4px_24px_rgba(222,82,39,0.12)] dark:shadow-[0_0_30px_rgba(222,82,39,0.2)] space-y-4 relative group hover:border-[#DE5227] transition-all duration-200 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="w-10 h-10 rounded-xl bg-[#DE5227]/10 text-[#DE5227] flex items-center justify-center">
@@ -137,8 +139,8 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
               </p>
             </div>
             <div className="pt-2 flex flex-wrap gap-1.5 text-xs font-mono text-content-secondary">
-              <span className="px-2.5 py-0.5 rounded-lg bg-orange-50 dark:bg-slate-900 border border-orange-200 dark:border-slate-800 text-[#DE5227] font-bold">₹86 / $1.00 CPM</span>
-              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">Direct UPI Disbursals</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-orange-50 dark:bg-white/[0.06] border border-orange-200 dark:border-white/10 text-[#DE5227] font-bold">₹{Math.round(rate)} / $1.00 CPM</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-white/[0.05] border border-stone-200/80 dark:border-white/10 font-semibold">Direct UPI Disbursals</span>
             </div>
           </div>
 
@@ -168,13 +170,13 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
           </div>
 
           {/* NODE 3: LOCAL CITIZEN AUDIENCE */}
-          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-surface-elevated border border-stone-200/90 dark:border-slate-700/70 space-y-4 relative group hover:border-stone-300 dark:hover:border-slate-500 transition-all duration-200 flex flex-col justify-between shadow-2xs">
+          <div className="flex-1 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#101622] border border-stone-200/90 dark:border-white/[0.08] space-y-4 relative group hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_rgba(0,0,0,0.6)] transition-all duration-200 flex flex-col justify-between shadow-2xs">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold">
                   <Users className="w-5 h-5" />
                 </div>
-                <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold uppercase bg-stone-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-white/10">
                   STAGE 03 • AUDIENCE
                 </span>
               </div>
@@ -186,8 +188,8 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
               </p>
             </div>
             <div className="pt-2 flex flex-wrap gap-1.5 text-xs font-mono text-content-secondary">
-              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">5km Ward Feed</span>
-              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-slate-900 border border-stone-200/80 dark:border-slate-800 font-semibold">Verified Eyewitness</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-white/[0.05] border border-stone-200/80 dark:border-white/10 font-semibold">5km Ward Feed</span>
+              <span className="px-2.5 py-0.5 rounded-lg bg-stone-100 dark:bg-white/[0.05] border border-stone-200/80 dark:border-white/10 font-semibold">Verified Eyewitness</span>
             </div>
           </div>
 
@@ -199,7 +201,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         
         {/* Creator Studio Card */}
-        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 space-y-5 sm:space-y-6 text-left flex flex-col justify-between">
+        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] shadow-sm hover:shadow-md dark:hover:border-white/20 dark:hover:shadow-[0_15px_35px_rgba(0,0,0,0.7)] transition-all duration-200 space-y-5 sm:space-y-6 text-left flex flex-col justify-between">
           <div className="space-y-5">
             <div className="space-y-2">
               <span className="text-xs font-mono uppercase font-bold text-content-secondary tracking-wider">
@@ -226,7 +228,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
               </div>
               <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
-                <span>₹86 / $1.00 CPM per 1k reads</span>
+                <span>₹{Math.round(rate)} / $1.00 CPM per 1k reads</span>
               </div>
               <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <CheckCircle2 className="w-4 h-4 text-[#DE5227] shrink-0" />
@@ -239,7 +241,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
             </div>
           </div>
 
-          <div className="pt-4 border-t border-stone-200/80 dark:border-slate-800/80">
+          <div className="pt-4 border-t border-stone-200/80 dark:border-white/[0.08]">
             <Link
               href="/creator"
               className="btn-primary inline-flex items-center gap-2 shadow-xs hover:shadow-md"
@@ -251,7 +253,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
         </div>
 
         {/* Consumer Mobile App Card */}
-        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 space-y-5 sm:space-y-6 text-left flex flex-col justify-between">
+        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] shadow-sm hover:shadow-md dark:hover:border-white/20 dark:hover:shadow-[0_15px_35px_rgba(0,0,0,0.7)] transition-all duration-200 space-y-5 sm:space-y-6 text-left flex flex-col justify-between">
           <div className="space-y-5">
             <div className="space-y-2">
               <span className="text-xs font-mono uppercase font-bold text-content-secondary tracking-wider">
@@ -286,7 +288,7 @@ export const ProductEcosystem: React.FC<ProductEcosystemProps> = ({ onOpenAppMod
             </div>
           </div>
 
-          <div className="pt-4 border-t border-stone-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
+          <div className="pt-4 border-t border-stone-200/80 dark:border-white/[0.08] flex items-center justify-between gap-3">
             <button
               onClick={onOpenAppModal}
               className="btn-secondary inline-flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-md"

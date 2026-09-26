@@ -97,7 +97,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
     }
 
     setUploadingAvatar(true);
-    setStatusMsg('Uploading avatar to Cloudflare R2...');
+    setStatusMsg('Uploading profile image...');
 
     try {
       const uploadRes = await uploadFileToR2(file, 'profiles');
@@ -110,7 +110,7 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
         await supabase.from('users').update({ profile_image: finalUrl }).eq('id', userId);
       }
 
-      setStatusMsg('Avatar updated and synced successfully!');
+      setStatusMsg('Profile image updated and synced successfully!');
       setTimeout(() => setStatusMsg(''), 3500);
     } catch (err: any) {
       console.error('Avatar upload failed:', err);
@@ -158,8 +158,9 @@ export const CreatorBrandingTab: React.FC<CreatorBrandingTabProps> = ({
               REPORTER IDENTITY
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
-            <span className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">
-              Cloudflare R2 Synced
+            <span className="text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Media CDN Synced</span>
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 dark:text-white">

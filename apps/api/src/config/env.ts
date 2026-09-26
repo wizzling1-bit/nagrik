@@ -22,3 +22,8 @@ export const ENV = {
   // Firebase Cloud Messaging
   FCM_SERVER_KEY: process.env.FCM_SERVER_KEY || ''
 };
+
+if (ENV.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'naagrik_super_secret_jwt_key_2026_safe')) {
+  throw new Error('FATAL SECURITY ERROR: JWT_SECRET must be configured with a strong secret in production environment.');
+}
+

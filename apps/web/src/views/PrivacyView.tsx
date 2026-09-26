@@ -178,7 +178,7 @@ export const PrivacyView: React.FC = () => {
                 <span>Photo & Media Storage (<code className="font-mono text-[11px]">READ_MEDIA_IMAGES / VIDEO</code>)</span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                <strong>Why needed:</strong> Allows reporters to select and upload previously recorded news footage or documents from their phone to Cloudflare R2 secure media storage.
+                <strong>Why needed:</strong> Allows reporters to select and upload previously recorded news footage or documents from their phone to encrypted secure media storage.
               </p>
             </div>
           </div>
@@ -218,8 +218,8 @@ export const PrivacyView: React.FC = () => {
             We host data with leading enterprise infrastructure providers operating Indian edge locations:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-            <li><strong>Cloudflare R2:</strong> Encrypted object storage for news video and image assets.</li>
-            <li><strong>Supabase / PostgreSQL:</strong> Relational database storage with row-level security (RLS).</li>
+            <li><strong>Encrypted Media CDN:</strong> High-speed secure object storage for news video and image assets.</li>
+            <li><strong>Relational Database Engine:</strong> Structured data storage with cryptographic row-level security (RLS).</li>
             <li><strong>Google AdMob:</strong> Privacy-compliant ad delivery adhering to DPDP restrictions.</li>
           </ul>
         </section>

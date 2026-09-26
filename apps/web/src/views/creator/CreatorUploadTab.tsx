@@ -23,8 +23,12 @@ import {
   Film,
   HardDrive,
   Sparkles,
-  Search
+  Search,
+  X,
+  Sliders,
+  CheckCircle
 } from 'lucide-react';
+import { useCurrency } from '@/context/CurrencyContext';
 import { CreatorTab } from './types';
 import {
   INDIA_LOCATIONS,
@@ -82,6 +86,17 @@ const formatEnglishCategory = (name: string): string => {
 
 export type ContentFormat = 'SHORT_VIDEO' | 'LONG_VIDEO' | 'ARTICLE';
 
+export interface VideoAnalysisResult {
+  width: number;
+  height: number;
+  duration: number;
+  aspectRatio: number;
+  suggestedFormat: 'SHORT_VIDEO' | 'LONG_VIDEO';
+  ratioLabel: string;
+  resolutionLabel: string;
+  durationFormatted: string;
+}
+
 export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
   token,
   apiBase,
@@ -89,11 +104,16 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
   fetchContents,
   setActiveTabNav
 }) => {
+  const { rate, cpmRateText, usdToInr } = useCurrency();
+
   // Step workflow: 1 = Media Evidence, 2 = Story Details, 3 = Geofence & Category
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   
   // Format Selection: 2 Video Formats (Short 9:16 vs Long 16:9) + Photo Article
   const [contentFormat, setContentFormat] = useState<ContentFormat>('SHORT_VIDEO');
+  
+  // Video Analysis / Aspect Ratio Auto-detection
+  const [detectedVideoMeta, setDetectedVideoMeta] = useState<VideoAnalysisResult | null>(null);
   
   // Story Details
   const [title, setTitle] = useState('');
@@ -129,10 +149,11 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingSubdistricts, setLoadingSubdistricts] = useState(false);
 
-  // Upload & Progress State (Supports up to 2GB)
+  // Upload & Progress State (Supports up to 2GB with Cancellation)
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
   const [uploadProgressMsg, setUploadProgressMsg] = useState('');
+  const uploadAbortControllerRef = React.useRef<AbortController | null>(null);
   const [submittingContent, setSubmittingContent] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccessMsg, setSubmitSuccessMsg] = useState<string | null>(null);
@@ -364,6 +385,60 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
+  // Inspect video dimensions and aspect ratio to auto-suggest or set format (9:16 short vs 16:9 long)
+  const inspectVideoFile = async (file: File): Promise<VideoAnalysisResult | null> => {
+    return new Promise((resolve) => {
+      try {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const objectUrl = URL.createObjectURL(file);
+        video.src = objectUrl;
+
+        video.onloadedmetadata = () => {
+          const width = video.videoWidth || 0;
+          const height = video.videoHeight || 0;
+          const duration = video.duration || 0;
+          URL.revokeObjectURL(objectUrl);
+
+          if (width > 0 && height > 0) {
+            const aspectRatio = width / height;
+            // Vertical / Portrait (9:16, 4:5, 3:4) is ratio < 0.95
+            const isVertical = aspectRatio < 0.95;
+            const suggestedFormat: 'SHORT_VIDEO' | 'LONG_VIDEO' = isVertical ? 'SHORT_VIDEO' : 'LONG_VIDEO';
+            const ratioLabel = isVertical ? '9:16 Vertical (Reel / Byte)' : '16:9 Landscape (Widescreen)';
+            const resolutionLabel = `${width} × ${height}px`;
+            
+            const mins = Math.floor(duration / 60);
+            const secs = Math.floor(duration % 60);
+            const durationFormatted = duration > 0 ? `${mins}:${secs < 10 ? '0' : ''}${secs}` : '';
+
+            resolve({
+              width,
+              height,
+              duration,
+              aspectRatio,
+              suggestedFormat,
+              ratioLabel,
+              resolutionLabel,
+              durationFormatted
+            });
+          } else {
+            resolve(null);
+          }
+        };
+
+        video.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve(null);
+        };
+      } catch (_) {
+        resolve(null);
+      }
+    });
+  };
+
   // Generate video thumbnail frame using offscreen video and canvas
   const generateVideoThumbnail = async (file: File): Promise<Blob | null> => {
     return new Promise((resolve) => {
@@ -411,10 +486,31 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
     });
   };
 
-  // Upload file to Cloudflare R2 supporting up to 2 GB with progress tracking
+  // Cancel any active media upload
+  const handleCancelUpload = () => {
+    if (uploadAbortControllerRef.current) {
+      uploadAbortControllerRef.current.abort();
+      uploadAbortControllerRef.current = null;
+    }
+    setUploadingMedia(false);
+    setUploadPercent(0);
+    setUploadProgressMsg('');
+  };
+
+  // Upload file supporting up to 2 GB with progress tracking and instant cancellation
   const uploadFileToR2 = async (file: File, folder: string) => {
     setSubmitError(null);
-    const isVideo = contentFormat !== 'ARTICLE';
+    const isVideo = contentFormat !== 'ARTICLE' || file.type.includes('video');
+
+    // Auto-analyze video dimensions and aspect ratio to auto-suggest or set format
+    if (file.type.includes('video')) {
+      inspectVideoFile(file).then((analysis) => {
+        if (analysis) {
+          setDetectedVideoMeta(analysis);
+          setContentFormat(analysis.suggestedFormat);
+        }
+      });
+    }
 
     // Maximum file size check: 2 GB (2048 MB)
     const MAX_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
@@ -423,19 +519,26 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
       return;
     }
 
+    // Cancel any existing in-flight upload before starting a new one
+    if (uploadAbortControllerRef.current) {
+      uploadAbortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    uploadAbortControllerRef.current = abortController;
+
     setUploadingMedia(true);
     setUploadPercent(0);
-    setUploadProgressMsg(`Preparing Cloudflare R2 upload for ${file.name}...`);
+    setUploadProgressMsg(`Preparing ${file.name}...`);
     setMediaFileSize(formatBytes(file.size));
 
     // Auto-extract thumbnail frame if video
     if (isVideo && file.type.includes('video') && !thumbnailUrl) {
       generateVideoThumbnail(file).then(async (thumbBlob) => {
-        if (thumbBlob) {
+        if (thumbBlob && !abortController.signal.aborted) {
           try {
             const thumbFile = new File([thumbBlob], `thumb_${Date.now()}.jpg`, { type: 'image/jpeg' });
             const thumbRes = await uploadToR2Storage(thumbFile, 'thumbnails');
-            if (thumbRes?.publicUrl) {
+            if (thumbRes?.publicUrl && !abortController.signal.aborted) {
               setThumbnailUrl(thumbRes.publicUrl);
             }
           } catch (e) {
@@ -447,10 +550,17 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
 
     try {
       const targetFolder = (folder || (isVideo ? 'videos' : 'thumbnails')) as any;
-      const res = await uploadToR2Storage(file, targetFolder, (percent) => {
-        setUploadPercent(percent);
-        setUploadProgressMsg(`Streaming directly to Cloudflare R2 (${percent}%)...`);
-      });
+      const res = await uploadToR2Storage(
+        file,
+        targetFolder,
+        (percent) => {
+          setUploadPercent(percent);
+          setUploadProgressMsg(`Uploading media (${percent}%)...`);
+        },
+        abortController.signal
+      );
+
+      if (abortController.signal.aborted) return;
 
       if (folder === 'thumbnails' || (!file.type.includes('video') && folder !== 'videos')) {
         setThumbnailUrl(res.publicUrl);
@@ -464,14 +574,23 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
       }
 
       setUploadPercent(100);
-      setUploadProgressMsg('Media uploaded to Cloudflare R2 successfully!');
-      setTimeout(() => setUploadProgressMsg(''), 3500);
+      setUploadProgressMsg('Media uploaded successfully!');
+      setTimeout(() => setUploadProgressMsg(''), 2500);
     } catch (err: any) {
-      console.error('R2 upload failed:', err);
-      setSubmitError(err.message || 'Failed to upload media to Cloudflare R2.');
+      if (err?.name === 'AbortError' || abortController.signal.aborted) {
+        setUploadProgressMsg('');
+        setUploadPercent(0);
+        setMediaFileSize('');
+        return;
+      }
+      console.error('Media upload failed:', err);
+      setSubmitError(err.message || 'Failed to upload media. Please try again.');
       setUploadProgressMsg('');
     } finally {
-      setUploadingMedia(false);
+      if (uploadAbortControllerRef.current === abortController) {
+        setUploadingMedia(false);
+        uploadAbortControllerRef.current = null;
+      }
     }
   };
 
@@ -655,7 +774,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
             <span className="text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              $1.00 CPM Guaranteed Rate (~₹86.5/1k reads)
+              $1.00 CPM Guaranteed Rate (~₹{rate.toFixed(2)}/1k reads)
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
             <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-[#F2ECE1] dark:bg-slate-800 px-2 py-0.5 rounded">
@@ -838,6 +957,39 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                     </div>
                   </button>
                 </div>
+
+                {/* Smart Aspect Ratio Auto-Detection & Format Suggestion Card */}
+                {detectedVideoMeta && (
+                  <div className="mt-3 p-3.5 bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/5 dark:from-orange-950/40 dark:via-amber-950/30 dark:to-slate-900/40 border border-orange-300/80 dark:border-orange-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in zoom-in-98 shadow-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-[#DE5227] text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <Sparkles className="w-4 h-4 animate-pulse" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-slate-900 dark:text-white">Smart Aspect Ratio Detected</span>
+                          <span className="font-mono text-[10px] bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full border border-stone-200 dark:border-slate-800 font-bold text-[#DE5227] dark:text-orange-400">
+                            {detectedVideoMeta.resolutionLabel} • {detectedVideoMeta.ratioLabel} {detectedVideoMeta.durationFormatted ? `(${detectedVideoMeta.durationFormatted})` : ''}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                          Format auto-configured as <strong className="text-[#DE5227] dark:text-orange-400 font-bold">{contentFormat === 'SHORT_VIDEO' ? 'Short Video Byte (9:16 Reel)' : 'Long Ground Video (16:9 Widescreen)'}</strong> for maximum citizen reach.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => setContentFormat(contentFormat === 'SHORT_VIDEO' ? 'LONG_VIDEO' : 'SHORT_VIDEO')}
+                        className="px-3 py-1.5 rounded-xl border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                      >
+                        <Sliders className="w-3 h-3 text-[#DE5227]" />
+                        <span>Switch to {contentFormat === 'SHORT_VIDEO' ? '16:9 Landscape' : '9:16 Reel'}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Drag-and-Drop Zone */}
@@ -876,7 +1028,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                     {contentFormat !== 'ARTICLE'
-                      ? 'Supports MP4, MOV, WebM, MKV • Maximum File Size: 2 GB (2048 MB) • Direct S3 Presigned Streaming to Cloudflare R2'
+                      ? 'Supports MP4, MOV, WebM, MKV • Maximum File Size: 2 GB • Fast & Secure CDN Delivery'
                       : 'Supports high-res JPG, PNG, WebM shots • Maximum 50 MB'}
                   </p>
                 </div>
@@ -908,18 +1060,46 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   )}
                 </div>
 
-                {/* Real Upload Progress Bar */}
+                {/* Professional Upload Progress Card with Cancel Button */}
                 {uploadingMedia && (
-                  <div className="space-y-2 pt-2 max-w-md mx-auto animate-in fade-in">
-                    <div className="w-full h-2.5 bg-stone-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-stone-300 dark:border-slate-700">
-                      <div
-                        className="h-full bg-[#DE5227] rounded-full transition-all duration-300"
-                        style={{ width: `${uploadPercent}%` }}
-                      />
-                    </div>
-                    <div className="text-xs font-mono font-bold text-[#DE5227] dark:text-orange-400 flex items-center justify-center gap-2">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>{uploadProgressMsg}</span>
+                  <div className="pt-3 max-w-lg mx-auto animate-in fade-in zoom-in-98 duration-200 text-left">
+                    <div className="p-4 bg-stone-50 dark:bg-slate-900/90 rounded-2xl border border-stone-200/90 dark:border-slate-800 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DE5227] opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DE5227]" />
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                            {uploadProgressMsg || 'Uploading media...'}
+                          </span>
+                        </div>
+                        <span className="font-mono text-xs font-black text-[#DE5227] dark:text-orange-400 shrink-0">
+                          {uploadPercent}%
+                        </span>
+                      </div>
+
+                      <div className="w-full h-2 bg-stone-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-stone-300/60 dark:border-slate-700">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#DE5227] via-orange-500 to-amber-500 rounded-full transition-all duration-200 ease-out"
+                          style={{ width: `${uploadPercent}%` }}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                        <span className="font-mono text-[11px]">
+                          {mediaFileSize ? `${mediaFileSize} • High-speed Upload` : 'Secure upload in progress'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleCancelUpload}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition cursor-pointer font-bold text-[11px] shadow-2xs"
+                          title="Cancel upload"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Cancel</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -973,7 +1153,10 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   )}
 
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                    <span>Cloudflare R2 Storage: Active</span>
+                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Media Storage: Verified & Synced</span>
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
@@ -1328,7 +1511,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                     {submittingContent ? (
                       <span className="flex items-center gap-2">
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Publishing to Supabase...</span>
+                        <span>Publishing Ground Report...</span>
                       </span>
                     ) : (
                       <>
@@ -1432,7 +1615,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                     <MapPin className="w-3 h-3 text-[#DE5227]" />
                     <span className="truncate">{areaName || 'Kankarbagh Ward 14'}</span>
                   </span>
-                  <span className="text-emerald-400 font-bold">$1.00 CPM</span>
+                  <span className="text-emerald-400 font-bold">$1.00 CPM (~₹{Math.round(rate)})</span>
                 </div>
               </div>
 

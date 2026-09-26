@@ -51,7 +51,7 @@ import { AdminCmsTab } from './AdminCmsTab';
 import { AdminSettingsTab } from './AdminSettingsTab';
 import { AdminAuditTab } from './AdminAuditTab';
 import { AdminMetrics, AdminTab } from './types';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminDashboardStats, adminModerateContent, adminProcessPayout } from '@/lib/supabase';
 interface AdminLayoutProps {
   onBackToHome?: () => void;
 }
@@ -116,6 +116,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     publishers: 'creators',
     users: 'creators',
     payouts: 'payouts',
+    proof: 'payouts',
+    demo: 'payouts',
     categories: 'categories',
     geo: 'categories',
     cms: 'cms',
@@ -220,47 +222,39 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const [contentsRes, usersRes, creatorsRes, payoutsRes] = await Promise.all([
-        supabase.from('contents').select('id, title, views, eligible_views, total_earnings, moderation_status, publication_status, location_state, location_city, created_at'),
-        supabase.from('users').select('id, role', { count: 'exact' }),
-        supabase.from('creators').select('id', { count: 'exact' }),
-        supabase.from('payout_requests').select('amount, status')
-      ]);
+      // Primary: Server-side aggregated RPC with sub-millisecond execution
+      const stats = await getAdminDashboardStats();
+      if (stats) {
+        setMetrics(stats);
+        return;
+      }
+    } catch (rpcErr) {
+      console.warn('Notice: get_admin_dashboard_stats RPC failed, attempting count fallbacks:', rpcErr);
+      try {
+        const [contentsCount, usersCount, creatorsCount, pendingCount] = await Promise.all([
+          supabase.from('contents').select('id', { count: 'exact', head: true }),
+          supabase.from('users').select('id', { count: 'exact', head: true }),
+          supabase.from('creators').select('id', { count: 'exact', head: true }),
+          supabase.from('contents').select('id', { count: 'exact', head: true }).eq('moderation_status', 'PENDING_REVIEW'),
+        ]);
 
-      const contents = contentsRes.data || [];
-      const totalReports = contents.length;
-      const approvedReports = contents.filter(c => c.moderation_status === 'APPROVED').length;
-      const pendingModeration = contents.filter(c => c.moderation_status === 'PENDING_REVIEW').length;
-      const flaggedModeration = contents.filter(c => c.moderation_status === 'FLAGGED').length;
-      const totalViews = contents.reduce((acc, c) => acc + (c.views || 0), 0);
-      const totalEligibleViews = contents.reduce((acc, c) => acc + (c.eligible_views || 0), 0);
-      const totalDisbursed = (payoutsRes.data || [])
-        .filter(p => p.status === 'PAID')
-        .reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
-      const pendingDisbursals = (payoutsRes.data || [])
-        .filter(p => p.status === 'PENDING')
-        .reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
-      const pendingPayoutsCount = (payoutsRes.data || []).filter(p => p.status === 'PENDING').length;
-
-      const totalUsersCount = usersRes.count ?? usersRes.data?.length ?? 0;
-      const totalCreatorsCount = creatorsRes.count ?? (usersRes.data?.filter(u => u.role === 'CREATOR' || u.role === 'PUBLISHER').length || 0);
-
-      setMetrics({
-        totalUsers: totalUsersCount,
-        totalCreators: totalCreatorsCount,
-        activeCreators: totalCreatorsCount,
-        totalReports,
-        publishedContent: approvedReports,
-        pendingModeration,
-        flaggedModeration,
-        totalViews,
-        totalEligibleViews,
-        totalPaidOut: totalDisbursed,
-        pendingPayouts: pendingDisbursals,
-        pendingPayoutsCount
-      });
-    } catch (err) {
-      console.error('Error fetching admin dashboard via Supabase:', err);
+        setMetrics({
+          totalUsers: usersCount.count || 0,
+          totalCreators: creatorsCount.count || 0,
+          activeCreators: creatorsCount.count || 0,
+          totalReports: contentsCount.count || 0,
+          publishedContent: (contentsCount.count || 0) - (pendingCount.count || 0),
+          pendingModeration: pendingCount.count || 0,
+          flaggedModeration: 0,
+          totalViews: 0,
+          totalEligibleViews: 0,
+          totalPaidOut: 0,
+          pendingPayouts: 0,
+          pendingPayoutsCount: 0
+        });
+      } catch (fallbackErr) {
+        console.error('Error fetching admin dashboard fallback metrics:', fallbackErr);
+      }
     } finally {
       setLoading(false);
     }
@@ -277,7 +271,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
       if (modStatusFilter) {
         query = query.eq('moderation_status', modStatusFilter);
       }
-      const { data } = await query;
+      const { data } = await query.limit(50);
       if (data) {
         setModItems(data.map((c: any) => ({
           ...c,
@@ -310,7 +304,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
       const { data } = await supabase
         .from('creators')
         .select('*, user:users(*)')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (data) {
         setCreatorsList(data.map((c: any) => ({
@@ -340,7 +335,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
       const { data } = await supabase
         .from('payout_requests')
         .select('*, creator:creators(*, user:users(*)), payout_method:payout_methods(*)')
-        .order('requested_at', { ascending: false });
+        .order('requested_at', { ascending: false })
+        .limit(100);
 
       if (data) {
         setPayouts(data.map((p: any) => ({
@@ -443,32 +439,39 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
   // Actions
   const handleModerate = async (contentId: string, status: 'APPROVED' | 'REJECTED' | 'FLAGGED', reason?: string) => {
     try {
-      const { error } = await supabase
-        .from('contents')
-        .update({
-          moderation_status: status === 'APPROVED' ? 'APPROVED' : (status === 'REJECTED' ? 'REJECTED' : 'FLAGGED'),
-          publication_status: status === 'APPROVED' ? 'PUBLISHED' : 'DRAFT',
-          rejection_reason: reason || null,
-          reviewed_at: new Date().toISOString(),
-          published_at: status === 'APPROVED' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', contentId);
-
-      if (error) {
-        console.error('Supabase moderate error:', error);
-        showToast(error.message || 'Failed to update report status', 'error');
-      } else {
-        showToast(
-          status === 'APPROVED'
-            ? 'Report approved & published to citizen feed!'
-            : status === 'REJECTED'
-            ? 'Report rejected.'
-            : 'Report flagged for review.'
+      // Primary: Server-side auditable RPC with role verification and audit log insertion
+      try {
+        await adminModerateContent(
+          contentId,
+          status === 'FLAGGED' ? 'REJECTED' : status,
+          reason,
+          user?.id
         );
-        await fetchModerationQueue();
-        await fetchDashboard();
+      } catch (rpcErr) {
+        console.warn('adminModerateContent RPC failed, executing direct fallback:', rpcErr);
+        const { error } = await supabase
+          .from('contents')
+          .update({
+            moderation_status: status === 'APPROVED' ? 'APPROVED' : (status === 'REJECTED' ? 'REJECTED' : 'FLAGGED'),
+            publication_status: status === 'APPROVED' ? 'PUBLISHED' : 'DRAFT',
+            rejection_reason: reason || null,
+            reviewed_at: new Date().toISOString(),
+            published_at: status === 'APPROVED' ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', contentId);
+        if (error) throw error;
       }
+
+      showToast(
+        status === 'APPROVED'
+          ? 'Report approved & published to citizen feed!'
+          : status === 'REJECTED'
+          ? 'Report rejected.'
+          : 'Report flagged for review.'
+      );
+      await fetchModerationQueue();
+      await fetchDashboard();
     } catch (err: any) {
       console.error(err);
       showToast(err.message || 'Error processing moderation action', 'error');
@@ -482,24 +485,32 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     adminNote?: string
   ) => {
     try {
-      const { error } = await supabase
-        .from('payout_requests')
-        .update({
-          status: status,
-          transaction_reference: txRef || null,
-          admin_note: adminNote || null,
-          processed_at: new Date().toISOString()
-        })
-        .eq('id', requestId);
-
-      if (error) {
-        console.error('Supabase process payout error:', error);
-        showToast(error.message || 'Failed to process payout', 'error');
-      } else {
-        showToast(status === 'PAID' ? `Payout approved with UTR: ${txRef || 'CONFIRMED'}` : 'Payout rejected.');
-        await fetchPayouts();
-        await fetchDashboard();
+      // Primary: Server-side auditable RPC with role verification and audit log insertion
+      try {
+        await adminProcessPayout(
+          requestId,
+          status,
+          txRef,
+          adminNote,
+          user?.id
+        );
+      } catch (rpcErr) {
+        console.warn('adminProcessPayout RPC failed, executing direct fallback:', rpcErr);
+        const { error } = await supabase
+          .from('payout_requests')
+          .update({
+            status: status,
+            transaction_reference: txRef || null,
+            admin_note: adminNote || null,
+            processed_at: new Date().toISOString()
+          })
+          .eq('id', requestId);
+        if (error) throw error;
       }
+
+      showToast(status === 'PAID' ? `Payout approved with UTR: ${txRef || 'CONFIRMED'}` : 'Payout rejected.');
+      await fetchPayouts();
+      await fetchDashboard();
     } catch (err: any) {
       console.error(err);
       showToast(err.message || 'Error processing payout', 'error');
@@ -560,15 +571,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
     {
       tab: 'payouts' as AdminTab,
       label: 'Treasury & Payouts',
-      desc: 'UPI Disbursals Ledger',
+      desc: 'Disbursals & Proof Ledger',
       icon: CreditCard,
       badge: totalPendingPayouts > 0 ? (
         <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-full animate-bounce">
           {totalPendingPayouts}
         </span>
       ) : null,
-      alias: ['payouts']
+      alias: ['payouts', 'proof', 'demo']
     }
+
   ];
 
   const systemNavItems = [

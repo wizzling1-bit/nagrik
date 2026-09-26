@@ -54,17 +54,35 @@ export const BUSINESS_RULES = {
   DEFAULT_AD_FEED_FREQUENCY: 4 // insert ad every 4 content items
 };
 
-// Location Interface
+// Location Interface with LGD Hierarchy Support
 export interface ILocationData {
   country: string;
   state: string;
   city: string;
   area: string;
+  district?: string;
+  subdistrict?: string;
+  village?: string;
+  pincode?: string;
+  stateCode?: number;
+  districtCode?: number;
+  subdistrictCode?: number;
+  localBodyCode?: number;
   coordinates?: {
     latitude: number;
     longitude: number;
   };
 }
+
+export type LocationTier =
+  | 'LOCAL_AREA'
+  | 'NEARBY_AREA'
+  | 'SUB_DISTRICT'
+  | 'NEARBY_SUB_DISTRICT'
+  | 'DISTRICT'
+  | 'NEARBY_DISTRICT'
+  | 'STATE'
+  | 'NATIONAL';
 
 // User Interfaces
 export interface IUser {
@@ -121,6 +139,9 @@ export interface IContent {
   shares: number;
   saves: number;
   publishedAt?: string;
+  relevanceScore?: number;
+  locationTier?: LocationTier | string;
+  distanceKm?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -244,7 +265,7 @@ export const ModerationActionSchema = z.object({
 });
 
 export const PayoutRequestSchema = z.object({
-  amount: z.union([z.number(), z.string()]).transform((val) => typeof val === 'string' ? parseFloat(val) : val),
+  amount: z.union([z.number(), z.string()]).transform((val: string | number) => typeof val === 'string' ? parseFloat(val) : val),
   payoutMethodId: z.string().optional(),
   payoutMethod: z.string().optional(),
   details: z.record(z.any()).optional()

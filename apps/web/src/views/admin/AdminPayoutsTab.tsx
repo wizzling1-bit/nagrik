@@ -16,6 +16,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
+import { AdminDemoPayoutsManager } from './AdminDemoPayoutsManager';
 
 interface AdminPayoutsTabProps {
   payouts: any[];
@@ -33,7 +34,9 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
   fetchPayouts,
   handleProcessPayout
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'requests' | 'proof_demo'>('requests');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'PAID' | 'REJECTED'>('ALL');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
@@ -173,9 +176,58 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Header with KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1: Pending Approvals */}
+      {/* ── SUB-TAB NAVIGATION SWITCHER ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-2.5 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-1.5 p-1 bg-stone-100 dark:bg-[#0B0F17] rounded-xl border border-stone-200 dark:border-slate-800">
+          <button
+            onClick={() => setActiveSubTab('requests')}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              activeSubTab === 'requests'
+                ? 'bg-[#DE5227] text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Disbursal Requests Queue</span>
+            {metrics.pendingCount > 0 && (
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full font-mono bg-amber-500 text-slate-950 font-black animate-pulse">
+                {metrics.pendingCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveSubTab('proof_demo')}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              activeSubTab === 'proof_demo'
+                ? 'bg-[#DE5227] text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Payment Proof & Demo Data</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full font-mono bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">
+              Public Ledger
+            </span>
+          </button>
+        </div>
+
+        <div className="text-[11px] text-slate-500 dark:text-slate-400 px-3 font-mono flex items-center gap-1.5">
+          <span>Treasury Operations</span>
+          <span>•</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            {activeSubTab === 'requests' ? 'Live Creator Withdrawals' : 'Public Ledger Management'}
+          </span>
+        </div>
+      </div>
+
+      {activeSubTab === 'proof_demo' ? (
+        <AdminDemoPayoutsManager />
+      ) : (
+        <>
+          {/* 1. Header with KPIs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPI 1: Pending Approvals */}
+
         <div className="bg-white dark:bg-[#101522] border border-[#DCD1BF] dark:border-slate-800 p-5 rounded-2xl space-y-2 shadow-[0_4px_20px_-2px_rgba(30,24,16,0.08),0_1px_3px_rgba(30,24,16,0.05)] hover:border-amber-500/50 transition">
           <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
             <span className="text-[10px] font-black uppercase tracking-wider">Pending Action</span>
@@ -735,6 +787,9 @@ export const AdminPayoutsTab: React.FC<AdminPayoutsTabProps> = ({
           </div>
         </div>
       )}
+        </>
+      )}
     </div>
   );
 };
+

@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import '../../../../core/network/api_constants.dart';
+import '../../../../core/network/api_client.dart';
 
 class LgdSelectionResult {
   final int? stateCode;
@@ -39,13 +37,26 @@ class LgdSelectionResult {
 
 class LgdCascadingSheet extends StatefulWidget {
   final Function(LgdSelectionResult selection) onSelected;
+  final ApiClient? apiClient;
 
   const LgdCascadingSheet({
     super.key,
     required this.onSelected,
+    this.apiClient,
   });
 
-  static Future<LgdSelectionResult?> show(BuildContext context) {
+  static List<Map<String, dynamic>>? _statesCache;
+  static final Map<int, List<Map<String, dynamic>>> _districtsCache = {};
+  static final Map<int, List<Map<String, dynamic>>> _subdistrictsCache = {};
+
+  /// Clears in-memory caches. Useful in tests or when refreshing administrative data.
+  static void clearCache() {
+    _statesCache = null;
+    _districtsCache.clear();
+    _subdistrictsCache.clear();
+  }
+
+  static Future<LgdSelectionResult?> show(BuildContext context, {ApiClient? apiClient}) {
     return showModalBottomSheet<LgdSelectionResult>(
       context: context,
       isScrollControlled: true,
@@ -53,6 +64,7 @@ class LgdCascadingSheet extends StatefulWidget {
       builder: (ctx) => FractionallySizedBox(
         heightFactor: 0.85,
         child: LgdCascadingSheet(
+          apiClient: apiClient,
           onSelected: (res) {
             Navigator.of(ctx).pop(res);
           },
@@ -70,6 +82,7 @@ class _LgdCascadingSheetState extends State<LgdCascadingSheet> {
   bool _isLoading = false;
   String _searchQuery = '';
   final TextEditingController _searchCtrl = TextEditingController();
+  late final ApiClient _apiClient = widget.apiClient ?? ApiClient();
 
   // Selected values
   int? _selectedStateCode;
@@ -100,81 +113,138 @@ class _LgdCascadingSheetState extends State<LgdCascadingSheet> {
     super.dispose();
   }
 
-  Map<String, String> get _headers => {
-        'apikey': ApiConstants.supabaseAnonKey,
-        'Authorization': 'Bearer ${ApiConstants.supabaseAnonKey}',
-        'Content-Type': 'application/json',
-      };
-
   Future<void> _fetchStates() async {
+    if (LgdCascadingSheet._statesCache != null && LgdCascadingSheet._statesCache!.isNotEmpty) {
+      setState(() {
+        _states = LgdCascadingSheet._statesCache!;
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      final url = Uri.parse(
-          '${ApiConstants.supabaseUrl}/rest/v1/lgd_states?select=state_code,state_name&order=state_name.asc');
-      final res = await http.get(url, headers: _headers);
-      if (res.statusCode == 200) {
-        final List data = jsonDecode(res.body);
-        setState(() {
-          _states = data.cast<Map<String, dynamic>>();
-          _isLoading = false;
-        });
+      final res = await _apiClient.get(
+        '/lgd_states',
+        queryParameters: {
+          'select': 'state_code,state_name',
+          'order': 'state_name.asc',
+        },
+      );
+      if (res is List) {
+        final data = res.cast<Map<String, dynamic>>();
+        LgdCascadingSheet._statesCache = data;
+        if (mounted) {
+          setState(() {
+            _states = data;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (_) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _fetchDistricts(int stateCode) async {
+    if (LgdCascadingSheet._districtsCache.containsKey(stateCode)) {
+      setState(() {
+        _districts = LgdCascadingSheet._districtsCache[stateCode]!;
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      final url = Uri.parse(
-          '${ApiConstants.supabaseUrl}/rest/v1/lgd_districts?state_code=eq.$stateCode&select=district_code,district_name&order=district_name.asc');
-      final res = await http.get(url, headers: _headers);
-      if (res.statusCode == 200) {
-        final List data = jsonDecode(res.body);
-        setState(() {
-          _districts = data.cast<Map<String, dynamic>>();
-          _isLoading = false;
-        });
+      final res = await _apiClient.get(
+        '/lgd_districts',
+        queryParameters: {
+          'state_code': 'eq.$stateCode',
+          'select': 'district_code,district_name',
+          'order': 'district_name.asc',
+        },
+      );
+      if (res is List) {
+        final data = res.cast<Map<String, dynamic>>();
+        LgdCascadingSheet._districtsCache[stateCode] = data;
+        if (mounted) {
+          setState(() {
+            _districts = data;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (_) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _fetchSubdistricts(int districtCode) async {
+    if (LgdCascadingSheet._subdistrictsCache.containsKey(districtCode)) {
+      setState(() {
+        _subdistricts = LgdCascadingSheet._subdistrictsCache[districtCode]!;
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      final url = Uri.parse(
-          '${ApiConstants.supabaseUrl}/rest/v1/lgd_subdistricts?district_code=eq.$districtCode&select=subdistrict_code,subdistrict_name&order=subdistrict_name.asc');
-      final res = await http.get(url, headers: _headers);
-      if (res.statusCode == 200) {
-        final List data = jsonDecode(res.body);
-        setState(() {
-          _subdistricts = data.cast<Map<String, dynamic>>();
-          _isLoading = false;
-        });
+      final res = await _apiClient.get(
+        '/lgd_subdistricts',
+        queryParameters: {
+          'district_code': 'eq.$districtCode',
+          'select': 'subdistrict_code,subdistrict_name',
+          'order': 'subdistrict_name.asc',
+        },
+      );
+      if (res is List) {
+        final data = res.cast<Map<String, dynamic>>();
+        LgdCascadingSheet._subdistrictsCache[districtCode] = data;
+        if (mounted) {
+          setState(() {
+            _subdistricts = data;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (_) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _fetchLocalBodies(int districtCode) async {
     setState(() => _isLoading = true);
     try {
-      final url = Uri.parse(
-          '${ApiConstants.supabaseUrl}/rest/v1/lgd_local_bodies?district_code=eq.$districtCode&select=local_body_code,local_body_name,pincode&order=local_body_name.asc&limit=150');
-      final res = await http.get(url, headers: _headers);
-      if (res.statusCode == 200) {
-        final List data = jsonDecode(res.body);
-        setState(() {
-          _localBodies = data.cast<Map<String, dynamic>>();
-          _isLoading = false;
-        });
+      final res = await _apiClient.get(
+        '/lgd_local_bodies',
+        queryParameters: {
+          'district_code': 'eq.$districtCode',
+          'select': 'local_body_code,local_body_name,pincode',
+          'order': 'local_body_name.asc',
+          'limit': '150',
+        },
+      );
+      if (res is List) {
+        final data = res.cast<Map<String, dynamic>>();
+        if (mounted) {
+          setState(() {
+            _localBodies = data;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (_) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -322,26 +392,28 @@ class _LgdCascadingSheetState extends State<LgdCascadingSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _stepTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _stepTitle,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Official Indian LGD Hierarchy (Step $_currentStep of 4)',
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
+                      const SizedBox(height: 2),
+                      Text(
+                        'Official Indian LGD Hierarchy (Step $_currentStep of 4)',
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 if (_currentStep > 1)
                   TextButton.icon(
@@ -466,46 +538,49 @@ class _LgdCascadingSheetState extends State<LgdCascadingSheet> {
                           final title = _getTitle(item);
                           final subtitle = _getSubtitle(item);
 
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-                            title: Text(
-                              title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                          return Material(
+                            color: Colors.transparent,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                              title: Text(
+                                title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
+                              subtitle: subtitle != null
+                                  ? Text(
+                                      subtitle,
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 12,
+                                      ),
+                                    )
+                                  : null,
+                              trailing: const Icon(
+                                Icons.chevron_right,
+                                color: Colors.white24,
+                                size: 18,
+                              ),
+                              onTap: () {
+                                switch (_currentStep) {
+                                  case 1:
+                                    _onStateTapped(item);
+                                    break;
+                                  case 2:
+                                    _onDistrictTapped(item);
+                                    break;
+                                  case 3:
+                                    _onSubdistrictTapped(item);
+                                    break;
+                                  case 4:
+                                    _onLocalBodyTapped(item);
+                                    break;
+                                }
+                              },
                             ),
-                            subtitle: subtitle != null
-                                ? Text(
-                                    subtitle,
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 12,
-                                    ),
-                                  )
-                                : null,
-                            trailing: const Icon(
-                              Icons.chevron_right,
-                              color: Colors.white24,
-                              size: 18,
-                            ),
-                            onTap: () {
-                              switch (_currentStep) {
-                                case 1:
-                                  _onStateTapped(item);
-                                  break;
-                                case 2:
-                                  _onDistrictTapped(item);
-                                  break;
-                                case 3:
-                                  _onSubdistrictTapped(item);
-                                  break;
-                                case 4:
-                                  _onLocalBodyTapped(item);
-                                  break;
-                              }
-                            },
                           );
                         },
                       ),

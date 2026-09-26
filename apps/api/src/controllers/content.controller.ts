@@ -13,6 +13,7 @@ import {
   CmsDb
 } from '../db/supabaseClient';
 import { ModerationStatus, UserRole } from '@naagrik/shared-types';
+import { CacheService } from '../services/cache.service';
 
 export class ContentController {
   /**
@@ -46,7 +47,13 @@ export class ContentController {
    */
   static async getCategories(req: AuthRequest, res: Response) {
     try {
+      const cached = CacheService.get('categories:list');
+      if (cached) {
+        return res.json({ success: true, categories: cached });
+      }
+
       const categories = await CategoriesDb.list();
+      CacheService.set('categories:list', categories, 300);
       return res.json({ success: true, categories });
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message });
@@ -58,7 +65,13 @@ export class ContentController {
    */
   static async getLocations(req: AuthRequest, res: Response) {
     try {
+      const cached = CacheService.get('locations:list');
+      if (cached) {
+        return res.json({ success: true, locations: cached });
+      }
+
       const locations = await LocationsDb.list();
+      CacheService.set('locations:list', locations, 300);
       return res.json({ success: true, locations });
     } catch (error: any) {
       return res.status(500).json({ success: false, error: error.message });
@@ -153,6 +166,8 @@ export class ContentController {
         publicationStatus: 'PUBLISHED'
       });
 
+      CacheService.invalidatePrefix('feed:');
+
       return res.status(201).json({
         success: true,
         content,
@@ -170,18 +185,59 @@ export class ContentController {
    */
   static async getFeed(req: AuthRequest, res: Response) {
     try {
-      const { country, state, city, area, categorySlug, contentType, page, limit } = req.query;
+      const {
+        country,
+        state,
+        city,
+        district,
+        subdistrict,
+        village,
+        area,
+        pincode,
+        lat,
+        lng,
+        stateCode,
+        districtCode,
+        subdistrictCode,
+        localBodyCode,
+        categoryId,
+        categorySlug,
+        contentType,
+        page,
+        limit,
+        cursor
+      } = req.query;
+
+      const cacheKey = `feed:${stateCode || ''}_${districtCode || ''}_${subdistrictCode || ''}_${localBodyCode || ''}_${city || ''}_${categoryId || ''}_${categorySlug || ''}_${contentType || ''}_${page || 1}_${limit || 20}`;
+      const cached = CacheService.get(cacheKey);
+      if (cached) {
+        return res.json({ success: true, ...cached });
+      }
 
       const feed = await FeedService.getFeed({
         country: country as string,
         state: state as string,
         city: city as string,
+        district: district as string,
+        subdistrict: subdistrict as string,
+        village: village as string,
         area: area as string,
+        pincode: pincode as string,
+        lat: lat ? parseFloat(lat as string) : undefined,
+        lng: lng ? parseFloat(lng as string) : undefined,
+        stateCode: stateCode ? parseInt(stateCode as string, 10) : undefined,
+        districtCode: districtCode ? parseInt(districtCode as string, 10) : undefined,
+        subdistrictCode: subdistrictCode ? parseInt(subdistrictCode as string, 10) : undefined,
+        localBodyCode: localBodyCode ? parseInt(localBodyCode as string, 10) : undefined,
+        categoryId: categoryId as string,
         categorySlug: categorySlug as string,
         contentType: contentType as any,
-        page: page ? parseInt(page as string) : 1,
-        limit: limit ? parseInt(limit as string) : 20
+        page: page ? parseInt(page as string, 10) : 1,
+        limit: limit ? parseInt(limit as string, 10) : 20,
+        cursor: cursor as string
       });
+
+      CacheService.set(cacheKey, feed, 45);
 
       return res.json({ success: true, ...feed });
     } catch (error: any) {

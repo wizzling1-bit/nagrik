@@ -53,8 +53,8 @@ export async function getR2UploadUrl(
     }
   } catch (_) {}
 
-  // 3. Fallback: Deterministic Cloudflare R2 Public URL
-  const r2PublicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || 'https://pub-421d616c2d3b4a94a05ad9bcbcb00380.r2.dev';
+  // 3. Fallback: Deterministic Cloudflare R2 / Custom CDN Public URL
+  const r2PublicBase = process.env.NEXT_PUBLIC_CDN_URL || process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || 'https://media.nagrik.news';
   const timestamp = Date.now();
   const randomSuffix = Math.random().toString(36).substring(2, 9);
   const key = `${folder}/${timestamp}-${randomSuffix}.${fileExtension}`;
@@ -70,13 +70,20 @@ export async function getR2UploadUrl(
 }
 
 /**
- * Direct File Uploader to Cloudflare R2 via Presigned PUT with /api/upload-direct fallback
+ * Direct File Uploader to CDN Media Storage via Presigned PUT with /api/upload-direct fallback
  */
 export async function uploadFileToR2(
   file: File | Blob,
   folder: 'images' | 'videos' | 'thumbnails' | 'profiles' = 'videos',
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
+  signal?: AbortSignal
 ): Promise<{ mediaUrl: string; publicUrl: string; key: string }> {
+  if (signal?.aborted) {
+    const abortErr = new Error('Upload cancelled');
+    abortErr.name = 'AbortError';
+    throw abortErr;
+  }
+
   const extension = file instanceof File ? (file.name.split('.').pop() || 'bin') : 'bin';
   const mimeType = file.type || 'application/octet-stream';
 
@@ -88,6 +95,24 @@ export async function uploadFileToR2(
         const xhr = new XMLHttpRequest();
         xhr.open('PUT', presignData.uploadUrl, true);
         xhr.setRequestHeader('Content-Type', mimeType);
+
+        if (signal) {
+          if (signal.aborted) {
+            xhr.abort();
+            const abortErr = new Error('Upload cancelled');
+            abortErr.name = 'AbortError';
+            return reject(abortErr);
+          }
+          signal.addEventListener('abort', () => {
+            xhr.abort();
+          });
+        }
+
+        xhr.onabort = () => {
+          const abortErr = new Error('Upload cancelled');
+          abortErr.name = 'AbortError';
+          reject(abortErr);
+        };
 
         if (xhr.upload && onProgress) {
           xhr.upload.onprogress = (e) => {
@@ -103,11 +128,11 @@ export async function uploadFileToR2(
             if (onProgress) onProgress(100);
             resolve();
           } else {
-            reject(new Error(`Cloudflare R2 PUT failed with HTTP status ${xhr.status}`));
+            reject(new Error(`Direct media upload failed with HTTP status ${xhr.status}`));
           }
         };
 
-        xhr.onerror = () => reject(new Error('Network or CORS error uploading to Cloudflare R2 presigned URL'));
+        xhr.onerror = () => reject(new Error('Network error during media upload'));
         xhr.send(file);
       });
 
@@ -117,36 +142,86 @@ export async function uploadFileToR2(
         key: presignData.key
       };
     }
-  } catch (putErr) {
-    console.warn('Presigned PUT failed or unavailable, using /api/upload-direct:', putErr);
+  } catch (putErr: any) {
+    if (putErr?.name === 'AbortError' || signal?.aborted) {
+      throw putErr;
+    }
+    console.warn('Direct presigned streaming notice, falling back to server ingestion pipeline:', putErr);
   }
 
-  // Strategy 2: Direct Server Upload via /api/upload-direct (100% immune to CORS)
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('folder', folder);
+  if (signal?.aborted) {
+    const abortErr = new Error('Upload cancelled');
+    abortErr.name = 'AbortError';
+    throw abortErr;
+  }
 
-  const token = typeof window !== 'undefined' ? (localStorage.getItem('creator_token') || localStorage.getItem('auth_token')) : '';
-  const res = await fetch('/api/upload-direct', {
-    method: 'POST',
-    headers: {
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-    },
-    body: formData
+  // Strategy 2: Direct Server Upload via /api/upload-direct (with full progress & cancellation support)
+  return new Promise<{ mediaUrl: string; publicUrl: string; key: string }>((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/upload-direct', true);
+
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('creator_token') || localStorage.getItem('auth_token')) : '';
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    if (signal) {
+      if (signal.aborted) {
+        xhr.abort();
+        const abortErr = new Error('Upload cancelled');
+        abortErr.name = 'AbortError';
+        return reject(abortErr);
+      }
+      signal.addEventListener('abort', () => {
+        xhr.abort();
+      });
+    }
+
+    xhr.onabort = () => {
+      const abortErr = new Error('Upload cancelled');
+      abortErr.name = 'AbortError';
+      reject(abortErr);
+    };
+
+    if (xhr.upload && onProgress) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          onProgress(percent);
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (onProgress) onProgress(100);
+          resolve({
+            mediaUrl: data.publicUrl,
+            publicUrl: data.publicUrl,
+            key: data.key
+          });
+        } catch (e) {
+          reject(new Error('Invalid response from media server'));
+        }
+      } else {
+        try {
+          const errData = JSON.parse(xhr.responseText);
+          reject(new Error(errData.error || `Upload failed with status ${xhr.status}`));
+        } catch {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error during media upload'));
+    xhr.send(formData);
   });
-
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || `Upload failed with status ${res.status}`);
-  }
-
-  const data = await res.json();
-  if (onProgress) onProgress(100);
-  return {
-    mediaUrl: data.publicUrl,
-    publicUrl: data.publicUrl,
-    key: data.key
-  };
 }
 
 /**
@@ -228,3 +303,13 @@ export async function getCreatorDashboardStats(creatorId: string) {
   }
   return data;
 }
+
+export async function getAdminDashboardStats() {
+  const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
+  if (error) {
+    console.error('get_admin_dashboard_stats RPC error:', error);
+    throw error;
+  }
+  return data;
+}
+

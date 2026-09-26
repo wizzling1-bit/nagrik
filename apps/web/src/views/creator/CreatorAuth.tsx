@@ -30,6 +30,7 @@ import { NagrikLogo } from '../../components/NagrikLogo';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useCurrency } from '../../context/CurrencyContext';
 import { useNavigate } from '../../utils/navCompat';
 
 interface CreatorAuthProps {
@@ -47,6 +48,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
 }) => {
   const { login, signInWithSupabase, signUpWithSupabase, user, isAuthenticated, isLoading } = useAuth();
   const { language, toggleLanguage } = useLanguage();
+  const { rate, usdToInr } = useCurrency();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -150,13 +152,13 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F4EFE6] dark:bg-[#070A12] text-slate-900 dark:text-slate-100 flex flex-col justify-center items-center p-3 sm:p-6 lg:p-10 font-sans relative overflow-hidden transition-colors duration-300 selection:bg-[#DE5227] selection:text-white">
+    <div className="min-h-screen bg-[#F4EFE6] dark:bg-[#080B10] text-slate-900 dark:text-slate-100 flex flex-col justify-center items-center p-3 sm:p-6 lg:p-10 font-sans relative overflow-hidden transition-colors duration-300 selection:bg-[#DE5227] selection:text-white">
       
       {/* ── AMBIENT ATMOSPHERIC BACKGROUND (SLOW, CINEMATIC, GPU-FRIENDLY) ── */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
         {/* Soft Warm Radial Illumination */}
-        <div className="absolute top-[-10%] left-[-5%] w-[650px] h-[650px] bg-gradient-to-tr from-[#DE5227]/12 via-[#F5EAE0]/25 to-transparent rounded-full blur-3xl dark:from-[#DE5227]/15 dark:via-slate-900/10 transition-opacity duration-1000" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[700px] h-[700px] bg-gradient-to-tl from-[#DE5227]/10 via-[#EADBCC]/20 to-transparent rounded-full blur-3xl dark:from-slate-900/40 dark:via-orange-950/15" />
+        <div className="absolute top-[-10%] left-[-5%] w-[650px] h-[650px] bg-gradient-to-tr from-[#DE5227]/12 via-[#F5EAE0]/25 to-transparent rounded-full blur-3xl dark:from-[#FF5A26]/12 dark:via-transparent transition-opacity duration-1000" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[700px] h-[700px] bg-gradient-to-tl from-[#DE5227]/10 via-[#EADBCC]/20 to-transparent rounded-full blur-3xl dark:from-black dark:via-orange-950/10" />
         
         {/* Subtle Topographical Elevation Grid */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.035] dark:opacity-[0.03] text-slate-900 dark:text-white" xmlns="http://www.w3.org/2000/svg">
@@ -171,7 +173,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
       </div>
 
       {/* ── MAIN AUTHENTICATION CONTAINER (SPLIT-SCREEN HERO) ── */}
-      <div className="w-full max-w-5xl bg-[#FAF8F5] dark:bg-[#101726] rounded-3xl sm:rounded-[2.5rem] shadow-2xl dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] border border-stone-200/90 dark:border-slate-800/90 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[660px] relative z-10 transition-all duration-300">
+      <div className="w-full max-w-5xl bg-[#FAF8F5] dark:bg-[#0D121D] rounded-3xl sm:rounded-[2.5rem] shadow-2xl dark:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.95),0_0_0_1px_rgba(255,255,255,0.08)] border border-stone-200/90 dark:border-white/10 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[660px] relative z-10 transition-all duration-300">
         
         {/* ════════════════════════════════════════════════════════════════════
             LEFT COLUMN: INTERACTIVE AUTHENTICATION FORM (7 Cols Desktop)
@@ -187,7 +189,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                   className="group flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition cursor-pointer"
                   title="Back to Public Home Feed"
                 >
-                  <div className="w-8 h-8 rounded-full border border-stone-200 dark:border-slate-700 group-hover:border-stone-400 dark:group-hover:border-slate-500 group-hover:bg-stone-100 dark:group-hover:bg-slate-800 flex items-center justify-center transition shadow-2xs">
+                  <div className="w-8 h-8 rounded-full border border-stone-200 dark:border-white/10 group-hover:border-stone-400 dark:group-hover:border-white/25 group-hover:bg-stone-100 dark:group-hover:bg-white/[0.06] flex items-center justify-center transition shadow-2xs">
                     <ArrowLeft className="w-3.5 h-3.5 transition group-hover:-translate-x-0.5 text-slate-700 dark:text-slate-300" />
                   </div>
                   <span className="hidden sm:inline font-serif font-semibold">
@@ -200,7 +202,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="w-8 h-8 rounded-full border border-stone-200 dark:border-slate-700 hover:border-[#DE5227]/50 hover:bg-stone-100 dark:hover:bg-slate-800 flex items-center justify-center transition shadow-2xs text-slate-700 dark:text-slate-300 cursor-pointer"
+                className="w-8 h-8 rounded-full border border-stone-200 dark:border-white/10 hover:border-[#DE5227]/50 dark:hover:border-white/25 hover:bg-stone-100 dark:hover:bg-white/[0.06] flex items-center justify-center transition shadow-2xs text-slate-700 dark:text-slate-300 cursor-pointer"
                 title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 aria-label="Toggle theme"
               >
@@ -215,7 +217,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
               <button
                 type="button"
                 onClick={toggleLanguage}
-                className="px-2.5 py-1 rounded-full border border-stone-200 dark:border-slate-700 hover:border-[#DE5227]/50 hover:bg-stone-100 dark:hover:bg-slate-800 flex items-center gap-1 transition shadow-2xs text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                className="px-2.5 py-1 rounded-full border border-stone-200 dark:border-white/10 hover:border-[#DE5227]/50 dark:hover:border-white/25 hover:bg-stone-100 dark:hover:bg-white/[0.06] flex items-center gap-1 transition shadow-2xs text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                 title="Change language / भाषा बदलें"
               >
                 <Globe className="w-3 h-3 text-slate-500" />
@@ -224,13 +226,13 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
             </div>
 
             {/* Continuous Segmented Sliding Mode Switcher */}
-            <div className="bg-stone-200/70 dark:bg-slate-900/80 p-1 rounded-full flex items-center text-xs font-bold border border-stone-300/80 dark:border-slate-800 shadow-inner">
+            <div className="bg-stone-200/70 dark:bg-black/40 p-1 rounded-full flex items-center text-xs font-bold border border-stone-300/80 dark:border-white/10 shadow-inner">
               <button
                 type="button"
                 onClick={() => handleModeSwitch(false)}
                 className={`px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer font-serif ${
                   !isRegister
-                    ? 'bg-[#FAF8F5] dark:bg-[#162032] text-slate-950 dark:text-white shadow-xs font-black'
+                    ? 'bg-[#FAF8F5] dark:bg-[#161F30] text-slate-950 dark:text-white dark:border dark:border-white/10 shadow-xs font-black'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
@@ -266,8 +268,8 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-md">
               {isRegister
                 ? (language === 'hi'
-                    ? 'नागरिक के हाइपरलोकल नेटवर्क से जुड़ें एवं $1.00 सीपीएम (~₹86) दर से सत्यापित व्यूज पर सीधे यूपीआई में कमाई करें।'
-                    : 'Join our verified hyperlocal journalism network. Monetize reads at flat $1.00 CPM (~₹86) with direct UPI disbursals.')
+                    ? `नागरिक के हाइपरलोकल नेटवर्क से जुड़ें एवं $1.00 सीपीएम (~₹${Math.round(rate)}) दर से सत्यापित व्यूज पर सीधे यूपीआई में कमाई करें।`
+                    : `Join our verified hyperlocal journalism network. Monetize reads at flat $1.00 CPM (~₹${rate.toFixed(2)}) with direct UPI disbursals.`)
                 : (language === 'hi'
                     ? 'अपने क्रिएटर स्टूडियो या एडमिन कमांड सेंटर में प्रवेश करने के लिए अपनी साख दर्ज करें।'
                     : 'Enter your credentials to access your Publisher Studio, Admin Command Center, or Citizen Account.')}
@@ -301,7 +303,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                 <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase font-mono tracking-wider">
                   {language === 'hi' ? 'पूरा नाम' : 'Full Name'} <span className="text-[#DE5227]">*</span>
                 </label>
-                <div className="relative bg-white dark:bg-[#0B0F17] border border-stone-200/90 dark:border-slate-800 rounded-2xl px-3.5 py-3 flex items-center focus-within:border-[#DE5227] focus-within:ring-2 focus-within:ring-[#DE5227]/20 transition shadow-2xs">
+                <div className="relative bg-white dark:bg-[#080B10] border border-stone-200/90 dark:border-white/10 rounded-2xl px-3.5 py-3 flex items-center focus-within:border-[#DE5227] dark:focus-within:border-[#FF5A26] focus-within:ring-2 focus-within:ring-[#DE5227]/20 transition shadow-2xs">
                   <User className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
                   <input
                     type="text"
@@ -323,7 +325,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
               <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase font-mono tracking-wider">
                 {language === 'hi' ? 'ईमेल पता' : 'Email Address'} <span className="text-[#DE5227]">*</span>
               </label>
-              <div className="relative bg-white dark:bg-[#0B0F17] border border-stone-200/90 dark:border-slate-800 rounded-2xl px-3.5 py-3 flex items-center focus-within:border-[#DE5227] focus-within:ring-2 focus-within:ring-[#DE5227]/20 transition shadow-2xs">
+              <div className="relative bg-white dark:bg-[#080B10] border border-stone-200/90 dark:border-white/10 rounded-2xl px-3.5 py-3 flex items-center focus-within:border-[#DE5227] dark:focus-within:border-[#FF5A26] focus-within:ring-2 focus-within:ring-[#DE5227]/20 transition shadow-2xs">
                 <Mail className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
                 <input
                   type="email"
@@ -349,14 +351,14 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                   <button
                     type="button"
                     onClick={() => setAuthError(language === 'hi' ? 'पासवर्ड रीसेट लिंक आपके पंजीकृत ईमेल पर भेजा जाएगा।' : 'Password reset link will be sent to your registered email.')}
-                    className="text-[11px] text-slate-500 hover:text-[#DE5227] font-bold transition cursor-pointer font-mono"
+                    className="text-[11px] text-slate-500 hover:text-[#DE5227] dark:hover:text-[#FF5A26] font-bold transition cursor-pointer font-mono"
                   >
                     {language === 'hi' ? 'पासवर्ड भूल गए?' : 'Forgot password?'}
                   </button>
                 )}
               </div>
 
-              <div className="relative bg-white dark:bg-[#0B0F17] border border-stone-200/90 dark:border-slate-800 rounded-2xl px-3.5 py-3 flex items-center focus-within:border-[#DE5227] focus-within:ring-2 focus-within:ring-[#DE5227]/20 transition shadow-2xs">
+              <div className="relative bg-white dark:bg-[#080B10] border border-stone-200/90 dark:border-white/10 rounded-2xl px-3.5 py-3 flex items-center focus-within:border-[#DE5227] dark:focus-within:border-[#FF5A26] focus-within:ring-2 focus-within:ring-[#DE5227]/20 transition shadow-2xs">
                 <Lock className="w-4 h-4 text-slate-400 shrink-0 mr-2.5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -392,9 +394,9 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 h-1.5">
-                    <div className={`rounded-full transition-all duration-300 ${strengthScore >= 1 ? (strengthScore === 1 ? 'bg-rose-500' : strengthScore === 2 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-stone-200 dark:bg-slate-800'}`} />
-                    <div className={`rounded-full transition-all duration-300 ${strengthScore >= 2 ? (strengthScore === 2 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-stone-200 dark:bg-slate-800'}`} />
-                    <div className={`rounded-full transition-all duration-300 ${strengthScore === 3 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-slate-800'}`} />
+                    <div className={`rounded-full transition-all duration-300 ${strengthScore >= 1 ? (strengthScore === 1 ? 'bg-rose-500' : strengthScore === 2 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-stone-200 dark:bg-white/10'}`} />
+                    <div className={`rounded-full transition-all duration-300 ${strengthScore >= 2 ? (strengthScore === 2 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-stone-200 dark:bg-white/10'}`} />
+                    <div className={`rounded-full transition-all duration-300 ${strengthScore === 3 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-white/10'}`} />
                   </div>
                 </div>
 
@@ -489,7 +491,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
           </form>
 
           {/* Micro Footer Policy Links */}
-          <div className="pt-4 border-t border-stone-200/80 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <div className="pt-4 border-t border-stone-200/80 dark:border-white/10 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-3">
               <Link href="/terms" className="hover:text-slate-900 dark:hover:text-white transition">Terms</Link>
               <span>•</span>
@@ -504,12 +506,12 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════
-            RIGHT COLUMN: CINEMATIC BRAND SHOWCASE (5 Cols Desktop - Dark Navy)
+            RIGHT COLUMN: CINEMATIC BRAND SHOWCASE (5 Cols Desktop - Dark Obsidian)
             ════════════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-5 relative bg-[#090E1A] dark:bg-[#070B14] p-8 sm:p-10 flex flex-col justify-between overflow-hidden hidden lg:flex text-white border-l border-slate-800">
+        <div className="lg:col-span-5 relative bg-[#090E1A] dark:bg-[#07090F] p-8 sm:p-10 flex flex-col justify-between overflow-hidden hidden lg:flex text-white border-l border-stone-200/80 dark:border-white/10">
           
           {/* Subtle Warm Amber Atmospheric Illumination */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[#DE5227]/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF5A26]/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-orange-950/20 rounded-full blur-3xl pointer-events-none" />
 
           {/* Top Row: Nagrik Creator Studio Identity & Telemetry Chip */}
@@ -522,7 +524,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-white text-[10px] font-mono font-bold shadow-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 dark:bg-black/60 border border-slate-700 dark:border-white/15 text-white text-[10px] font-mono font-bold shadow-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>LIVE • 5KM WIRE</span>
             </div>
@@ -533,7 +535,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
             
             {/* Editorial Statement */}
             <div className="space-y-1">
-              <div className="text-[10px] font-mono font-bold tracking-widest text-[#DE5227] uppercase">
+              <div className="text-[10px] font-mono font-bold tracking-widest text-[#FF5A26] uppercase">
                 Hyperlocal Contributor Economy
               </div>
               <h3 className="text-xl font-bold font-serif text-white leading-snug">
@@ -542,7 +544,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
             </div>
 
             {/* Live Financial & Audience Ledger Card */}
-            <div className="bg-[#121927]/95 backdrop-blur-xl text-white rounded-3xl p-5 shadow-2xl border border-slate-700/80 space-y-3.5">
+            <div className="bg-[#101624]/95 dark:bg-[#0D121D]/95 backdrop-blur-xl text-white rounded-3xl p-5 shadow-2xl border border-slate-700/80 dark:border-white/10 space-y-3.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -556,14 +558,14 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
               </div>
 
               <div className="text-3xl font-black font-serif tracking-tight text-white flex items-baseline gap-2">
-                <span>₹8,600.00</span>
+                <span>₹{(100 * rate).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 <span className="text-xs font-mono font-normal text-slate-400">($100.00 USD)</span>
               </div>
 
-              <div className="p-3 bg-[#0B0F17] rounded-2xl border border-slate-800 space-y-2">
+              <div className="p-3 bg-[#0B0F17] dark:bg-[#070A10] rounded-2xl border border-slate-800 dark:border-white/[0.08] space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">Contributor Flat CPM</span>
-                  <span className="text-brand-400 font-mono font-bold">$1.00 CPM (~₹86 / 1k)</span>
+                  <span className="text-brand-400 font-mono font-bold">$1.00 CPM (~₹{rate.toFixed(2)} / 1k)</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">Disbursal Method</span>
@@ -577,9 +579,9 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
             </div>
 
             {/* Proof Benefit Capsule */}
-            <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-4 text-xs leading-relaxed space-y-1.5">
+            <div className="bg-slate-900/80 dark:bg-black/40 backdrop-blur-md border border-slate-800 dark:border-white/[0.08] rounded-2xl p-4 text-xs leading-relaxed space-y-1.5">
               <div className="font-bold text-sm text-white font-serif flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#DE5227]" />
+                <ShieldCheck className="w-4 h-4 text-[#FF5A26]" />
                 <span>{language === 'hi' ? '100% सामग्री स्वामित्व' : 'Zero Escrow & 100% Contributor IP'}</span>
               </div>
               <p className="text-slate-400 font-normal">

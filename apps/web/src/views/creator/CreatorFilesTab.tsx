@@ -24,6 +24,7 @@ import {
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { Pagination } from '../../components/Pagination';
 import { supabase } from '@/lib/supabase';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface CreatorFilesTabProps {
   contents: any[];
@@ -40,6 +41,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
   fetchContents,
   fetchDashboard
 }) => {
+  const { rate, usdToInr } = useCurrency();
   const [filesSearch, setFilesSearch] = useState('');
   const [filesStatusFilter, setFilesStatusFilter] = useState<'ALL' | 'APPROVED' | 'PENDING_REVIEW' | 'REJECTED' | 'VIDEO' | 'ARTICLE'>('ALL');
   const [selectedPreviewStory, setSelectedPreviewStory] = useState<any | null>(null);
@@ -176,7 +178,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
   const approvedCount = contents.filter(c => c.moderationStatus === 'APPROVED' || c.publicationStatus === 'PUBLISHED').length;
   const pendingCount = contents.filter(c => c.moderationStatus === 'PENDING_REVIEW' || c.moderationStatus === 'DRAFT').length;
   const totalVerifiedReads = contents.reduce((acc, c) => acc + (c.eligibleViews ?? c.eligible_views ?? c.views ?? 0), 0);
-  const totalYieldINR = (totalVerifiedReads / 1000) * 86.5;
+  const totalYieldINR = usdToInr((totalVerifiedReads / 1000) * 1.0);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -311,7 +313,7 @@ export const CreatorFilesTab: React.FC<CreatorFilesTabProps> = ({
               <tbody className="divide-y divide-[#EAE2D5] dark:divide-slate-800/80 font-medium text-slate-800 dark:text-slate-300">
                 {paginatedContents.map(item => {
                   const views = item.eligibleViews ?? item.eligible_views ?? item.views ?? 0;
-                  const accruedINR = (views / 1000) * 86.5;
+                  const accruedINR = usdToInr((views / 1000) * 1.0);
                   return (
                     <tr key={item.id || item._id} className="hover:bg-[#F8F5EE]/80 dark:hover:bg-slate-800/40 transition">
                       <td className="p-4">

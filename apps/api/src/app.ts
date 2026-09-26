@@ -7,6 +7,7 @@ import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './docs/swagger';
 import { errorHandler } from './middlewares/errorHandler';
+import { ENV } from './config/env';
 
 import authRoutes from './routes/auth.routes';
 import contentRoutes from './routes/content.routes';
@@ -19,7 +20,31 @@ export const createApp = (): Express => {
   const app = express();
 
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin: '*', credentials: true }));
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : [
+        'https://naagrik.news',
+        'https://www.naagrik.news',
+        'https://admin.naagrik.news',
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'http://127.0.0.1:3000'
+      ];
+
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (such as mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (ENV.NODE_ENV !== 'production' || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS blocked: Origin ${origin} not allowed`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'x-seed-token']
+  }));
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -105,16 +130,24 @@ export const createApp = (): Express => {
   app.get('/api/v1', healthHandler);
   app.get('/api/v1/health', healthHandler);
 
-  // Manual Seeder Trigger Endpoint
+  // Manual Seeder Trigger Endpoint (Restricted to non-production environments with secret token)
   app.get('/api/v1/seed', async (req: Request, res: Response) => {
+    if (ENV.NODE_ENV === 'production') {
+      return res.status(403).json({ success: false, error: 'Database seeding endpoint is disabled in production environment.' });
+    }
+
+    const seedSecret = (req.headers['x-seed-token'] as string) || (req.query.seed_token as string);
+    const configuredSecret = process.env.SEED_TOKEN || 'local-dev-seed-token-2026';
+    if (seedSecret !== configuredSecret) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Valid x-seed-token required to trigger seeding.' });
+    }
+
     try {
       const { seedDatabase } = await import('./utils/seeder');
       await seedDatabase();
       res.json({
         success: true,
-        message: 'Database seeded successfully with default Admin and Creator accounts.',
-        admin: 'admin@naagrik.news / AdminPass123!',
-        creator: 'creator1@naagrik.news / CreatorPass123!'
+        message: 'Database seeded successfully in development environment.'
       });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });

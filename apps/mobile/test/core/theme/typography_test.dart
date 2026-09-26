@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nagrik/core/theme/typography.dart';
 
 void main() {
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
   group('NagrikTypography', () {
-    test('textTheme returns a complete TextTheme with all styles non-null', () {
+    testWidgets('textTheme returns a complete TextTheme with all styles non-null', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       expect(theme.displayLarge, isNotNull);
       expect(theme.displayMedium, isNotNull);
@@ -22,7 +27,7 @@ void main() {
       expect(theme.labelSmall, isNotNull);
     });
 
-    test('displayLarge uses correct size, weight, and line height', () {
+    testWidgets('displayLarge uses correct size, weight, and line height', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       expect(theme.displayLarge!.fontSize, 40.0);
       expect(theme.displayLarge!.fontWeight, FontWeight.w800);
@@ -30,25 +35,25 @@ void main() {
       expect(theme.displayLarge!.letterSpacing, -0.5);
     });
 
-    test('bodyMedium uses correct size, weight, and line height', () {
+    testWidgets('bodyMedium uses correct size, weight, and line height', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       expect(theme.bodyMedium!.fontSize, 15.0);
       expect(theme.bodyMedium!.fontWeight, FontWeight.w400);
       expect(theme.bodyMedium!.height, 1.45);
     });
 
-    test('text color is applied to all styles', () {
+    testWidgets('text color is applied to all styles', (tester) async {
       const testColor = Color(0xFF0F172A);
-      final theme = NagrikTypography.textTheme(testColor);
-      expect(theme.displayLarge!.color, testColor);
-      expect(theme.headlineLarge!.color, testColor);
-      expect(theme.titleMedium!.color, testColor);
-      expect(theme.bodyMedium!.color, testColor);
-      expect(theme.labelMedium!.color, testColor);
-      expect(theme.labelSmall!.color, testColor);
+      final customTheme = NagrikTypography.textTheme(testColor);
+      expect(customTheme.displayLarge!.color, testColor);
+      expect(customTheme.headlineLarge!.color, testColor);
+      expect(customTheme.titleMedium!.color, testColor);
+      expect(customTheme.bodyMedium!.color, testColor);
+      expect(customTheme.labelMedium!.color, testColor);
+      expect(customTheme.labelSmall!.color, testColor);
     });
 
-    test('editorial headlines and titles use Newsreader font family', () {
+    testWidgets('editorial headlines and titles use Newsreader font family', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       final headlineStyles = [
         theme.displayLarge,
@@ -69,7 +74,7 @@ void main() {
       }
     });
 
-    test('body text and UI styles use Plus Jakarta Sans font family', () {
+    testWidgets('body text and UI styles use Plus Jakarta Sans font family', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       final bodyStyles = [
         theme.titleMedium,
@@ -90,7 +95,7 @@ void main() {
       }
     });
 
-    test('badges and metadata styles use JetBrains Mono font family', () {
+    testWidgets('badges and metadata styles use JetBrains Mono font family', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       final monoStyles = [
         theme.labelMedium,
@@ -107,7 +112,7 @@ void main() {
       }
     });
 
-    test('preserves all 11 Indian script font fallbacks on all styles', () {
+    testWidgets('preserves all 11 Indian script font fallbacks on all styles', (tester) async {
       final theme = NagrikTypography.textTheme(Colors.black);
       const expectedFallbacks = [
         'Noto Sans',
@@ -133,7 +138,7 @@ void main() {
       expect(theme.labelSmall!.fontFamilyFallback, expectedFallbacks);
     });
 
-    test('typography static constants and helpers are correctly configured', () {
+    testWidgets('typography static constants and helpers are correctly configured', (tester) async {
       expect(NagrikTypography.headlineFontFamily, 'Newsreader');
       expect(NagrikTypography.bodyFontFamily, 'Plus Jakarta Sans');
       expect(NagrikTypography.monoFontFamily, 'JetBrains Mono');

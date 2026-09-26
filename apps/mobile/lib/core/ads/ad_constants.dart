@@ -48,13 +48,17 @@ abstract final class AdConstants {
   static const String testIosNative = 'ca-app-pub-3940256099942544/3986624511';
   static const String testIosAppOpen = 'ca-app-pub-3940256099942544/5575463023';
 
+  /// Automatically defaults to test ads during debug builds (unless executing inside `flutter test`).
+  static bool get defaultTestMode =>
+      kDebugMode && !(!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST'));
+
   /// Resolves the correct Ad Unit ID for the target platform and build mode.
   ///
-  /// Set [forceTestMode] to `true` to guarantee test ad serving during manual QA,
-  /// or leave null to automatically default to `kDebugMode`.
+  /// In debug mode during real app execution, official Google Test Ad IDs are served
+  /// by default to prevent AdMob invalid traffic policy strikes.
+  /// Set [forceTestMode] to override explicitly.
   static String getAdUnitId(AdFormat format, {bool? forceTestMode}) {
-    // Default to false: ALWAYS use user's production AdMob IDs from ads.md
-    final isTest = forceTestMode ?? false;
+    final isTest = forceTestMode ?? defaultTestMode;
     final isIos = !kIsWeb && Platform.isIOS;
 
     if (isTest) {

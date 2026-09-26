@@ -24,6 +24,7 @@ import {
   Shield
 } from 'lucide-react';
 import { CreatorTab } from './types';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface CreatorOnboardingGuideProps {
   authName?: string;
@@ -34,6 +35,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
   authName,
   onFinish
 }) => {
+  const { rate } = useCurrency();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
@@ -242,7 +244,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   Dual Video Formats & Up to 2 GB Direct Uploads
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                  Choose between fast vertical citizen bytes or long-form investigative landscape journalism. Files stream directly to Cloudflare R2 media storage.
+                  Choose between fast vertical citizen bytes or long-form investigative landscape journalism. Files stream directly to secure global CDN media storage.
                 </p>
               </div>
 
@@ -309,10 +311,10 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                 </div>
                 <div className="space-y-1">
                   <h5 className="text-xs font-bold text-amber-900 dark:text-amber-200 font-serif">
-                    Direct Cloudflare R2 Upload Pipeline (2,048 MB Maximum Size)
+                    High-Speed Media Ingestion Pipeline (2,048 MB Maximum Size)
                   </h5>
                   <p className="text-[11px] text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
-                    Uploads bypass intermediate application servers and stream with live progress tracking directly to Cloudflare R2 storage via presigned S3 URLs.
+                    Uploads stream with live progress tracking directly to encrypted high-speed media storage.
                   </p>
                 </div>
               </div>
@@ -379,7 +381,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   <span>TRANSPARENT TELEMETRY</span>
                 </div>
                 <h2 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white font-serif">
-                  $1.00 CPM Guaranteed Rate Card (~₹86.5/1k reads)
+                  $1.00 CPM Guaranteed Rate Card (~₹{rate.toFixed(2)}/1k reads)
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                   Earn dependable income for genuine community investigations. No opaque revenue sharing or hidden commissions.
@@ -388,7 +390,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2.5 shadow-2xs">
-                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">₹86.50 ($1.00 USD)</div>
+                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">₹{rate.toFixed(2)} ($1.00 USD)</div>
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white font-serif">Per 1,000 Verified Reads</h4>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Each verified read accrues directly to your creator balance in real-time as users engage with your ground report.
@@ -423,14 +425,14 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   Direct Disbursals via NPCI UPI & Bank IMPS
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                  Withdraw your accrued earnings as soon as your balance reaches the low ₹850 (~$10.00 USD) threshold.
+                  Withdraw your accrued earnings as soon as your balance reaches the low ₹{Math.round(rate * 10)} (~$10.00 USD) threshold.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
                   <span className="text-[10px] font-bold text-[#DE5227] dark:text-orange-400 font-mono">MINIMUM THRESHOLD</span>
-                  <div className="text-xl font-bold font-mono text-slate-900 dark:text-white">₹850 ($10 USD)</div>
+                  <div className="text-xl font-bold font-mono text-slate-900 dark:text-white">₹{Math.round(rate * 10)} ($10 USD)</div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">Accessible threshold for frequent ground reporters</p>
                 </div>
 
@@ -442,7 +444,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
 
                 <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 space-y-2 shadow-2xs">
                   <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 font-mono">INR CONVERSION</span>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">~₹86.50 / USD</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">~₹{rate.toFixed(2)} / USD</div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">Instant conversion at transparent real-time forex rates</p>
                 </div>
               </div>

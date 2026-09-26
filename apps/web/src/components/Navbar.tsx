@@ -144,10 +144,10 @@ export const Navbar: React.FC = () => {
           className={`mx-auto w-full pointer-events-auto transition-all duration-300 ease-out relative overflow-hidden ${
             scrolled
               ? isDarkTone
-                ? 'max-w-[1060px] bg-[#0C1018]/85 backdrop-blur-xl rounded-full border border-white/20 shadow-[0_20px_45px_-10px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.08)] px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between'
+                ? 'max-w-[1060px] bg-[#0A0E17]/85 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)] px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between'
                 : 'max-w-[1060px] bg-[#F9F6F1]/90 backdrop-blur-xl rounded-full border border-stone-300/80 shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.04)] px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between'
               : isDarkTone
-                ? 'max-w-[1380px] bg-[#0C1018]/85 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-10 lg:px-12 h-16 sm:h-20 flex items-center justify-between'
+                ? 'max-w-[1380px] bg-[#080B10]/80 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-10 lg:px-12 h-16 sm:h-20 flex items-center justify-between'
                 : 'max-w-[1380px] bg-[#F5F0E8]/85 backdrop-blur-md border-b border-stone-300/50 px-4 sm:px-10 lg:px-12 h-16 sm:h-20 flex items-center justify-between'
           }`}
         >
@@ -165,14 +165,14 @@ export const Navbar: React.FC = () => {
             </div>
             <div className="flex flex-col text-left min-w-0">
               <span className={`font-sans text-lg sm:text-2xl font-bold tracking-tight transition-colors leading-none ${
-                isDarkTone ? 'text-white group-hover:text-[#DE5227]' : 'text-slate-900 group-hover:text-[#DE5227]'
+                isDarkTone ? 'text-white group-hover:text-[#FF5A26]' : 'text-slate-900 group-hover:text-[#DE5227]'
               }`}>
                 {language === 'hi' ? 'नागरिक' : 'Nagrik'}
               </span>
               {!scrolled && (
                 <div className="hidden sm:block mt-1 overflow-hidden">
                   <span className={`text-xs font-sans font-normal whitespace-nowrap block leading-tight ${
-                    isDarkTone ? 'text-slate-300' : 'text-slate-600'
+                    isDarkTone ? 'text-slate-400' : 'text-slate-600'
                   }`}>
                     {language === 'hi' ? 'आपके पड़ोस की ख़बर' : 'News by your neighborhood'}
                   </span>
@@ -192,10 +192,10 @@ export const Navbar: React.FC = () => {
                   className={`text-sm tracking-tight transition-all duration-200 rounded-full px-3.5 py-1.5 focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] ${
                     isActive
                       ? isDarkTone
-                        ? 'bg-orange-500/25 text-orange-400 font-bold shadow-xs'
+                        ? 'bg-[#FF5A26]/15 text-[#FF6B3D] font-bold shadow-[0_0_12px_rgba(255,90,38,0.2)] border border-[#FF5A26]/30'
                         : 'bg-orange-500/15 text-[#DE5227] font-bold shadow-xs'
                       : isDarkTone
-                        ? 'text-slate-200 hover:text-white font-medium hover:bg-white/10'
+                        ? 'text-slate-300 hover:text-white font-medium hover:bg-white/[0.08]'
                         : 'text-slate-700 hover:text-[#DE5227] font-medium hover:bg-black/5'
                   }`}
                 >
@@ -212,7 +212,7 @@ export const Navbar: React.FC = () => {
               onClick={(e) => toggleTheme(e)}
               className={`w-9 h-9 rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] group relative overflow-hidden ${
                 isDarkTone
-                  ? 'bg-slate-800/90 hover:bg-slate-700/90 text-amber-300 border border-slate-700 hover:border-amber-400/40 hover:shadow-[0_0_12px_rgba(251,191,36,0.2)]'
+                  ? 'bg-white/[0.06] hover:bg-white/[0.12] text-amber-300 border border-white/10 hover:border-amber-400/40 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)]'
                   : 'bg-surface-card hover:bg-surface-muted text-slate-700 border border-stone-300/80 hover:border-[#DE5227]/40 hover:shadow-[0_0_12px_rgba(222,82,39,0.15)]'
               }`}
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -245,7 +245,7 @@ export const Navbar: React.FC = () => {
               onClick={toggleLanguage}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all duration-150 active:scale-95 cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] ${
                 isDarkTone
-                  ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                  ? 'bg-white/[0.06] hover:bg-white/[0.12] text-slate-200 border border-white/10'
                   : 'bg-surface-card hover:bg-surface-muted text-slate-700 border border-stone-300/80'
               }`}
               title="Change Language / भाषा बदलें"
@@ -333,12 +333,12 @@ export const Navbar: React.FC = () => {
         {mobileMenuOpen && (
           <div className={`md:hidden pointer-events-auto mx-auto max-w-[1080px] mt-2 rounded-2xl border backdrop-blur-2xl px-5 pt-4 pb-6 space-y-4 shadow-2xl animate-in slide-in-from-top-3 duration-200 ${
             isDarkTone
-              ? 'border-slate-800 bg-[#131A2A]/95 text-white'
+              ? 'border-white/10 bg-[#0F141F]/98 backdrop-blur-2xl text-white shadow-2xl shadow-black/80'
               : 'border-stone-300 bg-[#F9F6F1]/95 text-slate-900'
           }`}>
             {/* City Selector in Mobile */}
             <div className={`p-3 rounded-xl border ${
-              isDarkTone ? 'bg-[#1A2236] border-slate-800' : 'bg-surface-card border-stone-300/80'
+              isDarkTone ? 'bg-[#161D2B] border-white/10' : 'bg-surface-card border-stone-300/80'
             }`}>
               <div className="text-[11px] font-mono text-slate-400 uppercase font-semibold mb-2">
                 {t.selectCity}
@@ -355,7 +355,7 @@ export const Navbar: React.FC = () => {
                       selectedCity === city
                         ? 'bg-[#DE5227] text-white font-medium shadow-xs'
                         : isDarkTone
-                          ? 'bg-slate-900 text-slate-300 border border-slate-800'
+                          ? 'bg-white/[0.06] text-slate-300 border border-white/10 hover:bg-white/[0.1]'
                           : 'bg-slate-50 text-slate-700 border border-slate-200/60'
                     }`}
                   >

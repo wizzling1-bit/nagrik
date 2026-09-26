@@ -32,6 +32,7 @@ import {
   Check
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { ScrollProductStory } from '../components/home/ScrollProductStory';
 import { ProductEcosystem } from '../components/home/ProductEcosystem';
 import { EarningsCalculator } from '../components/home/EarningsCalculator';
@@ -43,6 +44,7 @@ interface HomeViewProps {
 
 export const HomeView: React.FC<HomeViewProps> = () => {
   const { language } = useLanguage();
+  const { rate } = useCurrency();
 
   // Living Product Lifecycle Simulation in Hero Laptop Mockup
   const [simStep, setSimStep] = useState<number>(0);
@@ -76,14 +78,14 @@ export const HomeView: React.FC<HomeViewProps> = () => {
     {
       q: language === 'hi' ? 'नागरिक कंट्रीब्यूटर कमाई की गणना कैसे करता है?' : 'How does Nagrik calculate contributor earnings?',
       a: language === 'hi'
-        ? 'नागरिक प्रत्येक 1,000 सत्यापित व्यू पर $1.00 (लगभग ₹86) की पारदर्शी फ्लैट दर से भुगतान करता है। कोई सब्सक्राइबर या वॉच-टाइम थ्रेशोल्ड नहीं है। आपकी पहली प्रकाशित व सत्यापित स्टोरी और पहले व्यू से ही अनुमानित कमाई जुड़ने लगती है।'
-        : 'Nagrik pays a flat rate of $1.00 (~₹86) per 1,000 verified reads. You earn from your very first verified view — no follower minimums or watch-time gates needed.'
+        ? `नागरिक प्रत्येक 1,000 सत्यापित व्यू पर $1.00 (लगभग ₹${Math.round(rate)}) की पारदर्शी फ्लैट दर से भुगतान करता है। कोई सब्सक्राइबर या वॉच-टाइम थ्रेशोल्ड नहीं है। आपकी पहली प्रकाशित व सत्यापित स्टोरी और पहले व्यू से ही अनुमानित कमाई जुड़ने लगती है।`
+        : `Nagrik pays a flat rate of $1.00 (~₹${rate.toFixed(2)}) per 1,000 verified reads. You earn from your very first verified view — no follower minimums or watch-time gates needed.`
     },
     {
       q: language === 'hi' ? 'न्यूनतम भुगतान सीमा (Minimum Payout Threshold) क्या है?' : 'What is the minimum payout threshold?',
       a: language === 'hi'
-        ? 'न्यूनतम निकासी सीमा केवल ₹850 ($10 USD) है। जैसे ही आपका स्वीकृत बैलेंस इस आंकड़े तक पहुँचता है, आप तत्काल निकासी का अनुरोध कर सकते हैं।'
-        : 'The minimum withdrawal is ₹850 ($10). Once your balance reaches this amount, you can request a direct payout at any time.'
+        ? `न्यूनतम निकासी सीमा केवल ₹${Math.round(rate * 10)} ($10 USD) है। जैसे ही आपका स्वीकृत बैलेंस इस आंकड़े तक पहुँचता है, आप तत्काल निकासी का अनुरोध कर सकते हैं।`
+        : `The minimum withdrawal is ₹${Math.round(rate * 10)} ($10). Once your balance reaches this amount, you can request a direct payout at any time.`
     },
     {
       q: language === 'hi' ? 'भुगतान कैसे और कब प्राप्त होता है?' : 'How do I receive payouts and what is the processing time?',
@@ -134,10 +136,10 @@ export const HomeView: React.FC<HomeViewProps> = () => {
         {/* Tactile editorial illumination & subtle contours */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
           {/* Soft ambient radial warmth */}
-          <div className="absolute top-[8%] right-[4%] w-[680px] h-[680px] bg-gradient-to-tr from-[#EADBCC]/55 via-[#F5EAE0]/30 to-transparent rounded-full blur-3xl dark:from-orange-950/15 dark:via-slate-900/10" />
+          <div className="absolute top-[8%] right-[4%] w-[680px] h-[680px] bg-gradient-to-tr from-[#EADBCC]/55 via-[#F5EAE0]/30 to-transparent rounded-full blur-3xl dark:from-orange-500/12 dark:via-amber-500/[0.05] dark:to-transparent" />
           
           {/* Abstract Geographic Elevation Contours */}
-          <svg className="absolute -top-12 -right-16 w-[1150px] h-[860px] opacity-[0.055] dark:opacity-[0.04] text-slate-900 dark:text-white" viewBox="0 0 1000 800" fill="none" stroke="currentColor">
+          <svg className="absolute -top-12 -right-16 w-[1150px] h-[860px] opacity-[0.055] dark:opacity-[0.08] text-slate-900 dark:text-amber-300" viewBox="0 0 1000 800" fill="none" stroke="currentColor">
             <path d="M 100 120 C 350 80, 550 240, 850 140 C 950 100, 1050 190, 1200 170" strokeWidth="0.8" />
             <path d="M 50 200 C 320 160, 520 320, 820 220 C 920 180, 1020 270, 1200 250" strokeWidth="0.8" />
             <path d="M 0 280 C 290 240, 490 400, 790 300 C 890 260, 990 350, 1200 330" strokeWidth="0.8" />
@@ -158,7 +160,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
             
             {/* Level 1: Refined Editorial Eyebrow Badge + Handwritten Editorial Note */}
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-200/60 dark:bg-slate-800/80 border border-stone-300/80 dark:border-slate-700/60 text-xs font-mono font-bold tracking-wider text-slate-700 dark:text-slate-300">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-200/60 dark:bg-white/[0.06] border border-stone-300/80 dark:border-white/10 text-xs font-mono font-bold tracking-wider text-slate-700 dark:text-slate-300">
                 <span className="w-2 h-2 rounded-full bg-[#DE5227] animate-pulse" aria-hidden="true" />
                 <span>
                   {language === 'hi'
@@ -166,7 +168,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                     : 'Hyperlocal Ground Journalism • Creator Studio'}
                 </span>
               </div>
-              <span className="font-script text-amber-700 dark:text-amber-300 text-lg sm:text-xl font-semibold rotate-3 select-none pointer-events-none animate-scribble-bob">
+              <span className="font-script text-amber-700 dark:text-amber-300 dark:drop-shadow-[0_0_10px_rgba(252,211,77,0.35)] text-lg sm:text-xl font-semibold rotate-3 select-none pointer-events-none animate-scribble-bob">
                 ~ every street has a voice 🎙️
               </span>
             </div>
@@ -213,22 +215,22 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 href="#story"
                 className="btn-secondary w-full sm:w-auto inline-flex items-center justify-center gap-2.5"
               >
-                <div className="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0">
-                  <Play className="w-2.5 h-2.5 fill-slate-700 dark:fill-slate-300 ml-0.5" />
+                <div className="w-5 h-5 rounded-full border border-slate-300 dark:border-white/20 flex items-center justify-center text-slate-700 dark:text-slate-200 shrink-0">
+                  <Play className="w-2.5 h-2.5 fill-slate-700 dark:fill-slate-200 ml-0.5" />
                 </div>
                 <span>{language === 'hi' ? 'देखें यह कैसे काम करता है' : 'Explore Creator Studio'}</span>
               </a>
 
-              <span className="font-script text-indigo-600 dark:text-indigo-300 text-lg sm:text-xl font-semibold -rotate-2 select-none pointer-events-none animate-scribble-float-1 pl-1 hidden sm:inline-block">
+              <span className="font-script text-indigo-600 dark:text-indigo-300 dark:drop-shadow-[0_0_10px_rgba(165,180,252,0.35)] text-lg sm:text-xl font-semibold -rotate-2 select-none pointer-events-none animate-scribble-float-1 pl-1 hidden sm:inline-block">
                 ⤷ zero gatekeepers, post in 60s ✍️
               </span>
             </div>
 
             {/* Level 5: Credibility Proof Bar with Structural Hierarchy */}
-            <div className="pt-5 border-t border-stone-300/80 dark:border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-2 text-left">
+            <div className="pt-5 border-t border-stone-300/80 dark:border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-2 text-left">
               {/* Proof 1 */}
-              <div className="flex items-center gap-2.5 pr-1 sm:pr-2 sm:border-r sm:border-stone-300/80 dark:sm:border-slate-800/90">
-                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 shrink-0">
+              <div className="flex items-center gap-2.5 pr-1 sm:pr-2 sm:border-r sm:border-stone-300/80 dark:sm:border-white/10">
+                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-white/[0.06] border border-transparent dark:border-white/10 text-slate-700 dark:text-slate-300 shrink-0">
                   <Users className="w-4 h-4" />
                 </div>
                 <div className="text-xs font-bold text-slate-900 dark:text-slate-200 leading-tight">
@@ -237,8 +239,8 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </div>
 
               {/* Proof 2 */}
-              <div className="flex items-center gap-2.5 sm:pl-3 pr-1 sm:pr-2 sm:border-r sm:border-stone-300/80 dark:sm:border-slate-800/90">
-                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 shrink-0 font-serif font-black text-sm">
+              <div className="flex items-center gap-2.5 sm:pl-3 pr-1 sm:pr-2 sm:border-r sm:border-stone-300/80 dark:sm:border-white/10">
+                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-white/[0.06] border border-transparent dark:border-white/10 text-slate-700 dark:text-slate-200 shrink-0 font-serif font-black text-sm">
                   ₹
                 </div>
                 <div className="leading-tight">
@@ -250,8 +252,8 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </div>
 
               {/* Proof 3 */}
-              <div className="flex items-center gap-2.5 sm:pl-3 pr-1 sm:pr-2 sm:border-r sm:border-stone-300/80 dark:sm:border-slate-800/90">
-                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 shrink-0">
+              <div className="flex items-center gap-2.5 sm:pl-3 pr-1 sm:pr-2 sm:border-r sm:border-stone-300/80 dark:sm:border-white/10">
+                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-white/[0.06] border border-transparent dark:border-white/10 text-slate-700 dark:text-slate-200 shrink-0">
                   <Landmark className="w-4 h-4" />
                 </div>
                 <div className="text-xs font-bold text-slate-900 dark:text-slate-200 leading-tight">
@@ -261,7 +263,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
 
               {/* Proof 4 */}
               <div className="flex items-center gap-2.5 sm:pl-3">
-                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 shrink-0">
+                <div className="p-2 rounded-xl bg-stone-200/50 dark:bg-white/[0.06] border border-transparent dark:border-white/10 text-slate-700 dark:text-slate-200 shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="text-xs font-bold text-slate-900 dark:text-slate-200 leading-tight">
@@ -313,31 +315,31 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Laptop Display Screen */}
-                <div className="rounded-xl bg-[#FAF8F5] text-slate-900 overflow-hidden font-sans text-left border border-slate-200/90 shadow-inner">
+                <div className="rounded-xl bg-[#FAF8F5] dark:bg-[#0A0E17] text-slate-900 dark:text-slate-100 overflow-hidden font-sans text-left border border-slate-200/90 dark:border-white/10 shadow-inner">
                   
                   {/* Studio Topbar */}
-                  <div className="px-3 py-2 bg-[#FAF8F5] border-b border-slate-200/80 flex items-center justify-between">
+                  <div className="px-3 py-2 bg-[#FAF8F5] dark:bg-[#0F1420] border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded-md bg-[#C84318] text-white font-serif font-black text-xs flex items-center justify-center">
                         N
                       </div>
-                      <span className="text-xs font-bold tracking-tight text-slate-900">
+                      <span className="text-xs font-bold tracking-tight text-slate-900 dark:text-white">
                         Nagrik Creator Studio
                       </span>
-                      <span className="text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-stone-200/70 text-slate-700 border border-stone-300/60">
+                      <span className="text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-stone-200/70 dark:bg-white/[0.08] text-slate-700 dark:text-slate-300 border border-stone-300/60 dark:border-white/10">
                         Patna Ward 12
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Search className="w-3.5 h-3.5 text-slate-500" />
+                      <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                       <div className="relative">
-                        <Bell className="w-3.5 h-3.5 text-slate-700" />
+                        <Bell className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
                         <span className="w-1.5 h-1.5 rounded-full bg-[#C84318] absolute -top-0.5 -right-0.5" />
                       </div>
                       <img
                         src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80"
                         alt="Rohan"
-                        className="w-5 h-5 rounded-full border border-slate-300 object-cover"
+                        className="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-700 object-cover"
                       />
                     </div>
                   </div>
@@ -346,38 +348,38 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                   <div className="flex min-h-[285px] sm:min-h-[305px] lg:min-h-[320px]">
                     
                     {/* Left Sidebar (Desktop / Tablet) */}
-                    <div className="hidden sm:block w-26 bg-[#FAF8F5] border-r border-slate-200/70 p-2 space-y-0.5 text-xs font-medium text-slate-600 shrink-0">
-                      <div className="bg-[#F2ECE1] text-slate-900 font-bold rounded-lg px-2 py-1 flex items-center gap-1.5">
+                    <div className="hidden sm:block w-26 bg-[#FAF8F5] dark:bg-[#0B0F18] border-r border-slate-200/70 dark:border-white/10 p-2 space-y-0.5 text-xs font-medium text-slate-600 dark:text-slate-400 shrink-0">
+                      <div className="bg-[#F2ECE1] dark:bg-[#FF5A26]/15 text-slate-900 dark:text-[#FF6B3D] font-bold rounded-lg px-2 py-1 flex items-center gap-1.5">
                         <LayoutDashboard className="w-3 h-3 text-[#DE5227]" />
                         <span>Dashboard</span>
                       </div>
-                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 transition">
+                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition">
                         <FileEdit className="w-3 h-3" />
                         <span>Create Report</span>
                       </div>
-                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 transition">
+                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition">
                         <FileText className="w-3 h-3" />
                         <span>My Reports</span>
                       </div>
-                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 transition">
+                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition">
                         <Wallet className="w-3 h-3" />
                         <span>Earnings</span>
                       </div>
-                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 transition">
+                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition">
                         <BarChart3 className="w-3 h-3" />
                         <span>Analytics</span>
                       </div>
-                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 transition">
+                      <div className="px-2 py-1 flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition">
                         <Settings className="w-3 h-3" />
                         <span>Settings</span>
                       </div>
                     </div>
 
                     {/* Main Studio Viewport */}
-                    <div className="flex-1 p-2 sm:p-2.5 lg:p-3 space-y-2 bg-[#FAF9F6] overflow-hidden pr-2 sm:pr-3">
+                    <div className="flex-1 p-2 sm:p-2.5 lg:p-3 space-y-2 bg-[#FAF9F6] dark:bg-[#0A0E17] overflow-hidden pr-2 sm:pr-3">
                       
                       {/* Dynamic Simulation Ticker Toast */}
-                      <div className="bg-slate-900 text-white px-3 py-1.5 rounded-lg flex items-center justify-between text-xs font-mono shadow-xs border border-slate-800" role="status" aria-live="polite">
+                      <div className="bg-slate-900 dark:bg-[#121826] text-white px-3 py-1.5 rounded-lg flex items-center justify-between text-xs font-mono shadow-xs border border-slate-800 dark:border-white/10" role="status" aria-live="polite">
                         <div className="flex items-center gap-2 truncate pr-2">
                           {simStep === 0 && (
                             <>
@@ -412,16 +414,16 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                       {/* Welcome & Upload Action */}
                       <div className="flex items-center justify-between pr-2 sm:pr-8 lg:pr-10">
                         <div className="min-w-0 pr-1">
-                          <div className="text-xs font-bold font-serif text-slate-900 truncate">
+                          <div className="text-xs font-bold font-serif text-slate-900 dark:text-white truncate">
                             Good morning, Rohan
                           </div>
-                          <div className="text-xs text-slate-500 truncate">
+                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
                             Active ward: Digha Ghat • 5km radius
                           </div>
                         </div>
                         <Link
                           href="/creator"
-                          className="px-2.5 py-1 rounded-lg bg-[#C84318] hover:bg-[#A83410] text-white font-bold text-xs flex items-center gap-1 shadow-xs shrink-0 cursor-pointer transition-transform active:scale-95"
+                          className="px-2.5 py-1 rounded-lg bg-[#C84318] hover:bg-[#A83410] dark:bg-[#DE5227] dark:hover:bg-[#FF5A26] text-white font-bold text-xs flex items-center gap-1 shadow-xs shrink-0 cursor-pointer transition-transform active:scale-95"
                           title="Open Creator Studio"
                         >
                           <Plus className="w-3 h-3" />
@@ -431,55 +433,55 @@ export const HomeView: React.FC<HomeViewProps> = () => {
 
                       {/* 4 Metric Cards (2 cols on mobile, 4 on desktop) */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-1.5 pr-2 sm:pr-8 lg:pr-10">
-                        <div className="bg-[#FAF8F5] rounded-lg p-1.5 border border-slate-200/60 shadow-xs text-left">
-                          <div className="text-xs text-slate-600 uppercase font-mono font-bold">Total Views</div>
-                          <div className="text-xs sm:text-sm font-black text-slate-900 font-mono transition-all">
+                        <div className="bg-[#FAF8F5] dark:bg-[#0F1420] rounded-lg p-1.5 border border-slate-200/60 dark:border-white/10 shadow-xs text-left">
+                          <div className="text-xs text-slate-600 dark:text-slate-400 uppercase font-mono font-bold">Total Views</div>
+                          <div className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono transition-all">
                             {simStep >= 2 ? '126,840' : '125,430'}
                           </div>
-                          <div className="text-xs text-emerald-700 font-bold font-mono">
+                          <div className="text-xs text-emerald-700 dark:text-emerald-400 font-bold font-mono">
                             {simStep >= 2 ? '↑ 14%' : '↑ 12%'}
                           </div>
                         </div>
 
-                        <div className="bg-[#FAF8F5] rounded-lg p-1.5 border border-slate-200/60 shadow-xs text-left">
-                          <div className="text-xs text-slate-600 uppercase font-mono font-bold">Estimated</div>
-                          <div className="text-xs sm:text-sm font-black text-slate-900 font-mono transition-all">
+                        <div className="bg-[#FAF8F5] dark:bg-[#0F1420] rounded-lg p-1.5 border border-slate-200/60 dark:border-white/10 shadow-xs text-left">
+                          <div className="text-xs text-slate-600 dark:text-slate-400 uppercase font-mono font-bold">Estimated</div>
+                          <div className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono transition-all">
                             {simStep >= 2 ? '$126.84' : '$125.43'}
                           </div>
-                          <div className="text-xs text-emerald-700 font-bold font-mono">
+                          <div className="text-xs text-emerald-700 dark:text-emerald-400 font-bold font-mono">
                             {simStep >= 2 ? '+$1.41' : '↑ 8%'}
                           </div>
                         </div>
 
-                        <div className="bg-[#FAF8F5] rounded-lg p-1.5 border border-slate-200/60 shadow-xs text-left">
-                          <div className="text-xs text-slate-600 uppercase font-mono font-bold">Published</div>
-                          <div className="text-xs sm:text-sm font-black text-slate-900 font-mono transition-all">
+                        <div className="bg-[#FAF8F5] dark:bg-[#0F1420] rounded-lg p-1.5 border border-slate-200/60 dark:border-white/10 shadow-xs text-left">
+                          <div className="text-xs text-slate-600 dark:text-slate-400 uppercase font-mono font-bold">Published</div>
+                          <div className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono transition-all">
                             {simStep >= 2 ? '43' : '42'}
                           </div>
-                          <div className="text-xs text-slate-600 font-mono font-medium">Verified</div>
+                          <div className="text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">Verified</div>
                         </div>
 
-                        <div className="bg-[#FAF8F5] rounded-lg p-1.5 border border-slate-200/60 shadow-xs text-left">
-                          <div className="text-xs text-slate-600 uppercase font-mono font-bold">Threshold</div>
-                          <div className="text-xs sm:text-sm font-black text-emerald-700 font-mono">₹850</div>
-                          <div className="text-xs text-emerald-700 font-bold font-mono">✓ Ready</div>
+                        <div className="bg-[#FAF8F5] dark:bg-[#0F1420] rounded-lg p-1.5 border border-slate-200/60 dark:border-white/10 shadow-xs text-left">
+                          <div className="text-xs text-slate-600 dark:text-slate-400 uppercase font-mono font-bold">Threshold</div>
+                          <div className="text-xs sm:text-sm font-black text-emerald-700 dark:text-emerald-400 font-mono">₹850</div>
+                          <div className="text-xs text-emerald-700 dark:text-emerald-400 font-bold font-mono">✓ Ready</div>
                         </div>
                       </div>
 
                       {/* Recent Reports List with Morphing Status Badge */}
-                      <div className="bg-[#FAF8F5] rounded-lg border border-slate-200/70 p-2 space-y-1.5 shadow-xs pr-2 sm:pr-6 lg:pr-8">
-                        <div className="flex items-center justify-between pb-1 border-b border-slate-100 text-xs">
-                          <span className="font-bold text-slate-900">Recent Reports</span>
+                      <div className="bg-[#FAF8F5] dark:bg-[#0F1420] rounded-lg border border-slate-200/70 dark:border-white/10 p-2 space-y-1.5 shadow-xs pr-2 sm:pr-6 lg:pr-8">
+                        <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-white/10 text-xs">
+                          <span className="font-bold text-slate-900 dark:text-white">Recent Reports</span>
                           <Link
                             href="/creator"
-                            className="text-slate-700 hover:text-[#C84318] font-semibold flex items-center gap-0.5 cursor-pointer transition"
+                            className="text-slate-700 dark:text-slate-300 hover:text-[#C84318] dark:hover:text-[#FF5A26] font-semibold flex items-center gap-0.5 cursor-pointer transition"
                           >
                             View all →
                           </Link>
                         </div>
 
                         {/* Report Row 1 (Simulated Active Item) */}
-                        <div className="flex items-center justify-between text-xs gap-1.5 sm:gap-2 py-0.5 transition-colors duration-200 bg-orange-50/70 rounded-md px-1.5 -mx-0.5">
+                        <div className="flex items-center justify-between text-xs gap-1.5 sm:gap-2 py-0.5 transition-colors duration-200 bg-orange-50/70 dark:bg-orange-500/15 rounded-md px-1.5 -mx-0.5">
                           <div className="flex items-center gap-2 min-w-0">
                             <img
                               src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=120&auto=format&fit=crop&q=80"
@@ -487,33 +489,38 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                               className="w-6 h-6 rounded-md object-cover shrink-0"
                             />
                             <div className="min-w-0">
-                              <div className="font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">
+                              <div className="font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[120px] sm:max-w-none">
                                 Road Repair Near Digha Chowk
                               </div>
-                              <div className="text-slate-600 text-xs flex items-center gap-1 truncate font-medium">
+                              <div className="text-slate-600 dark:text-slate-400 text-xs flex items-center gap-1 truncate font-medium">
                                 <span>Patna</span>
                                 <span>•</span>
-                                <span className="text-[#C84318] font-mono font-semibold">5km Ward</span>
+                                <span className="text-[#C84318] dark:text-[#FF6B3D] font-mono font-semibold">5km Ward</span>
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                            <span className="text-slate-600 font-mono flex items-center gap-0.5 font-medium">
+                            <span className="text-slate-600 dark:text-slate-400 font-mono flex items-center gap-0.5 font-medium">
                               <Eye className="w-3 h-3" /> {simStep >= 2 ? '1.4K reads' : '0 reads'}
                             </span>
                             {simStep === 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-300 font-bold text-xs">
+                              <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 font-bold text-xs">
                                 Submitted
                               </span>
                             )}
                             {simStep === 1 && (
-                              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-300 font-bold text-xs flex items-center gap-0.5">
+                              <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700/60 font-bold text-xs flex items-center gap-0.5">
                                 <Clock className="w-2.5 h-2.5" /> In Review
                               </span>
                             )}
                             {simStep >= 2 && (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 font-bold text-xs flex items-center gap-0.5">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 font-bold text-xs flex items-center gap-0.5">
                                 <Check className="w-2.5 h-2.5" /> Published
+                              </span>
+                            )}
+                            {simStep === 3 && (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 font-bold text-xs">
+                                ₹850 Disbursed
                               </span>
                             )}
                           </div>
@@ -523,25 +530,27 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                         <div className="flex items-center justify-between text-xs gap-1.5 sm:gap-2 py-0.5">
                           <div className="flex items-center gap-2 min-w-0">
                             <img
-                              src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=120&auto=format&fit=crop&q=80"
-                              alt="Water Supply"
+                              src="https://images.unsplash.com/photo-1541888946425-d0fbb186156f?w=120&auto=format&fit=crop&q=80"
+                              alt="Water Pipeline"
                               className="w-6 h-6 rounded-md object-cover shrink-0"
                             />
                             <div className="min-w-0">
-                              <div className="font-semibold text-slate-800 truncate max-w-[120px] sm:max-w-none">
-                                Water Pipeline Upgrades
+                              <div className="font-semibold text-slate-800 dark:text-slate-300 truncate max-w-[120px] sm:max-w-none">
+                                Water Pipeline Restoration
                               </div>
-                              <div className="text-slate-600 text-xs font-medium">
-                                Varanasi • 1d ago
+                              <div className="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1 truncate font-medium">
+                                <span>Patna</span>
+                                <span>•</span>
+                                <span className="font-mono">Ward 12</span>
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                            <span className="text-slate-600 font-mono flex items-center gap-0.5 font-medium">
-                              <Eye className="w-3 h-3" /> 8.7K
+                            <span className="text-slate-600 dark:text-slate-400 font-mono flex items-center gap-0.5 font-medium">
+                              <Eye className="w-3 h-3" /> 2.8K reads
                             </span>
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 font-bold text-xs">
-                              ✓ Live
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 font-bold text-xs flex items-center gap-0.5">
+                              <Check className="w-2.5 h-2.5" /> Published
                             </span>
                           </div>
                         </div>
@@ -562,7 +571,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </div>
 
               {/* ── DEVICE 2: SMARTPHONE MOCKUP (PORTRAIT iPHONE) ── */}
-              <div className="absolute -right-3 sm:-right-1 lg:right-0 bottom-0 z-20 w-[118px] sm:w-[138px] lg:w-[146px] h-[240px] sm:h-[285px] lg:h-[300px] rounded-[24px] bg-slate-950 p-1 sm:p-1.5 border-2 sm:border-[2.5px] border-slate-800 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex flex-col">
+              <div className="absolute -right-3 sm:-right-1 lg:right-0 bottom-0 z-20 w-[118px] sm:w-[138px] lg:w-[146px] h-[240px] sm:h-[285px] lg:h-[300px] rounded-[24px] bg-slate-950 p-1 sm:p-1.5 border-2 sm:border-[2.5px] border-slate-800 dark:border-white/20 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_20px_rgba(255,90,38,0.15)] flex flex-col">
                 
                 {/* Dynamic Island Notch */}
                 <div className="w-10 h-2.5 bg-black rounded-full mx-auto mb-1 flex items-center justify-end pr-1 shrink-0">
@@ -570,31 +579,31 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Phone Screen */}
-                <div className="rounded-[18px] bg-[#FAF8F5] overflow-hidden text-left font-sans flex flex-col flex-1 border border-stone-200/60 shadow-inner">
+                <div className="rounded-[18px] bg-[#FAF8F5] dark:bg-[#0A0E17] overflow-hidden text-left font-sans flex flex-col flex-1 border border-stone-200/60 dark:border-white/10 shadow-inner">
                   
                   {/* App Header */}
-                  <div className="px-2.5 py-1 bg-[#FAF8F5] border-b border-stone-200/60 flex items-center justify-between shrink-0">
+                  <div className="px-2.5 py-1 bg-[#FAF8F5] dark:bg-[#0A0E17] border-b border-stone-200/60 dark:border-white/10 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-1.5">
                       <div className="w-3.5 h-3.5 rounded-sm bg-[#C84318] text-white font-sans font-black text-xs flex items-center justify-center">
                         N
                       </div>
-                      <span className="font-sans font-bold text-xs text-slate-900 tracking-tight">
+                      <span className="font-sans font-bold text-xs text-slate-900 dark:text-white tracking-tight">
                         Nagrik
                       </span>
                     </div>
-                    <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded flex items-center gap-0.5 border border-emerald-300">
+                    <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-1 py-0.5 rounded flex items-center gap-0.5 border border-emerald-300 dark:border-emerald-700/60">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       5KM
                     </span>
                   </div>
 
                   {/* App Tabs */}
-                  <div className="px-2.5 py-1 bg-[#FAF8F5] flex items-center gap-2 text-xs font-semibold border-b border-stone-200/60 shrink-0">
-                    <span className="text-[#C84318] border-b-2 border-[#C84318] pb-0.5 font-bold">
+                  <div className="px-2.5 py-1 bg-[#FAF8F5] dark:bg-[#0A0E17] flex items-center gap-2 text-xs font-semibold border-b border-stone-200/60 dark:border-white/10 shrink-0">
+                    <span className="text-[#C84318] dark:text-[#FF6B3D] border-b-2 border-[#C84318] dark:border-[#FF6B3D] pb-0.5 font-bold">
                       For You
                     </span>
-                    <span className="text-slate-600">Ward 12</span>
-                    <span className="text-slate-600">Saved</span>
+                    <span className="text-slate-600 dark:text-slate-400">Ward 12</span>
+                    <span className="text-slate-600 dark:text-slate-400">Saved</span>
                   </div>
 
                   {/* Main Story Reel/Card (Indian Street Scene) */}
@@ -624,8 +633,8 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                   </div>
 
                   {/* App Bottom Navigation Bar */}
-                  <div className="px-2.5 py-1.5 bg-[#FAF8F5] border-t border-stone-200/60 flex items-center justify-around text-slate-500 shrink-0">
-                    <div className="text-slate-800">
+                  <div className="px-2.5 py-1.5 bg-[#FAF8F5] dark:bg-[#0A0E17] border-t border-stone-200/60 dark:border-white/10 flex items-center justify-around text-slate-500 shrink-0">
+                    <div className="text-slate-800 dark:text-white">
                       <Home className="w-3 h-3" />
                     </div>
                     <div>
@@ -639,7 +648,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                       <MapPin className="w-3 h-3 text-content-tertiary" />
                     </div>
                     <div>
-                      <div className="w-3 h-3 rounded-full bg-stone-200 border border-stone-300" />
+                      <div className="w-3 h-3 rounded-full bg-stone-200 dark:bg-stone-700 border border-stone-300 dark:border-stone-600" />
                     </div>
                   </div>
 
@@ -663,7 +672,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
           03. WHY NAGRIK: EDITORIAL NUMBERED LIST (NO 4-CARD GRIDS)
           ════════════════════════════════════════════════════════════════════ */}
       <RevealOnScroll direction="up" distance={28}>
-        <section id="why" className="py-24 sm:py-32 border-t border-stone-200/80 dark:border-slate-800/80 max-w-[1380px] mx-auto px-6 sm:px-10 lg:px-12 text-left transition-colors duration-200">
+        <section id="why" className="py-24 sm:py-32 border-t border-stone-200/80 dark:border-white/[0.08] max-w-[1380px] mx-auto px-6 sm:px-10 lg:px-12 text-left transition-colors duration-200">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
             {/* Left Column: Editorial Headline, Manifesto & Pull Quote */}
@@ -686,7 +695,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </p>
 
               {/* Editorial Pull Quote */}
-              <div className="p-5 rounded-2xl bg-surface-card dark:bg-surface-card border border-stone-200/80 dark:border-slate-800 shadow-xs text-sm text-slate-800 dark:text-slate-200 italic font-serif leading-relaxed">
+              <div className="p-5 rounded-2xl bg-surface-card border border-stone-200/80 dark:border-white/[0.08] shadow-xs text-sm text-slate-800 dark:text-slate-200 italic font-serif leading-relaxed">
                 <span className="text-[#DE5227] font-sans font-bold not-italic mr-1.5 text-base">&ldquo;</span>
                 {language === 'hi'
                   ? 'हम एल्गोरिदम से स्थानीय आवाज़ों को दबाते नहीं हैं। हम उन्हें सीधे उसी 5km दायरे में पहुँचाते हैं जहाँ वे सबसे अधिक मायने रखती हैं।'
@@ -716,7 +725,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
             <div className="lg:col-span-7 space-y-4 sm:space-y-5">
               
               {/* 01: Monetize from Day One */}
-              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 space-y-3 text-left hover:border-[#DE5227]/40 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 shadow-2xs group">
+              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-3 text-left hover:border-[#DE5227]/40 dark:hover:border-white/20 hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] transition-all duration-200 shadow-2xs group">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-2xl sm:text-3xl font-black text-[#C84318] dark:text-orange-400">
@@ -732,13 +741,13 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
                 <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                   {language === 'hi'
-                    ? 'कोई 1,000 सब्सक्राइबर या 4,000 घंटे की वॉच-टाइम की बाध्यता नहीं। आपकी पहली प्रकाशित स्टोरी और पहले सत्यापित व्यू से ही $1.00 CPM (~₹86 प्रति 1,000 व्यू) की दर से पारदर्शी कमाई शुरू हो जाती है।'
-                    : 'No subscriber goals and no watch-time minimums. Earn a flat $1.00 (~₹86) per 1,000 verified reads starting from your first story.'}
+                    ? `कोई 1,000 सब्सक्राइबर या 4,000 घंटे की वॉच-टाइम की बाध्यता नहीं। आपकी पहली प्रकाशित स्टोरी और पहले सत्यापित व्यू से ही $1.00 CPM (~₹${Math.round(rate)} प्रति 1,000 व्यू) की दर से पारदर्शी कमाई शुरू हो जाती है।`
+                    : `No subscriber goals and no watch-time minimums. Earn a flat $1.00 (~₹${rate.toFixed(2)}) per 1,000 verified reads starting from your first story.`}
                 </p>
               </div>
 
               {/* 02: Hyperlocal Geotagging */}
-              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 space-y-3 text-left hover:border-sky-400/50 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 shadow-2xs group">
+              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-3 text-left hover:border-sky-400/50 dark:hover:border-white/20 hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] transition-all duration-200 shadow-2xs group">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-2xl sm:text-3xl font-black text-sky-700 dark:text-sky-400">
@@ -765,7 +774,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </div>
 
               {/* 03: Fast UPI & Bank Payouts */}
-              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 space-y-3 text-left hover:border-emerald-400/50 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 shadow-2xs group">
+              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-3 text-left hover:border-emerald-400/50 dark:hover:border-white/20 hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] transition-all duration-200 shadow-2xs group">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400">
@@ -787,7 +796,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </div>
 
               {/* 04: Full Content Ownership */}
-              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-stone-200/90 dark:border-slate-800 space-y-3 text-left hover:border-amber-400/50 dark:hover:border-slate-700 hover:shadow-md transition-all duration-200 shadow-2xs group">
+              <div className="p-6 sm:p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-3 text-left hover:border-amber-400/50 dark:hover:border-white/20 hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] transition-all duration-200 shadow-2xs group">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="font-mono text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-400">
@@ -836,7 +845,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
           06. TRUST & PUBLISHER JOURNEY: YOUR REPORTING. YOUR RIGHTS.
           ════════════════════════════════════════════════════════════════════ */}
       <RevealOnScroll direction="up" distance={28}>
-        <section id="trust" className="py-24 sm:py-32 border-t border-stone-200/80 dark:border-slate-800/80 max-w-[1380px] mx-auto px-6 sm:px-10 lg:px-12 text-left transition-colors duration-200">
+        <section id="trust" className="py-24 sm:py-32 border-t border-stone-200/80 dark:border-white/[0.08] max-w-[1380px] mx-auto px-6 sm:px-10 lg:px-12 text-left transition-colors duration-200">
           <div className="space-y-12 lg:space-y-16">
             
             {/* Editorial Section Header */}
@@ -860,12 +869,12 @@ export const HomeView: React.FC<HomeViewProps> = () => {
             {/* 3 Trust Pillar Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              <div className="p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-4 shadow-sm hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-xl bg-surface-muted dark:bg-surface-elevated text-slate-800 dark:text-slate-100 flex items-center justify-center font-bold">
                     <ShieldCheck className="w-6 h-6 text-[#DE5227]" />
                   </div>
-                  <span className="text-xs font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-surface-muted dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                  <span className="text-xs font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-surface-muted dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-white/10">
                     GPS ANCHORED
                   </span>
                 </div>
@@ -879,12 +888,12 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </p>
               </div>
 
-              <div className="p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-4 shadow-sm hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-xl bg-surface-muted dark:bg-surface-elevated text-slate-800 dark:text-slate-100 flex items-center justify-center font-bold">
                     <Eye className="w-6 h-6 text-[#DE5227]" />
                   </div>
-                  <span className="text-xs font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-surface-muted dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                  <span className="text-xs font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-surface-muted dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-white/10">
                     ANTI-BOT METRICS
                   </span>
                 </div>
@@ -898,12 +907,12 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </p>
               </div>
 
-              <div className="p-7 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="p-7 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-4 shadow-sm hover:shadow-md dark:hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.8)] dark:hover:border-white/20 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-xl bg-surface-muted dark:bg-surface-elevated text-slate-800 dark:text-slate-100 flex items-center justify-center font-bold">
                     <Landmark className="w-6 h-6 text-[#DE5227]" />
                   </div>
-                  <span className="text-xs font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-surface-muted dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-slate-700">
+                  <span className="text-xs font-mono font-bold uppercase px-2.5 py-1 rounded-full bg-surface-muted dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border border-stone-200 dark:border-white/10">
                     ZERO COMMISSION
                   </span>
                 </div>
@@ -933,7 +942,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 
                 {/* Step 1 */}
-                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-2 hover:border-stone-300 dark:hover:border-slate-700 transition">
+                <div className="p-6 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-2 hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)] transition">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-content-secondary">STEP 01</span>
                     <span className="font-script text-indigo-600 dark:text-indigo-300 text-base font-semibold rotate-3 select-none pointer-events-none animate-scribble-bob">
@@ -951,7 +960,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Step 2 */}
-                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-2 hover:border-stone-300 dark:hover:border-slate-700 transition">
+                <div className="p-6 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-2 hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)] transition">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-content-secondary">STEP 02</span>
                     <span className="text-xs font-mono text-content-tertiary uppercase">Locality Beat</span>
@@ -967,7 +976,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Step 3 */}
-                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-2 hover:border-stone-300 dark:hover:border-slate-700 transition">
+                <div className="p-6 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-2 hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)] transition">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-content-secondary">STEP 03</span>
                     <span className="text-xs font-mono text-content-tertiary uppercase">Payout Setup</span>
@@ -983,7 +992,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Step 4 */}
-                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-2 hover:border-stone-300 dark:hover:border-slate-700 transition">
+                <div className="p-6 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-2 hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)] transition">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-content-secondary">STEP 04</span>
                     <span className="text-xs font-mono text-content-tertiary uppercase">Publish</span>
@@ -999,7 +1008,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Step 5 */}
-                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-card border border-edge-subtle space-y-2 hover:border-stone-300 dark:hover:border-slate-700 transition">
+                <div className="p-6 rounded-2xl bg-surface-card border border-stone-200/90 dark:border-white/[0.08] space-y-2 hover:border-stone-300 dark:hover:border-white/20 dark:hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)] transition">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-content-secondary">STEP 05</span>
                     <span className="text-xs font-mono text-content-tertiary uppercase">Verification</span>
@@ -1015,7 +1024,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 </div>
 
                 {/* Step 6: Highlighted Goal State with Orange Accent */}
-                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-elevated border-2 border-[#DE5227] dark:border-[#DE5227]/80 space-y-2 shadow-lg shadow-orange-500/10">
+                <div className="p-6 rounded-2xl bg-surface-card dark:bg-surface-elevated border-2 border-[#DE5227] dark:border-[#DE5227] space-y-2 shadow-lg shadow-orange-500/10 dark:shadow-[0_0_30px_rgba(222,82,39,0.25)]">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-[#C84318] dark:text-orange-400">STEP 06</span>
                     <div className="flex items-center gap-2">
@@ -1045,7 +1054,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                   {['Patna Ward 12', 'Varanasi Ghats', 'Lucknow Gomti Nagar', 'Jaipur Malviya Nagar', 'Indore Vijay Nagar', 'Pune Kothrud'].map((hub) => (
                     <span
                       key={hub}
-                      className="px-3 py-1 rounded-lg bg-surface-muted text-slate-800 dark:text-slate-200 border border-stone-300/60 dark:border-slate-700/60 font-medium hover:border-[#DE5227] transition-colors flex items-center gap-1.5 cursor-default"
+                      className="px-3 py-1 rounded-lg bg-surface-muted text-slate-800 dark:text-slate-200 border border-stone-300/60 dark:border-white/10 font-medium hover:border-[#DE5227] dark:hover:border-[#DE5227] transition-colors flex items-center gap-1.5 cursor-default"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       <span>{hub}</span>
@@ -1091,8 +1100,8 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                   key={idx}
                   className={`rounded-2xl transition-all duration-300 border overflow-hidden ${
                     isOpen
-                      ? 'bg-surface-card dark:bg-surface-card border-stone-300 dark:border-slate-700 shadow-sm ring-1 ring-[#DE5227]/20'
-                      : 'bg-surface-card/80 dark:bg-surface-card/70 border-stone-200/90 dark:border-slate-800 hover:border-stone-300 dark:hover:border-slate-700'
+                      ? 'bg-surface-card border-stone-300 dark:border-white/20 shadow-sm ring-1 ring-[#DE5227]/20 dark:shadow-[0_8px_30px_rgba(0,0,0,0.6),0_0_20px_rgba(255,90,38,0.1)]'
+                      : 'bg-surface-card/80 dark:bg-surface-card/70 border-stone-200/90 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20'
                   }`}
                 >
                   <button
@@ -1108,7 +1117,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                     <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-transform duration-300 ${
                       isOpen
                         ? 'bg-[#DE5227] border-[#DE5227] text-white rotate-180 shadow-xs'
-                        : 'border-stone-200 dark:border-slate-700 bg-surface-muted dark:bg-surface-elevated text-slate-600 dark:text-slate-400 group-hover:border-stone-400 rotate-0'
+                        : 'border-stone-200 dark:border-white/10 bg-surface-muted dark:bg-surface-elevated text-slate-600 dark:text-slate-400 group-hover:border-stone-400 rotate-0'
                     }`}>
                       <ChevronDown className="w-4 h-4" />
                     </div>
@@ -1122,7 +1131,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal border-t border-stone-200/60 dark:border-slate-800/80 pt-4">
+                      <div className="px-5 pb-5 sm:px-6 sm:pb-6 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal border-t border-stone-200/60 dark:border-white/[0.08] pt-4">
                         {faq.a}
                       </div>
                     </div>
@@ -1160,7 +1169,7 @@ export const HomeView: React.FC<HomeViewProps> = () => {
           aria-modal="true"
           aria-labelledby="qr-modal-title"
         >
-          <div className="bg-surface-card dark:bg-surface-card rounded-2xl p-6 sm:p-8 max-w-sm w-full space-y-4 text-center shadow-2xl relative border border-stone-200/90 dark:border-slate-800 text-slate-900 dark:text-white animate-in zoom-in-95 duration-150">
+          <div className="bg-surface-card rounded-2xl p-6 sm:p-8 max-w-sm w-full space-y-4 text-center shadow-2xl relative border border-stone-200/90 dark:border-white/10 dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] text-slate-950 dark:text-white animate-in zoom-in-95 duration-150">
             <button
               onClick={() => setShowQrModal(false)}
               className="absolute top-4 right-4 text-content-tertiary hover:text-slate-700 dark:hover:text-white font-bold text-lg p-1 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-[#DE5227] rounded-md"
@@ -1180,14 +1189,14 @@ export const HomeView: React.FC<HomeViewProps> = () => {
                 : 'Scan this QR code with your mobile camera to install the 100% free consumer app.'}
             </p>
 
-            <div className="p-4 bg-surface-card dark:bg-surface-card rounded-2xl border-2 border-dashed border-stone-300 dark:border-slate-700 flex flex-col items-center justify-center space-y-2">
+            <div className="p-4 bg-surface-card rounded-2xl border-2 border-dashed border-stone-300 dark:border-white/15 flex flex-col items-center justify-center space-y-2">
               <div className="w-36 h-36 bg-slate-900 rounded-xl p-3 flex flex-col items-center justify-center relative">
                 <QrCode className="w-28 h-28 text-white" />
               </div>
               <span className="text-xs font-mono text-content-secondary">Scan to download APK</span>
             </div>
 
-            <div className="p-3 bg-stone-100/70 dark:bg-surface-muted rounded-2xl border border-stone-200 dark:border-slate-800">
+            <div className="p-3 bg-stone-100/70 dark:bg-[#121826] rounded-2xl border border-stone-200 dark:border-white/10">
               <div className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300">
                 v1.2.0 Production Release
               </div>

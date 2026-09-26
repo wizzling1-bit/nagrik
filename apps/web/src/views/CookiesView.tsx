@@ -132,7 +132,7 @@ export const CookiesView: React.FC = () => {
             Certain external infrastructure partners may set cookies or inspect device headers solely to serve cached media assets and protect the network:
           </p>
           <ul className="list-disc pl-5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
-            <li><strong>Cloudflare Inc.:</strong> Bot mitigation, DDoS shielding (<code className="font-mono text-[11px]">__cf_bm</code>), and edge media streaming.</li>
+            <li><strong>Edge Delivery & Security Network:</strong> Bot mitigation, DDoS shielding, and edge media streaming.</li>
             <li><strong>Google Fonts:</strong> Web typography delivery with zero cookie tracking.</li>
             <li><strong>Google AdMob SDK:</strong> Operates in non-personalized mode in strict accordance with Section 9 of the DPDP Act 2023.</li>
           </ul>

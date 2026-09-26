@@ -27,11 +27,49 @@ class ApiClient {
   ApiClient({
     http.Client? client,
     DeviceIdService? deviceIdService,
-  })  : _client = client ?? http.Client(),
+  })  : _client = client ?? _sharedHttpClient,
+        _isCustomClient = client != null,
         _deviceIdService = deviceIdService ?? DeviceIdService.instance;
 
+  static final http.Client _sharedHttpClient = http.Client();
   final http.Client _client;
+  final bool _isCustomClient;
   final DeviceIdService _deviceIdService;
+
+  Future<http.Response> _executeWithRetry(
+    Future<http.Response> Function() action, {
+    int maxRetries = 2,
+    int initialDelayMs = 400,
+  }) async {
+    int attempt = 0;
+    while (true) {
+      try {
+        return await action().timeout(ApiConstants.timeoutDuration);
+      } on Object catch (e) {
+        final isRetryable = e is SocketException ||
+            e is TimeoutException ||
+            e is http.ClientException;
+        attempt++;
+        if (!isRetryable || attempt > maxRetries) {
+          if (e is SocketException) {
+            throw ApiException(
+              message: 'Network unreachable. Please check connection. (${e.message})',
+            );
+          } else if (e is TimeoutException) {
+            throw const ApiException(
+              message: 'Request timed out. Server took too long to respond.',
+            );
+          } else if (e is http.ClientException) {
+            throw ApiException(message: 'HTTP Client Error: ${e.message}');
+          }
+          rethrow;
+        }
+        final delayMs = initialDelayMs * (1 << (attempt - 1));
+        final jitter = (attempt * 50);
+        await Future<void>.delayed(Duration(milliseconds: delayMs + jitter));
+      }
+    }
+  }
 
   Future<Map<String, String>> _buildHeaders({Map<String, String>? extra}) async {
     final deviceId = await _deviceIdService.getDeviceId();
@@ -80,23 +118,10 @@ class ApiClient {
     final uri = _buildUri(path, queryParameters);
     final requestHeaders = await _buildHeaders(extra: headers);
 
-    try {
-      final response = await _client
-          .get(uri, headers: requestHeaders)
-          .timeout(ApiConstants.timeoutDuration);
-
-      return _handleResponse(response);
-    } on SocketException catch (e) {
-      throw ApiException(
-        message: 'Network unreachable. Please check connection. (${e.message})',
-      );
-    } on TimeoutException {
-      throw const ApiException(
-        message: 'Request timed out. Server took too long to respond.',
-      );
-    } on http.ClientException catch (e) {
-      throw ApiException(message: 'HTTP Client Error: ${e.message}');
-    }
+    final response = await _executeWithRetry(
+      () => _client.get(uri, headers: requestHeaders),
+    );
+    return _handleResponse(response);
   }
 
   /// Performs POST request with JSON body and parses JSON response.
@@ -109,27 +134,14 @@ class ApiClient {
     final uri = _buildUri(path, queryParameters);
     final requestHeaders = await _buildHeaders(extra: headers);
 
-    try {
-      final response = await _client
-          .post(
-            uri,
-            headers: requestHeaders,
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(ApiConstants.timeoutDuration);
-
-      return _handleResponse(response);
-    } on SocketException catch (e) {
-      throw ApiException(
-        message: 'Network unreachable. Please check connection. (${e.message})',
-      );
-    } on TimeoutException {
-      throw const ApiException(
-        message: 'Request timed out. Server took too long to respond.',
-      );
-    } on http.ClientException catch (e) {
-      throw ApiException(message: 'HTTP Client Error: ${e.message}');
-    }
+    final response = await _executeWithRetry(
+      () => _client.post(
+        uri,
+        headers: requestHeaders,
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
+    return _handleResponse(response);
   }
 
   dynamic _handleResponse(http.Response response) {
@@ -180,7 +192,9 @@ class ApiClient {
   }
 
   void close() {
-    _client.close();
+    if (_isCustomClient) {
+      _client.close();
+    }
   }
 }
 
