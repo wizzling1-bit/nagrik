@@ -150,7 +150,7 @@ export const LiveNewsSection: React.FC = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('contents')
-          .select('*')
+          .select('*, creator:creators(display_name), category:categories(name)')
           .eq('publication_status', 'PUBLISHED')
           .order('created_at', { ascending: false })
           .limit(12);
@@ -160,17 +160,17 @@ export const LiveNewsSection: React.FC = () => {
             id: i.id,
             title: i.title,
             description: i.description || '',
-            type: i.type || 'VIDEO',
+            type: (i.type as 'ARTICLE' | 'VIDEO') || 'ARTICLE',
             mediaUrl: i.media_url,
-            thumbnailUrl: i.thumbnail_url,
-            category: i.category_id || 'Civic',
+            thumbnailUrl: i.thumbnail_url || i.media_url,
+            category: i.category?.name || 'Civic',
             location: {
               area: i.location_area || '',
-              city: i.location_city || 'Delhi NCR',
-              state: i.location_state || ''
+              city: i.location_city || 'Patna',
+              state: i.location_state || 'Bihar'
             },
             views: i.views || 0,
-            creatorName: i.creator_name || 'Nagrik Reporter',
+            creatorName: i.author_name || i.creator?.display_name || 'Sohan',
             createdAt: i.created_at
           }));
           setNews(liveItems);
