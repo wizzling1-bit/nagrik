@@ -96,12 +96,21 @@ CREATE TABLE IF NOT EXISTS contents (
     shares INT NOT NULL DEFAULT 0,
     saves INT NOT NULL DEFAULT 0,
     published_at TIMESTAMPTZ DEFAULT NOW(),
+    author_name TEXT,
+    source_name TEXT,
+    source_url TEXT,
+    media_attribution TEXT,
+    is_original BOOLEAN DEFAULT true,
+    correction_note TEXT,
+    correction_status TEXT DEFAULT 'NONE' CHECK (correction_status IN ('NONE', 'CORRECTED', 'RETRACTED')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_contents_feed ON contents(moderation_status, publication_status, published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contents_creator ON contents(creator_id);
 CREATE INDEX IF NOT EXISTS idx_contents_category ON contents(category_id);
+CREATE INDEX IF NOT EXISTS idx_contents_source_name ON contents(source_name);
+CREATE INDEX IF NOT EXISTS idx_contents_correction_status ON contents(correction_status);
 CREATE INDEX IF NOT EXISTS idx_contents_coordinates_geo ON contents USING GIST (coordinates_geo);
 
 -- 1.6 VIDEO VIEWS TABLE (Enforces max 3 monetized views ceiling rule)
@@ -184,9 +193,24 @@ CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     reporter_id UUID REFERENCES users(id) ON DELETE CASCADE,
     reporter_device_id TEXT,
-    content_id UUID NOT NULL REFERENCES contents(id) ON DELETE CASCADE,
+    reporter_email TEXT,
+    content_id UUID REFERENCES contents(id) ON DELETE CASCADE,
+    category TEXT DEFAULT 'OTHER' CHECK (category IN (
+        'INCORRECT_INFO',
+        'MISLEADING',
+        'COPYRIGHT',
+        'PRIVACY',
+        'HARASSMENT',
+        'ILLEGAL_CONTENT',
+        'HATE_VIOLENCE',
+        'SPAM',
+        'OTHER'
+    )),
     reason TEXT NOT NULL,
+    details TEXT,
     status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'RESOLVED', 'DISMISSED')),
+    resolved_at TIMESTAMPTZ,
+    resolution_notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_reports_content ON reports(content_id);

@@ -130,4 +130,23 @@ class ApiConstants {
   static const String headerDeviceId = 'x-device-id';
   static const String headerContentType = 'Content-Type';
   static const String jsonContentType = 'application/json';
+
+  // Canonical Web Policy & Transparency URLs
+  static const String webBaseUrl = 'https://nagrik.news';
+  static String get urlAbout => '$webBaseUrl/about';
+  static String get urlEditorialGuidelines => '$webBaseUrl/editorial-guidelines';
+  static String get urlContentPolicy => '$webBaseUrl/content-policy';
+  static String get urlCorrections => '$webBaseUrl/corrections';
+  static String get urlSources => '$webBaseUrl/sources';
+  static String get urlPublisherGuidelines => '$webBaseUrl/publisher-guidelines';
+  static String get urlCommunityGuidelines => '$webBaseUrl/community-guidelines';
+  static String get urlCopyright => '$webBaseUrl/copyright';
+  static String get urlPrivacyPolicy => '$webBaseUrl/privacy';
+  static String get urlTermsOfService => '$webBaseUrl/terms';
+  static String get urlAdvertising => '$webBaseUrl/advertising';
+  static String get urlTransparency => '$webBaseUrl/transparency';
+  static String get urlAccessibility => '$webBaseUrl/accessibility';
+  static String get urlContact => '$webBaseUrl/contact';
+  static String get urlReportContent => '$webBaseUrl/report';
+  static String get urlGrievance => '$webBaseUrl/grievance';
 }

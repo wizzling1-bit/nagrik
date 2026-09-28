@@ -53,7 +53,8 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('Exit Application'), 200);
+      await tester.ensureVisible(find.text('Exit Application'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Exit Application'));
       await tester.pumpAndSettle();
 
@@ -109,6 +110,37 @@ void main() {
       expect(find.text('ABOUT'), findsOneWidget);
       expect(find.text('Privacy Policy'), findsOneWidget);
       expect(find.text('Terms of Service'), findsOneWidget);
+    });
+
+    testWidgets('tapping Editorial & Public Policies opens policy sheet with canonical policies',
+        (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: NagrikTheme.light(),
+            home: const SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Editorial & Public Policies'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Editorial & Public Policies'));
+      await tester.pumpAndSettle();
+
+      // Verify policy sheet opened
+      expect(find.text('About Nagrik'), findsOneWidget);
+      expect(find.text('Editorial Guidelines'), findsOneWidget);
+      expect(find.text('Content Policy'), findsOneWidget);
+      expect(find.text('Corrections Policy'), findsOneWidget);
     });
   });
 }

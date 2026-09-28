@@ -217,21 +217,18 @@ export const Footer: React.FC = () => {
               </div>
             </div>
 
-            {/* ── COL 2: PLATFORM (lg:col-span-3) ── */}
-            <div className="col-span-1 lg:col-span-3 space-y-3.5 sm:space-y-4">
-              <h3 className="text-[13px] font-bold text-white tracking-tight font-sans uppercase">
-                Platform
+            {/* ── COL 2: COMPANY (lg:col-span-2) ── */}
+            <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
+              <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase">
+                Company
               </h3>
-              <nav aria-label="Platform navigation">
-                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
+              <nav aria-label="Company navigation">
+                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
                   {[
-                    { label: 'Latest News', href: '/#story' },
-                    { label: "People's Stories", href: '/publishers' },
+                    { label: 'About Nagrik', href: '/about' },
+                    { label: 'Contact Desk', href: '/contact' },
                     { label: 'Publisher Studio', href: '/creator' },
                     { label: 'Payment Proof', href: '/payment-proof' },
-                    { label: 'About Us', href: '/about' },
-                    { label: 'Contact Us', href: '/contact' },
-                    { label: 'FAQ', href: '/#faq' },
                   ].map((link) => (
                     <li key={link.label}>
                       <Link
@@ -249,18 +246,78 @@ export const Footer: React.FC = () => {
               </nav>
             </div>
 
-            {/* ── COL 3: LEGAL & TRUST (lg:col-span-3) ── */}
-            <div className="col-span-1 lg:col-span-3 space-y-3.5 sm:space-y-4">
-              <h3 className="text-[13px] font-bold text-white tracking-tight font-sans uppercase">
-                Legal &amp; Trust
+            {/* ── COL 3: EDITORIAL (lg:col-span-2) ── */}
+            <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
+              <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase">
+                Editorial
+              </h3>
+              <nav aria-label="Editorial navigation">
+                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
+                  {[
+                    { label: 'Editorial Guidelines', href: '/editorial-guidelines' },
+                    { label: 'Corrections', href: '/corrections' },
+                    { label: 'Sources & Attribution', href: '/sources' },
+                    { label: 'Transparency', href: '/transparency' },
+                  ].map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="group/link inline-flex items-center gap-1 hover:text-white transition-colors duration-200"
+                      >
+                        <span className="relative">
+                          {link.label}
+                          <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#FF5A26] transition-all duration-300 group-hover/link:w-full" />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+
+            {/* ── COL 4: POLICIES (lg:col-span-2) ── */}
+            <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
+              <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase">
+                Policies
+              </h3>
+              <nav aria-label="Policies navigation">
+                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
+                  {[
+                    { label: 'Content Policy', href: '/content-policy' },
+                    { label: 'Community Guidelines', href: '/community-guidelines' },
+                    { label: 'Publisher Guidelines', href: '/publisher-guidelines' },
+                    { label: 'Advertising Policy', href: '/advertising' },
+                    { label: 'Copyright & IP', href: '/copyright' },
+                  ].map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="group/link inline-flex items-center gap-1 hover:text-white transition-colors duration-200"
+                      >
+                        <span className="relative">
+                          {link.label}
+                          <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#FF5A26] transition-all duration-300 group-hover/link:w-full" />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+
+            {/* ── COL 5: LEGAL (lg:col-span-2) ── */}
+            <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
+              <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase">
+                Legal
               </h3>
               <nav aria-label="Legal navigation">
-                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
+                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
                   {[
                     { label: 'Privacy Policy', href: '/privacy' },
                     { label: 'Terms of Service', href: '/terms' },
-                    { label: 'Editorial Standards', href: '/guidelines' },
-                    { label: 'Grievance Officer', href: '/grievance' },
+                    { label: 'Accessibility', href: '/accessibility' },
+                    { label: 'Grievance Desk', href: '/grievance' },
+                    { label: 'Report Content', href: '/report' },
                   ].map((link) => (
                     <li key={link.label}>
                       <Link

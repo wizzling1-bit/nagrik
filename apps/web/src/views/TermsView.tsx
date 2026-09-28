@@ -1,71 +1,46 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React from 'react';
 import Link from 'next/link';
 import {
   FileText,
   Lock,
-  DollarSign,
-  ShieldCheck,
   Scale,
-  Clock,
-  ExternalLink,
+  ShieldCheck,
+  CheckCircle2,
   AlertTriangle,
+  Clock,
   ArrowRight,
-  CheckCircle2
+  Globe,
+  DollarSign
 } from 'lucide-react';
 import { LegalLayout, TocItem } from '@/components/legal/LegalLayout';
 import { useLanguage } from '@/context/LanguageContext';
-import { supabase } from '@/lib/supabase';
 
 export const TermsView: React.FC = () => {
   const { language } = useLanguage();
-  const searchParams = useSearchParams();
-  const initialTab = searchParams ? searchParams.get('tab') || 'terms' : 'terms';
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
-  const [cmsPages, setCmsPages] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchLegalPages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('cms_pages')
-          .select('*')
-          .eq('is_published', true);
-
-        if (!error && data && data.length > 0) {
-          setCmsPages(data);
-        }
-      } catch (err) {
-        console.warn('Could not fetch dynamic legal pages via Supabase, using defaults:', err);
-      }
-    };
-    fetchLegalPages();
-  }, []);
-
-  useEffect(() => {
-    const tab = searchParams?.get('tab');
-    if (tab) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
 
   const tocItems: TocItem[] = [
-    { id: 'acceptance', label: '1. Acceptance & Eligibility' },
-    { id: 'reporting-rules', label: '2. Citizen Reporting Rules' },
-    { id: 'monetization', label: '3. Contributor Monetization & UPI' },
-    { id: 'intellectual-property', label: '4. 100% IP & Copyright Ownership' },
-    { id: 'dmca', label: '5. DMCA & Copyright Act 1957 Takedown' },
-    { id: 'liability', label: '6. Limitation of Liability' },
-    { id: 'disputes', label: '7. Jurisdiction & Arbitration' }
+    { id: 'acceptance', label: '1. Acceptance & Platform Eligibility' },
+    { id: 'app-web-usage', label: '2. App & Web Usage; Anonymous Access' },
+    { id: 'publisher-accounts', label: '3. Publisher Accounts & Responsibilities' },
+    { id: 'ownership-license', label: '4. Content Ownership & License to Nagrik' },
+    { id: 'prohibited-activities', label: '5. Prohibited Activities' },
+    { id: 'intellectual-property', label: '6. Nagrik Intellectual Property' },
+    { id: 'advertising', label: '7. Advertising & Third-Party Services' },
+    { id: 'availability', label: '8. Service Availability & Continuity' },
+    { id: 'safe-harbor', label: '9. Intermediary Safe Harbor & Disclaimers' },
+    { id: 'liability', label: '10. Limitation of Liability' },
+    { id: 'termination', label: '11. Termination & Account Suspension' },
+    { id: 'governing-law', label: '12. Governing Law & Dispute Jurisdiction' },
+    { id: 'changes-contact', label: '13. Modifications & Contact Particulars' }
   ];
 
   return (
     <LegalLayout
       title="Terms of Service & Platform Charter"
       hindiTitle="सेवा की शर्तें एवं मंच घोषणापत्र"
-      subtitle="Effective September 2026. Governing all access to Nagrik website, Publisher Studio, and mobile applications across India."
+      subtitle="Governing all access to the Nagrik digital news network, mobile applications, web portals, and Publisher Studio."
       category="Legal & Terms"
       lastUpdated="September 2026"
       version="2026.2"
@@ -78,150 +53,204 @@ export const TermsView: React.FC = () => {
         <div className="p-4 sm:p-5 rounded-2xl bg-orange-500/10 border border-orange-500/25 text-slate-800 dark:text-orange-200 text-xs sm:text-sm space-y-2">
           <div className="flex items-center gap-2 font-bold font-serif text-slate-950 dark:text-white text-sm sm:text-base">
             <Scale className="w-4 h-4 text-[#DE5227] shrink-0" />
-            <span>Binding Legal Contract</span>
+            <span>Binding Legal Agreement</span>
           </div>
           <p className="leading-relaxed font-normal text-slate-700 dark:text-slate-300 text-xs">
-            By creating an account, browsing civic dispatches, or submitting ground reports on Nagrik, you enter into a binding agreement with Nagrik Media Trust. Please also read our dedicated <Link href="/privacy" className="text-[#DE5227] underline font-bold">Privacy Policy</Link>, <Link href="/guidelines" className="text-[#DE5227] underline font-bold">Editorial Standards</Link>, and <Link href="/grievance" className="text-[#DE5227] underline font-bold">Grievance Redressal</Link> procedures.
+            By downloading our mobile app, reading local dispatches on nagrik.news, or registering as a publisher, you agree to be bound by these Terms of Service entered into with Nagrik Media Trust. Please also review our <Link href="/privacy" className="text-[#DE5227] underline font-bold">Privacy Policy</Link>, <Link href="/editorial-guidelines" className="text-[#DE5227] underline font-bold">Editorial Guidelines</Link>, and <Link href="/content-policy" className="text-[#DE5227] underline font-bold">Content Policy</Link>.
           </p>
         </div>
 
-        {/* ── SECTION 1: ACCEPTANCE ── */}
+        {/* 1. ACCEPTANCE & ELIGIBILITY */}
         <section id="acceptance" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">1.</span> Acceptance & Platform Eligibility
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">1.</span> Acceptance &amp; Platform Eligibility
             </h2>
           </div>
           <p>
-            You must be at least 18 years of age to register as a citizen stringer, upload news reports, or receive monetization payouts. By using this service, you represent that you possess the full legal capacity to enter into these terms under the <strong>Indian Contract Act, 1872</strong>.
+            You must be at least 18 years of age to register as a citizen reporter, upload dispatches, or receive monetization payouts. By using this service, you represent that you possess the full legal capacity to enter into a valid contract under the <strong>Indian Contract Act, 1872</strong>.
           </p>
           <p>
-            If you are accessing the service on behalf of an institutional publisher, NGO, or media bureau, you warrant that you hold legitimate delegated authority to bind that entity.
+            If you access Nagrik on behalf of a news bureau, institutional media house, or NGO, you warrant that you possess the legal authority to bind that entity to these Terms.
           </p>
         </section>
 
-        {/* ── SECTION 2: REPORTING RULES ── */}
-        <section id="reporting-rules" className="space-y-3 pt-2">
+        {/* 2. APP & WEB USAGE */}
+        <section id="app-web-usage" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">2.</span> Citizen Reporting & Ground Authenticity Rules
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">2.</span> App &amp; Web Usage; Anonymous Public Access
             </h2>
           </div>
           <p>
-            Nagrik exists to advance authentic public-interest civic reporting. Contributor privileges are subject to the following non-negotiable requirements:
+            Nagrik believes civic information should be friction-free. General readers may browse articles, watch field video dispatches, and access public safety bulletins without creating an account or providing sensitive personal information.
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            Anonymous readers are assigned a pseudonymous device identifier solely for technical rate-limiting, bookmark storage on device, and caching local preferences.
+          </p>
+        </section>
+
+        {/* 3. PUBLISHER ACCOUNTS */}
+        <section id="publisher-accounts" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">3.</span> Publisher Accounts &amp; Contributor Responsibilities
+            </h2>
+          </div>
+          <p>
+            To upload video reports, write articles, or receive compensation, contributors must register a verified publisher account:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-            <li><strong>Authentic Physical Presence:</strong> You must not spoof device location or upload footage of events at which you were not physically present.</li>
-            <li><strong>Prohibition of Deepfakes:</strong> Unlabeled synthetic media, voice clones, or deceptive AI-generated footage are strictly banned and will result in immediate permanent account termination.</li>
-            <li><strong>No Extortion or Blackmail:</strong> Using Nagrik citizen credentials to threaten, extort, or demand kickbacks from municipal contractors, hospital staff, or citizens is a criminal offence that will be reported to the police.</li>
+            <li>You agree to provide accurate, current, and complete identification and contact details.</li>
+            <li>You are solely responsible for maintaining the confidentiality of your login credentials and OTPs.</li>
+            <li>You agree that all submissions represent authentic field documentation adhering to our <Link href="/editorial-guidelines" className="text-[#DE5227] underline">Editorial Guidelines</Link>.</li>
+            <li>You warrant that you will not engage in extortion, blackmail, or paid suppression of negative stories.</li>
           </ul>
         </section>
 
-        {/* ── SECTION 3: MONETIZATION ── */}
-        <section id="monetization" className="space-y-4 pt-2">
+        {/* 4. OWNERSHIP & LICENSE */}
+        <section id="ownership-license" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">3.</span> Contributor Monetization & UPI Settlement Terms
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">4.</span> Content Ownership &amp; License Grant to Nagrik
             </h2>
           </div>
           <p>
-            Active publishers and citizen stringers earn compensation on verified public engagement under our transparent monetization charter:
+            <strong>You own what you create.</strong> Contributors retain 100% intellectual property ownership of their original camera footage, audio, and written dispatches.
           </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3.5 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800 space-y-1">
-              <div className="font-bold text-[#DE5227] font-mono text-sm">$1.50 CPM Baseline</div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                Calculated at approximately ₹129 INR per 1,000 verified human reads with 5+ seconds active dwell time.
-              </p>
-            </div>
-            <div className="p-3.5 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800 space-y-1">
-              <div className="font-bold text-emerald-600 font-mono text-sm">₹850 INR Threshold</div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                Low $10 USD equivalent payout threshold. No platform commission deductions on creator earnings.
-              </p>
-            </div>
-            <div className="p-3.5 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800 space-y-1">
-              <div className="font-bold text-blue-600 font-mono text-sm">24–48 Hr Disbursal</div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                Direct to your verified UPI VPA ID or Indian Bank Account via NEFT/IMPS rails.
-              </p>
-            </div>
-          </div>
-
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            <strong>Tax Withholding (TDS):</strong> In compliance with Sections 194C and 194R of the Income Tax Act, 1961, applicable TDS may be deducted for creators exceeding annual statutory thresholds, against their verified PAN.
+          <p>
+            By uploading content to Nagrik, you grant Nagrik Media Trust a non-exclusive, worldwide, royalty-free, transferable license to store, transcode, stream, distribute, index, and publicly display your work across our web, mobile, RSS, and social syndication channels.
           </p>
         </section>
 
-        {/* ── SECTION 4: INTELLECTUAL PROPERTY ── */}
-        <section id="intellectual-property" className="space-y-3 pt-2">
+        {/* 5. PROHIBITED ACTIVITIES */}
+        <section id="prohibited-activities" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">4.</span> 100% Intellectual Property & Copyright Ownership
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">5.</span> Prohibited Activities
             </h2>
           </div>
           <p>
-            <strong>You own your footage.</strong> Unlike legacy media corporations that claim exclusive copyright over your video dispatches, Nagrik operates on an author-first framework:
+            When utilizing Nagrik, you agree not to:
           </p>
           <ul className="list-disc pl-5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
-            <li>You retain 100% copyright and intellectual property rights in all original photographs, video footage, and text submitted.</li>
-            <li>You grant Nagrik a worldwide, non-exclusive, royalty-free license to host, transcode, stream, distribute, and display your report across our mobile applications, web portals, and RSS syndication feeds.</li>
-            <li>You are free to license your original footage to third-party documentary filmmakers, news agencies, or television channels.</li>
+            <li>Publish content violating Indian criminal law, inciting communal violence, or defaming individuals.</li>
+            <li>Upload deepfakes, synthetic voice clones, or manipulated footage presented as real events.</li>
+            <li>Use automated scrapers, bots, or click farms to generate artificial view counts or fraudulent payout claims.</li>
+            <li>Attempt to probe, scan, or breach the security of our Supabase database or Cloudflare infrastructure.</li>
+            <li>Harass, stalk, or doxx journalists, public servants, or citizens.</li>
           </ul>
         </section>
 
-        {/* ── SECTION 5: DMCA & COPYRIGHT ── */}
-        <section id="dmca" className="space-y-3 pt-2">
+        {/* 6. NAGRIK IP */}
+        <section id="intellectual-property" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">5.</span> DMCA & Indian Copyright Act 1957 Takedown Protocol
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">6.</span> Nagrik Intellectual Property
             </h2>
           </div>
           <p>
-            Nagrik respects third-party intellectual property and responds promptly to valid statutory infringement notices under the <strong>Indian Copyright Act, 1957</strong> and the <strong>DMCA (17 U.S.C. § 512)</strong>:
+            The Nagrik platform name, trademarks, logos, visual identity, Flutter mobile application software, web application codebase, and proprietary layout designs are the exclusive property of Nagrik Media Trust.
           </p>
-          <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 text-xs space-y-2">
-            <div>
-              To submit a formal copyright takedown, email our designated Copyright & Legal Agent at <a href="mailto:copyright@nagrik.news" className="text-[#DE5227] font-bold underline">copyright@nagrik.news</a> with:
-            </div>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-400">
-              <li>Identification of the copyrighted work claimed to be infringed.</li>
-              <li>The exact URL on Nagrik where the infringing material is located.</li>
-              <li>A statement of good faith belief that the use is unauthorized.</li>
-              <li>Physical or electronic signature of the copyright owner or authorized representative.</li>
-            </ul>
-          </div>
         </section>
 
-        {/* ── SECTION 6: LIABILITY ── */}
+        {/* 7. ADVERTISING */}
+        <section id="advertising" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">7.</span> Advertising &amp; Third-Party Services
+            </h2>
+          </div>
+          <p>
+            Nagrik displays advertisements to support platform hosting and contributor payments. Advertisements are served via privacy-compliant networks (including Google AdMob) or direct sponsorship agreements.
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            Advertisers exercise zero control over editorial decisions. Third-party media links and external services are governed by their respective privacy terms.
+          </p>
+        </section>
+
+        {/* 8. AVAILABILITY */}
+        <section id="availability" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">8.</span> Service Availability &amp; Platform Continuity
+            </h2>
+          </div>
+          <p>
+            While we strive for continuous service uptime, Nagrik does not warrant uninterrupted or error-free operation. We reserve the right to modify, upgrade, or suspend portions of the platform for maintenance, security updates, or emergency administrative directives.
+          </p>
+        </section>
+
+        {/* 9. SAFE HARBOR */}
+        <section id="safe-harbor" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">9.</span> Intermediary Safe Harbor &amp; Disclaimers
+            </h2>
+          </div>
+          <p>
+            Nagrik operates as an intermediary under <strong>Section 79 of the Information Technology Act, 2000</strong>. Reports uploaded by independent contributors represent their firsthand observations and do not represent the institutional views of Nagrik Media Trust.
+          </p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            We act expeditiously to remove unlawful content upon receiving actual knowledge through court orders or verified government notices under the IT Rules, 2021.
+          </p>
+        </section>
+
+        {/* 10. LIABILITY */}
         <section id="liability" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">6.</span> Limitation of Liability & Intermediary Safe Harbor
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">10.</span> Limitation of Liability
             </h2>
           </div>
           <p>
-            Nagrik operates as an intermediary under <strong>Section 79 of the Information Technology Act, 2000</strong>. Content uploaded by citizen contributors reflects the independent observations of the respective stringers and does not represent the official stance of Nagrik Media Trust.
-          </p>
-          <p>
-            To the maximum extent permitted by Indian law, Nagrik shall not be liable for indirect, incidental, or consequential damages resulting from platform downtime or municipal actions arising from citizen journalism dispatches.
+            To the maximum extent permitted by applicable Indian law, Nagrik Media Trust, its trustees, officers, and employees shall not be liable for any indirect, incidental, punitive, or consequential damages resulting from platform downtime, loss of data, or community disputes arising from local reporting.
           </p>
         </section>
 
-        {/* ── SECTION 7: DISPUTES ── */}
-        <section id="disputes" className="space-y-3 pt-2">
+        {/* 11. TERMINATION */}
+        <section id="termination" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">7.</span> Governing Law & Dispute Resolution
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">11.</span> Termination &amp; Account Suspension
             </h2>
           </div>
           <p>
-            These Terms shall be governed by and construed in accordance with the laws of the Republic of India.
+            We reserve the right to suspend or terminate any publisher account immediately and without prior notice in cases of deliberate fraud, repeated copyright infringement, defamatory publications, or criminal incitement.
+          </p>
+        </section>
+
+        {/* 12. GOVERNING LAW */}
+        <section id="governing-law" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">12.</span> Governing Law &amp; Dispute Jurisdiction
+            </h2>
+          </div>
+          <p>
+            These Terms shall be governed by, construed, and enforced in accordance with the laws of the <strong>Republic of India</strong>.
           </p>
           <p>
-            Any legal dispute, controversy, or claim arising out of these terms shall be submitted to the exclusive jurisdiction of the competent civil courts in <strong>Patna, Bihar</strong>, following an initial mandatory 30-day amicable conciliation period.
+            Any dispute, controversy, or claim arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the competent civil courts in <strong>Patna, Bihar, India</strong>, following a mandatory 30-day amicable conciliation period.
           </p>
+        </section>
+
+        {/* 13. CHANGES & CONTACT */}
+        <section id="changes-contact" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">13.</span> Modifications &amp; Contact Particulars
+            </h2>
+          </div>
+          <p>
+            We may update these Terms periodically to reflect evolving legal, regulatory, or operational requirements. Updated versions will display the revision timestamp at the top of this document. Continued use of Nagrik after updates constitutes acceptance of the revised Terms.
+          </p>
+          <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
+            <div><strong className="text-slate-950 dark:text-white">Operating Entity:</strong> Nagrik Media Trust</div>
+            <div><strong className="text-slate-950 dark:text-white">Address:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
+            <div><strong className="text-slate-950 dark:text-white">General Inquiries:</strong> <a href="mailto:contact@nagrik.news" className="text-[#DE5227] underline">contact@nagrik.news</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline">grievance@nagrik.news</a></div>
+          </div>
         </section>
 
       </div>

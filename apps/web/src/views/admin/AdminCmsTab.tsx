@@ -77,16 +77,145 @@ Publishers act as independent citizen journalists and retain intellectual copyri
 Earnings accrue per 1,000 valid views up to a daily ceiling per viewer device. Minimum withdrawal threshold is $10.00 USD.`
     },
     {
-      slug: 'dmca',
-      title: 'DMCA Copyright & Content Takedown Policy',
-      version: '1.2',
+      slug: 'editorial-guidelines',
+      title: 'Editorial Guidelines & Standards',
+      version: '2026.1',
       isPublished: true,
       updatedAt: new Date().toISOString(),
-      content: `### 1. Intellectual Property Protection
-Nagrik complies with international DMCA copyright directives. If you believe your copyrighted video or audio has been used without authorization, submit a notice to legal@nagrik.news.
+      content: `### 1. Accuracy & Verification
+Reporters must verify facts before publication using firsthand documentation and multiple sources.
 
-### 2. Counter-Notices
-Publishers may file counter-notices within 14 business days.`
+### 2. Sourcing & Attribution
+Every story must identify its author and source. Anonymous sources are permitted only under severe safety threats.
+
+### 3. Corrections
+Factual errors are corrected transparently with an appended public correction note.`
+    },
+    {
+      slug: 'content-policy',
+      title: 'Content Policy & Moderation Rules',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Prohibited Content
+Zero tolerance for hate speech, harassment, graphic violence, CSAM, deepfakes, or doxxing.
+
+### 2. Moderation Workflow
+Automated pre-filtering followed by human editorial review.
+
+### 3. Repeat Violations
+Three-strike policy leading to permanent publisher termination.`
+    },
+    {
+      slug: 'corrections',
+      title: 'Corrections & Retractions Policy',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Reader Inquiries
+Readers report factual inaccuracies to editor@nagrik.news or via the /report portal.
+
+### 2. Substantive Corrections
+Significant errors result in an updated timestamp and a prominent public Correction Box.`
+    },
+    {
+      slug: 'sources',
+      title: 'Sources & Attribution Policy',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Provenance
+Every story clearly displays whether it is Original Nagrik Reporting, Agency Wire, or Official Public Notice.
+
+### 2. Preservation of Links
+Source citations and government circular numbers are preserved for direct reader verification.`
+    },
+    {
+      slug: 'publisher-guidelines',
+      title: 'Publisher & Creator Guidelines',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Publisher Responsibility
+Publishers are legally responsible for all submissions.
+
+### 2. Location & Date Accuracy
+Dispatches must reflect actual event coordinates without location spoofing.
+
+### 3. Anti-Fraud Rules
+Automated bot views and duplicate uploads result in immediate payout forfeiture.`
+    },
+    {
+      slug: 'community-guidelines',
+      title: 'Community Guidelines',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Civil Discourse
+Civic discussion must remain constructive and free of abusive harassment or communal provocation.
+
+### 2. Abuse Reporting
+Readers can flag harmful or inaccurate content directly through our reporting desk.`
+    },
+    {
+      slug: 'copyright',
+      title: 'Copyright & Intellectual Property Policy',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Contributor IP
+Contributors retain 100% copyright in their original footage and grant Nagrik a non-exclusive license.
+
+### 2. Takedown Notices
+Notices under the Indian Copyright Act, 1957 should be directed to copyright@nagrik.news.`
+    },
+    {
+      slug: 'advertising',
+      title: 'Advertising & Sponsored Content Policy',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Editorial Firewall
+Advertisers exercise zero control over news investigations or story selection.
+
+### 2. Transparent Labeling
+All commercial or paid posts must be clearly tagged as Sponsored.`
+    },
+    {
+      slug: 'transparency',
+      title: 'Transparency & Sourcing Disclosure',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. 7 Content Streams
+Clear categorization into Original Reporting, Community Stringers, Wire Agencies, Government Notices, Press Releases, Tips, and Video Dispatches.`
+    },
+    {
+      slug: 'accessibility',
+      title: 'Accessibility Statement',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Digital Inclusion
+Support for high-contrast themes, bilingual typography (Hindi/Devanagari), screen readers, and keyboard navigation.`
+    },
+    {
+      slug: 'about',
+      title: 'About Nagrik & Mission',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Operating Entity
+Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001.`
+    },
+    {
+      slug: 'grievance',
+      title: 'Statutory Grievance Redressal Mechanism',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Rule 11 IT Rules 2021
+Designated Resident Grievance Officer: grievance@nagrik.news. 24h statutory acknowledgment.`
     }
   ];
 
