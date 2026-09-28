@@ -109,6 +109,9 @@ class ApiConstants {
   static const String saveRpc = '/rpc/toggle_content_save';
   static const String reportRpc = '/rpc/report_content';
   static const String viewsRpc = '/rpc/track_video_view';
+  static const String commentsRpc = '/rpc/get_content_comments';
+  static const String addCommentRpc = '/rpc/add_content_comment';
+  static const String shareRpc = '/rpc/increment_content_share';
 
   static const String categoriesRest = '/categories?select=id,name,slug,display_order,status&status=eq.ACTIVE&order=display_order.asc';
   static const String locationsRest = '/locations?select=country,state,city,area,coordinates&order=state.asc,city.asc,area.asc&limit=1000';
@@ -121,6 +124,8 @@ class ApiConstants {
   static String contentDetail(String id) => '/content/$id';
   static String likeContent(String id) => '/content/$id/like';
   static String saveContent(String id) => '/content/$id/save';
+  static String shareContent(String id) => '/content/$id/share';
+  static String contentComments(String id) => '/content/$id/comments';
   static String reportContent(String id) => '/content/$id/report';
   static const String views = '/views';
   static const String seed = '/seed';

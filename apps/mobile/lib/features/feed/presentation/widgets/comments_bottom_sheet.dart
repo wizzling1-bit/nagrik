@@ -4,6 +4,7 @@ import 'package:nagrik/core/extensions/theme_extensions.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
+import 'package:nagrik/features/feed/data/repositories/content_repository.dart';
 import 'package:nagrik/features/feed/domain/models/comment.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 import 'package:nagrik/features/feed/domain/models/post_author.dart';
@@ -50,11 +51,32 @@ class _CommentsBottomSheetState extends ConsumerState<CommentsBottomSheet> {
   final _commentController = TextEditingController();
   late List<Comment> _comments;
   bool _isSubmitting = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _comments = List<Comment>.from(widget.post.comments);
+    _loadLiveComments();
+  }
+
+  Future<void> _loadLiveComments() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      final liveComments =
+          await ref.read(contentRepositoryProvider).getComments(widget.post.id);
+      if (mounted && liveComments.isNotEmpty) {
+        setState(() {
+          _comments = liveComments;
+          _isLoading = false;
+        });
+        return;
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -63,14 +85,25 @@ class _CommentsBottomSheetState extends ConsumerState<CommentsBottomSheet> {
     super.dispose();
   }
 
-  void _submitComment() {
+  Future<void> _submitComment() async {
     final text = _commentController.text.trim();
     if (text.isEmpty || _isSubmitting) return;
 
     NagrikMotion.lightImpact();
     setState(() => _isSubmitting = true);
 
-    final newComment = Comment(
+    Comment? savedComment;
+    try {
+      final res = await ref.read(contentRepositoryProvider).addComment(
+            contentId: widget.post.id,
+            text: text,
+          );
+      if (res.success && res.comment != null) {
+        savedComment = res.comment;
+      }
+    } catch (_) {}
+
+    savedComment ??= Comment(
       id: 'local_${DateTime.now().millisecondsSinceEpoch}',
       author: const PostAuthor(
         id: 'me',
@@ -81,13 +114,15 @@ class _CommentsBottomSheetState extends ConsumerState<CommentsBottomSheet> {
       createdAt: DateTime.now(),
     );
 
-    setState(() {
-      _comments.insert(0, newComment);
-      _isSubmitting = false;
-    });
+    if (mounted) {
+      setState(() {
+        _comments.insert(0, savedComment!);
+        _isSubmitting = false;
+      });
+      _commentController.clear();
+    }
 
-    _commentController.clear();
-    widget.onCommentAdded?.call(newComment);
+    widget.onCommentAdded?.call(savedComment);
   }
 
   @override
@@ -198,16 +233,24 @@ class _CommentsBottomSheetState extends ConsumerState<CommentsBottomSheet> {
               ),
               // Comments List
               Expanded(
-                child: _comments.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline_rounded,
-                              size: 36,
-                              color: context.nagrikTheme.textTertiary,
-                            ),
+                child: _isLoading && _comments.isEmpty
+                    ? const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : _comments.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  size: 36,
+                                  color: context.nagrikTheme.textTertiary,
+                                ),
                             const SizedBox(height: 8),
                             Text(
                               'Be the first to share ground insights',

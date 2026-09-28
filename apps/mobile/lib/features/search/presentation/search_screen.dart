@@ -262,7 +262,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
                   },
                   child: Builder(
                     builder: (context) {
-                      if (searchState.query.trim().isEmpty) {
+                      if (searchState.query.trim().isEmpty &&
+                          searchState.selectedCategorySlug == null) {
                         return _buildIdleView(
                           context,
                           recentSearches,

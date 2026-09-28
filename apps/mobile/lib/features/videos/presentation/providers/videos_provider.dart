@@ -215,4 +215,35 @@ class VideosFeedNotifier extends Notifier<FeedState> {
     state = state.copyWith(items: updatedItems);
     ref.read(contentRepositoryProvider).toggleSave(postId);
   }
+
+  void updateCommentCount(String postId, int newCount) {
+    final updatedItems = state.items.map((item) {
+      if (item is ContentFeedItem && item.post.id == postId) {
+        return ContentFeedItem(
+          post: item.post.copyWith(
+            commentsCount: newCount,
+          ),
+        );
+      }
+      return item;
+    }).toList();
+
+    state = state.copyWith(items: updatedItems);
+  }
+
+  void incrementShare(String postId) {
+    final updatedItems = state.items.map((item) {
+      if (item is ContentFeedItem && item.post.id == postId) {
+        return ContentFeedItem(
+          post: item.post.copyWith(
+            sharesCount: item.post.sharesCount + 1,
+          ),
+        );
+      }
+      return item;
+    }).toList();
+
+    state = state.copyWith(items: updatedItems);
+    ref.read(contentRepositoryProvider).incrementShare(postId);
+  }
 }

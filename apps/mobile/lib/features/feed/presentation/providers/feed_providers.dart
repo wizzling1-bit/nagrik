@@ -502,6 +502,58 @@ class FeedStateNotifier extends Notifier<FeedState> {
       ],
     );
   }
+
+  /// Real comment count update from discussion bottom sheet or detail screen
+  void updatePostCommentsCount(String postId, int newCount) {
+    state = state.copyWith(
+      items: [
+        for (final item in state.items)
+          if (item is ContentFeedItem && item.post.id == postId)
+            ContentFeedItem(
+              post: item.post.copyWith(commentsCount: newCount),
+            )
+          else
+            item,
+      ],
+    );
+  }
+
+  /// Increments share count optimistically and syncs with backend
+  void incrementShare(String postId) {
+    state = state.copyWith(
+      items: [
+        for (final item in state.items)
+          if (item is ContentFeedItem && item.post.id == postId)
+            ContentFeedItem(
+              post: item.post.copyWith(sharesCount: item.post.sharesCount + 1),
+            )
+          else
+            item,
+      ],
+    );
+
+    if (ContentRepository.isUuid(postId)) {
+      ref.read(contentRepositoryProvider).incrementShare(postId).then((res) {
+        if (res.success) {
+          try {
+            state = state.copyWith(
+              items: [
+                for (final item in state.items)
+                  if (item is ContentFeedItem && item.post.id == postId)
+                    ContentFeedItem(
+                      post: item.post.copyWith(sharesCount: res.shares),
+                    )
+                  else
+                    item,
+              ],
+            );
+          } on StateError {
+            // Ignored if the notifier was disposed while the network request was in flight.
+          }
+        }
+      }).catchError((_) {});
+    }
+  }
 }
 
 /// Backward compatible feedPostsProvider providing `List<Post>` for screens and widgets.
@@ -524,6 +576,14 @@ class FeedPostsNotifier extends Notifier<List<Post>> {
 
   void toggleBookmark(String postId) {
     ref.read(feedStateProvider.notifier).toggleBookmark(postId);
+  }
+
+  void updatePostCommentsCount(String postId, int newCount) {
+    ref.read(feedStateProvider.notifier).updatePostCommentsCount(postId, newCount);
+  }
+
+  void incrementShare(String postId) {
+    ref.read(feedStateProvider.notifier).incrementShare(postId);
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:nagrik/core/network/api_client.dart';
 import 'package:nagrik/core/network/api_constants.dart';
 import 'package:nagrik/core/network/device_id_service.dart';
 import 'package:nagrik/features/feed/data/models/api_models.dart';
+import 'package:nagrik/features/feed/domain/models/comment.dart';
 import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 
@@ -263,10 +264,14 @@ class ContentRemoteDataSource {
   /// Toggle like status on article or video without login.
   Future<({bool success, bool isLiked, int likes})> toggleLike(String id) async {
     final dynamic response;
+    final deviceId = await _deviceIdService.getDeviceId();
     if (ApiConstants.isSupabase) {
       response = await apiClient.post(
         ApiConstants.likeRpc,
-        body: {'p_content_id': id},
+        body: {
+          'p_content_id': id,
+          'p_device_id': deviceId,
+        },
       );
     } else {
       response = await apiClient.post(ApiConstants.likeContent(id));
@@ -281,6 +286,113 @@ class ContentRemoteDataSource {
     }
 
     return (success: false, isLiked: false, likes: 0);
+  }
+
+  /// 6b. Increment share count on content
+  Future<({bool success, int shares})> incrementShare(String id) async {
+    final dynamic response;
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.shareRpc,
+        body: {'p_content_id': id},
+      );
+    } else {
+      response = await apiClient.post(ApiConstants.shareContent(id));
+    }
+
+    if (response is Map<String, dynamic>) {
+      return (
+        success: response['success'] == true,
+        shares: (response['shares'] as num?)?.toInt() ?? 0,
+      );
+    }
+
+    return (success: false, shares: 0);
+  }
+
+  /// 6c. Get live comments for a content item
+  Future<List<Comment>> getComments(
+    String contentId, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final dynamic response;
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.commentsRpc,
+        body: {
+          'p_content_id': contentId,
+          'p_limit': limit,
+          'p_offset': offset,
+        },
+      );
+    } else {
+      response = await apiClient.get(
+        ApiConstants.contentComments(contentId),
+        queryParameters: {'limit': limit, 'offset': offset},
+      );
+    }
+
+    final comments = <Comment>[];
+    if (response is Map<String, dynamic>) {
+      final commentsList = response['comments'] ?? response['data'] ?? response['items'];
+      if (commentsList is List) {
+        for (final item in commentsList) {
+          if (item is Map<String, dynamic>) {
+            try {
+              comments.add(Comment.fromJson(item));
+            } catch (_) {}
+          }
+        }
+      }
+    }
+    return comments;
+  }
+
+  /// 6d. Add comment to a content item
+  Future<({bool success, Comment? comment, int commentsCount})> addComment({
+    required String contentId,
+    required String text,
+    String? authorName,
+  }) async {
+    final deviceId = await _deviceIdService.getDeviceId();
+    final dynamic response;
+    if (ApiConstants.isSupabase) {
+      response = await apiClient.post(
+        ApiConstants.addCommentRpc,
+        body: {
+          'p_content_id': contentId,
+          'p_text': text,
+          if (authorName != null && authorName.isNotEmpty) 'p_author_name': authorName,
+          'p_device_id': deviceId,
+        },
+      );
+    } else {
+      response = await apiClient.post(
+        ApiConstants.contentComments(contentId),
+        body: {
+          'text': text,
+          if (authorName != null && authorName.isNotEmpty) 'authorName': authorName,
+          'deviceId': deviceId,
+        },
+      );
+    }
+
+    if (response is Map<String, dynamic> && response['success'] == true) {
+      Comment? comment;
+      if (response['comment'] is Map<String, dynamic>) {
+        try {
+          comment = Comment.fromJson(response['comment'] as Map<String, dynamic>);
+        } catch (_) {}
+      }
+      return (
+        success: true,
+        comment: comment,
+        commentsCount: (response['commentsCount'] as num?)?.toInt() ?? 0,
+      );
+    }
+
+    return (success: false, comment: null, commentsCount: 0);
   }
 
   /// 7. POST /content/{id}/save OR RPC /rpc/toggle_content_save

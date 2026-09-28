@@ -7,6 +7,7 @@ import 'package:video_player/video_player.dart';
 import 'package:nagrik/core/theme/color_tokens.dart';
 import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
+import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:nagrik/features/feed/presentation/widgets/comments_bottom_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/report_content_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/share_bottom_sheet.dart';
@@ -267,7 +268,20 @@ class _VerticalVideoCardState extends ConsumerState<VerticalVideoCard>
                 ref.read(videosFeedProvider.notifier).toggleLike(post.id);
               },
               onComment: () {
-                showCommentsBottomSheet(context, post);
+                showCommentsBottomSheet(
+                  context,
+                  post,
+                  onCommentAdded: (c) {
+                    ref.read(videosFeedProvider.notifier).updateCommentCount(
+                          post.id,
+                          post.commentsCount + 1,
+                        );
+                    ref.read(feedPostsProvider.notifier).updatePostCommentsCount(
+                          post.id,
+                          post.commentsCount + 1,
+                        );
+                  },
+                );
               },
               onShare: () {
                 showShareSheet(context, post);

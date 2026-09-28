@@ -16,11 +16,10 @@ import 'package:nagrik/core/widgets/glass_card.dart';
 import 'package:nagrik/core/widgets/nagrik_avatar.dart';
 import 'package:nagrik/core/widgets/verification_badge.dart';
 import 'package:nagrik/features/feed/data/repositories/content_repository.dart';
-import 'package:nagrik/features/feed/domain/models/comment.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
-import 'package:nagrik/features/feed/domain/models/post_author.dart';
 import 'package:nagrik/features/feed/domain/models/post_type.dart';
 import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
+import 'package:nagrik/features/feed/presentation/widgets/comments_bottom_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/engagement_action_bar.dart';
 import 'package:nagrik/features/feed/presentation/widgets/report_content_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/share_bottom_sheet.dart';
@@ -114,320 +113,25 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
   }
 
   void _showCommentsSheet(BuildContext context, Post post) {
-    final commentController = TextEditingController();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.isDarkMode
-          ? context.nagrikTheme.level2Elevated
-          : context.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (modalCtx) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            final isDark = ctx.isDarkMode;
-            final currentP = _post ?? post;
-            final commentsList = currentP.comments;
-
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(ctx).viewInsets.bottom,
-              ),
-              child: SafeArea(
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(ctx).size.height * 0.75,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: NagrikSpacing.space4,
-                    vertical: NagrikSpacing.space3,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 38,
-                          height: 4,
-                          margin: const EdgeInsets.only(bottom: 14),
-                          decoration: BoxDecoration(
-                            color: ctx.nagrikTheme.border.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      // Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Discussion',
-                                style: ctx.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: ctx.colorScheme.primary
-                                      .withValues(alpha: 0.12),
-                                  borderRadius: NagrikRadii.borderRadiusPill,
-                                ),
-                                child: Text(
-                                  '${currentP.commentsCount}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: ctx.colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () => Navigator.pop(modalCtx),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? ctx.nagrikTheme.level4Muted
-                              : ctx.nagrikTheme.surfaceMuted,
-                          borderRadius: NagrikRadii.borderRadiusSm,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.verified_user_outlined,
-                              size: 14,
-                              color: ctx.nagrikTheme.textSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                'Verified citizen discourse. Reports are moderated for community safety.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: ctx.nagrikTheme.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: commentsList.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.chat_bubble_outline_rounded,
-                                      size: 36,
-                                      color: ctx.nagrikTheme.textTertiary,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Be the first to share ground insights',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: ctx.nagrikTheme.textSecondary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Your perspective helps verify local developments.',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: ctx.nagrikTheme.textTertiary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: commentsList.length,
-                                separatorBuilder: (_, _) => const Divider(height: 16),
-                                itemBuilder: (c, idx) {
-                                  final cm = commentsList[idx];
-                                  final authorInitial = cm.author.name.isNotEmpty
-                                      ? cm.author.name[0].toUpperCase()
-                                      : 'C';
-                                  final timeDiff = DateTime.now().difference(cm.createdAt);
-                                  final timeText = timeDiff.inMinutes < 60
-                                      ? '${timeDiff.inMinutes}m ago'
-                                      : '${timeDiff.inHours}h ago';
-
-                                  return Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 14,
-                                        backgroundColor: ctx.colorScheme.primary
-                                            .withValues(alpha: 0.15),
-                                        child: Text(
-                                          authorInitial,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: ctx.colorScheme.primary,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  cm.author.name,
-                                                  style: const TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  timeText,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: ctx
-                                                        .nagrikTheme
-                                                        .textTertiary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 3),
-                                            Text(
-                                              cm.text,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: isDark
-                                                    ? const Color(0xFFCBD5E1)
-                                                    : const Color(0xFF334155),
-                                                height: 1.35,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: commentController,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: (_) {
-                                _submitComment(
-                                  commentController,
-                                  setModalState,
-                                  modalCtx,
-                                );
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Add to this community report...',
-                                hintStyle: TextStyle(
-                                  fontSize: 13,
-                                  color: ctx.nagrikTheme.textTertiary,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton.filled(
-                            icon: const Icon(Icons.send_rounded, size: 18),
-                            onPressed: () {
-                              _submitComment(
-                                commentController,
-                                setModalState,
-                                modalCtx,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+    showCommentsBottomSheet(
+      context,
+      _post ?? post,
+      onCommentAdded: (newComment) {
+        if (mounted) {
+          setState(() {
+            final current = _post ?? post;
+            _post = current.copyWith(
+              commentsCount: current.commentsCount + 1,
+              comments: [newComment, ...current.comments],
             );
-          },
-        );
+          });
+          ref.read(feedPostsProvider.notifier).updatePostCommentsCount(
+                post.id,
+                (_post ?? post).commentsCount,
+              );
+        }
       },
     );
-  }
-
-  void _submitComment(
-    TextEditingController controller,
-    StateSetter setModalState,
-    BuildContext modalCtx,
-  ) {
-    final txt = controller.text.trim();
-    if (txt.isEmpty) return;
-    NagrikMotion.lightImpact();
-    controller.clear();
-    final newComment = Comment(
-      id: 'c_${DateTime.now().millisecondsSinceEpoch}',
-      author: const PostAuthor(
-        id: 'usr_local',
-        name: 'Citizen Contributor',
-        avatarUrl: '',
-        isVerified: true,
-      ),
-      text: txt,
-      createdAt: DateTime.now(),
-    );
-    final target = _post ?? widget.initialPost;
-    if (target != null) {
-      final updatedList = [...target.comments, newComment];
-      final updatedPost = target.copyWith(
-        comments: updatedList,
-        commentsCount: target.commentsCount + 1,
-      );
-      setState(() {
-        _post = updatedPost;
-      });
-      setModalState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Contribution submitted for community review'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   @override

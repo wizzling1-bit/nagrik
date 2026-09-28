@@ -90,15 +90,23 @@ class SearchStateNotifier extends Notifier<SearchState> {
   void selectCategory(String? categorySlug) {
     _debounceTimer?.cancel();
     final newSlug = state.selectedCategorySlug == categorySlug ? null : categorySlug;
+    final shouldSearch = state.query.trim().isNotEmpty || newSlug != null;
     state = state.copyWith(
       selectedCategorySlug: newSlug,
       clearCategory: newSlug == null,
-      isLoading: state.query.trim().isNotEmpty,
+      isLoading: shouldSearch,
       clearError: true,
+      hasSearched: shouldSearch,
     );
 
-    if (state.query.trim().isNotEmpty) {
+    if (shouldSearch) {
       _executeSearch(state.query.trim(), newSlug);
+    } else {
+      state = state.copyWith(
+        results: const [],
+        isLoading: false,
+        hasSearched: false,
+      );
     }
   }
 
@@ -106,7 +114,7 @@ class SearchStateNotifier extends Notifier<SearchState> {
   void executeImmediate([String? explicitQuery]) {
     _debounceTimer?.cancel();
     final q = explicitQuery?.trim() ?? state.query.trim();
-    if (q.isNotEmpty) {
+    if (q.isNotEmpty || state.selectedCategorySlug != null) {
       _executeSearch(q, state.selectedCategorySlug);
     }
   }

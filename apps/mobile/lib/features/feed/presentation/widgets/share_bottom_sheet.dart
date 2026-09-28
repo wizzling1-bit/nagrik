@@ -7,6 +7,7 @@ import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
+import 'package:nagrik/features/feed/presentation/providers/feed_providers.dart';
 import 'package:share_plus/share_plus.dart';
 
 Future<void> showShareSheet(BuildContext context, Post post) {
@@ -31,8 +32,9 @@ class ShareBottomSheet extends ConsumerWidget {
 
   String get _shareText => '${post.title}\n\nhttps://nagrik.news/post/${post.id}';
 
-  Future<void> _shareSystem(BuildContext context) async {
+  Future<void> _shareSystem(BuildContext context, WidgetRef ref) async {
     NagrikMotion.lightImpact();
+    ref.read(feedPostsProvider.notifier).incrementShare(post.id);
     Navigator.of(context).maybePop();
     try {
       await SharePlus.instance.share(
@@ -116,7 +118,7 @@ class ShareBottomSheet extends ConsumerWidget {
                   label: strings.shareSystemAction,
                   color: context.colorScheme.primary,
                   semanticsLabel: strings.shareSystemAction,
-                  onTap: () => _shareSystem(context),
+                  onTap: () => _shareSystem(context, ref),
                 ),
                 _ShareAction(
                   index: 1,
@@ -126,6 +128,7 @@ class ShareBottomSheet extends ConsumerWidget {
                   semanticsLabel: strings.copyLinkAction,
                   onTap: () {
                     NagrikMotion.lightImpact();
+                    ref.read(feedPostsProvider.notifier).incrementShare(post.id);
                     Clipboard.setData(ClipboardData(text: _shareText));
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(

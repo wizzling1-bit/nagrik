@@ -18,6 +18,41 @@ class Comment {
   final int likesCount;
   final bool isLiked;
 
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    final authorJson = json['author'] is Map
+        ? (json['author'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{
+            'id': json['user_id'] ?? json['userId'] ?? json['device_id'] ?? 'anon',
+            'name': json['author_name'] ?? json['authorName'] ?? 'Citizen',
+            'avatarUrl': json['author_avatar'] ?? json['authorAvatar'],
+          };
+
+    final createdStr = json['createdAt'] ?? json['created_at'];
+    final created = createdStr != null
+        ? DateTime.tryParse(createdStr.toString()) ?? DateTime.now()
+        : DateTime.now();
+
+    return Comment(
+      id: json['id']?.toString() ?? 'cmt_${DateTime.now().millisecondsSinceEpoch}',
+      author: PostAuthor.fromJson(authorJson),
+      text: json['text']?.toString() ?? '',
+      createdAt: created,
+      likesCount: (json['likesCount'] ?? json['likes_count'] ?? json['likes'] as num?)?.toInt() ?? 0,
+      isLiked: json['isLiked'] == true || json['is_liked'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'author': author.toJson(),
+      'text': text,
+      'createdAt': createdAt.toIso8601String(),
+      'likesCount': likesCount,
+      'isLiked': isLiked,
+    };
+  }
+
   Comment copyWith({
     int? likesCount,
     bool? isLiked,

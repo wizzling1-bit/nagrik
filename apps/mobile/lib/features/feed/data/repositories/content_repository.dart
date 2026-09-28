@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nagrik/core/errors/app_error.dart';
 import 'package:nagrik/features/feed/data/datasources/content_remote_data_source.dart';
 import 'package:nagrik/features/feed/data/models/api_models.dart';
+import 'package:nagrik/features/feed/domain/models/comment.dart';
 import 'package:nagrik/features/feed/domain/models/feed_item.dart';
 import 'package:nagrik/features/feed/domain/models/post.dart';
 import 'package:nagrik/features/onboarding/data/locations_data.dart';
@@ -327,6 +328,53 @@ class ContentRepository {
     } catch (e) {
       _log('ContentRepository: toggleSave API failed ($e).');
       return (success: false, isSaved: false);
+    }
+  }
+
+  /// Increments share count for post/video remotely.
+  Future<({bool success, int shares})> incrementShare(String id) async {
+    if (!isUuid(id)) {
+      return (success: false, shares: 0);
+    }
+    try {
+      return await remoteDataSource.incrementShare(id);
+    } catch (e) {
+      _log('ContentRepository: incrementShare API failed ($e).');
+      return (success: false, shares: 0);
+    }
+  }
+
+  /// Fetches live discussion comments from backend.
+  Future<List<Comment>> getComments(String contentId, {int limit = 50, int offset = 0}) async {
+    if (!isUuid(contentId)) {
+      return const [];
+    }
+    try {
+      return await remoteDataSource.getComments(contentId, limit: limit, offset: offset);
+    } catch (e) {
+      _log('ContentRepository: getComments failed ($e).');
+      return const [];
+    }
+  }
+
+  /// Adds a citizen comment to the content item.
+  Future<({bool success, Comment? comment, int commentsCount})> addComment({
+    required String contentId,
+    required String text,
+    String? authorName,
+  }) async {
+    if (!isUuid(contentId)) {
+      return (success: false, comment: null, commentsCount: 0);
+    }
+    try {
+      return await remoteDataSource.addComment(
+        contentId: contentId,
+        text: text,
+        authorName: authorName,
+      );
+    } catch (e) {
+      _log('ContentRepository: addComment failed ($e).');
+      return (success: false, comment: null, commentsCount: 0);
     }
   }
 
