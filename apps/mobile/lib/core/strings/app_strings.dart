@@ -80,6 +80,6 @@ abstract final class NagrikStrings {
   static const helpAndSupport = 'Help & Support';
   static const editProfile = 'Edit Profile';
   static const verifiedCitizen = 'Verified Citizen';
-  static const appVersion = 'Nagrik v1.0.0 (Build 2026)';
+  static const appVersion = '1.0.2';
   static const madeForCitizens = 'Made with ❤️ for Indian Citizens';
 }
