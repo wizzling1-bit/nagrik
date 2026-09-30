@@ -330,7 +330,7 @@ export const CreatorAuth: React.FC<CreatorAuthProps> = ({
                 <input
                   type="email"
                   className="w-full bg-transparent text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
-                  placeholder="reporter@nagrik.news"
+                  placeholder="reporter@gmail.com"
                   value={authEmail}
                   onChange={e => setAuthEmail(e.target.value)}
                   required

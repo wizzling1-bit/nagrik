@@ -63,7 +63,7 @@ export const CopyrightView: React.FC = () => {
             </h2>
           </div>
           <p>
-            The Nagrik platform name, trademarks, logos, visual brand identity, software application code, user interfaces, database architecture, design systems, and editorial features are the proprietary property of <strong>Nagrik Media Trust</strong>.
+            The Nagrik platform name, trademarks, logos, visual brand identity, software application code, user interfaces, database architecture, design systems, and editorial features are the proprietary property of <strong>Wizzling Pvt Ltd</strong>.
           </p>
           <p>
             You may not copy, reverse-engineer, modify, redistribute, or create derivative software products based on our proprietary web or mobile codebases without prior written consent.
@@ -82,7 +82,7 @@ export const CopyrightView: React.FC = () => {
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
             <li><strong>You Retain Ownership:</strong> You retain full copyright and intellectual property rights in all original text, photos, and video dispatches you create.</li>
-            <li><strong>Non-Exclusive License:</strong> You grant Nagrik Media Trust a worldwide, non-exclusive, transferable, royalty-free license to host, transcode, cache, stream, distribute, index, and display your submitted content across our web domains, mobile apps, syndication feeds, and social media channels.</li>
+            <li><strong>Non-Exclusive License:</strong> You grant Wizzling Pvt Ltd a worldwide, non-exclusive, transferable, royalty-free license to host, transcode, cache, stream, distribute, index, and display your submitted content across our web domains, mobile apps, syndication feeds, and social media channels.</li>
             <li><strong>Third-Party Commercialization:</strong> Because the license is non-exclusive, you remain free to license, sell, or broadcast your original camera footage to third-party television networks, documentary producers, or news publishers.</li>
           </ul>
         </section>
@@ -112,7 +112,7 @@ export const CopyrightView: React.FC = () => {
             </h2>
           </div>
           <p>
-            If you are a copyright owner or authorized agent and believe that content hosted on Nagrik infringes your copyright, please send a formal written notice to our designated Copyright Agent at <a href="mailto:copyright@nagrik.news" className="text-[#DE5227] underline font-bold">copyright@nagrik.news</a> including:
+            If you are a copyright owner or authorized agent and believe that content hosted on Nagrik infringes your copyright, please send a formal written notice to our designated Copyright Agent at <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a> including:
           </p>
           <div className="p-4 bg-stone-100/70 dark:bg-slate-900/70 rounded-2xl border border-stone-200/80 dark:border-slate-800 text-xs space-y-2">
             <div className="font-bold text-slate-900 dark:text-white">Required Notice Particulars:</div>
@@ -135,7 +135,7 @@ export const CopyrightView: React.FC = () => {
             </h2>
           </div>
           <p>
-            If a contributor believes their content was removed or disabled as a result of mistake or misidentification, they may file a counter-notice by emailing <a href="mailto:copyright@nagrik.news" className="text-[#DE5227] underline font-bold">copyright@nagrik.news</a> containing:
+            If a contributor believes their content was removed or disabled as a result of mistake or misidentification, they may file a counter-notice by emailing <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a> containing:
           </p>
           <ul className="list-disc pl-5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
             <li>Identification of the material that has been removed and the location where it previously appeared.</li>
@@ -153,7 +153,7 @@ export const CopyrightView: React.FC = () => {
             </h2>
           </div>
           <p>
-            You may not use the Nagrik name, logo, wordmark, or brand graphics in a way that falsely implies official employment, agency endorsement, or institutional sponsorship without a written agreement from Nagrik Media Trust.
+            You may not use the Nagrik name, logo, wordmark, or brand graphics in a way that falsely implies official employment, agency endorsement, or institutional sponsorship without a written agreement from Wizzling Pvt Ltd.
           </p>
         </section>
 
@@ -180,9 +180,10 @@ export const CopyrightView: React.FC = () => {
             All copyright notices and statutory inquiries should be addressed to:
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Designated Officer:</strong> Copyright &amp; Legal Desk, Nagrik Media Trust</div>
-            <div><strong className="text-slate-950 dark:text-white">Address:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
-            <div><strong className="text-slate-950 dark:text-white">Direct Email:</strong> <a href="mailto:copyright@nagrik.news" className="text-[#DE5227] underline">copyright@nagrik.news</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Designated Officer:</strong> Copyright &amp; Legal Desk, Wizzling Pvt Ltd</div>
+            <div><strong className="text-slate-950 dark:text-white">Registered Address:</strong> Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Direct Email:</strong> <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Helpline Phone:</strong> <a href="tel:+918890043675" className="text-[#DE5227] underline">+91 8890043675</a></div>
           </div>
         </section>
 

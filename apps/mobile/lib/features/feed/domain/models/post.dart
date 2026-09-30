@@ -39,6 +39,14 @@ class Post {
     this.relevanceScore,
     this.locationTier,
     this.distanceKm,
+    this.authorName,
+    this.sourceName,
+    this.sourceUrl,
+    this.mediaAttribution,
+    this.isOriginal = true,
+    this.correctionNote,
+    this.correctionStatus = 'NONE',
+    this.updatedAt,
   });
 
   final String id;
@@ -54,6 +62,7 @@ class Post {
   final double? latitude;
   final double? longitude;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final List<String> mediaUrls;
   final String? videoUrl;
   final String? thumbnailUrl;
@@ -69,6 +78,16 @@ class Post {
   final bool isBookmarked;
   final List<Comment> comments;
   final String? creatorId;
+
+  // Source Transparency & Statutory Editorial Provenance
+  final String? authorName;
+  final String? sourceName;
+  final String? sourceUrl;
+  final String? mediaAttribution;
+  final bool isOriginal;
+  final String? correctionNote;
+  final String? correctionStatus;
+
   /// Raw backend category slug (e.g. "politics", "sports"). Preserved
   /// verbatim so feed/search filtering can use the server taxonomy instead
   /// of the lossy local [PostCategory] enum mapping.
@@ -100,6 +119,7 @@ class Post {
     double? latitude,
     double? longitude,
     DateTime? createdAt,
+    DateTime? updatedAt,
     List<String>? mediaUrls,
     String? videoUrl,
     String? thumbnailUrl,
@@ -119,6 +139,13 @@ class Post {
     double? relevanceScore,
     String? locationTier,
     double? distanceKm,
+    String? authorName,
+    String? sourceName,
+    String? sourceUrl,
+    String? mediaAttribution,
+    bool? isOriginal,
+    String? correctionNote,
+    String? correctionStatus,
   }) {
     return Post(
       id: id ?? this.id,
@@ -134,6 +161,7 @@ class Post {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       mediaUrls: mediaUrls ?? this.mediaUrls,
       videoUrl: videoUrl ?? this.videoUrl,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
@@ -153,6 +181,13 @@ class Post {
       relevanceScore: relevanceScore ?? this.relevanceScore,
       locationTier: locationTier ?? this.locationTier,
       distanceKm: distanceKm ?? this.distanceKm,
+      authorName: authorName ?? this.authorName,
+      sourceName: sourceName ?? this.sourceName,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      mediaAttribution: mediaAttribution ?? this.mediaAttribution,
+      isOriginal: isOriginal ?? this.isOriginal,
+      correctionNote: correctionNote ?? this.correctionNote,
+      correctionStatus: correctionStatus ?? this.correctionStatus,
     );
   }
 
@@ -332,6 +367,17 @@ class Post {
       relevanceScore: (sourceJson['relevanceScore'] as num?)?.toDouble(),
       locationTier: _readNullableString(sourceJson, const ['locationTier', 'location_tier']),
       distanceKm: (sourceJson['distanceKm'] as num?)?.toDouble(),
+      authorName: _readNullableString(sourceJson, const ['authorName', 'author_name']),
+      sourceName: _readNullableString(sourceJson, const ['sourceName', 'source_name']),
+      sourceUrl: _readNullableString(sourceJson, const ['sourceUrl', 'source_url']),
+      mediaAttribution: _readNullableString(sourceJson, const ['mediaAttribution', 'media_attribution']),
+      isOriginal: _readBool(sourceJson, const ['isOriginal', 'is_original']) ||
+          !sourceJson.containsKey('isOriginal') && !sourceJson.containsKey('is_original'),
+      correctionNote: _readNullableString(sourceJson, const ['correctionNote', 'correction_note']),
+      correctionStatus: _readString(sourceJson, const ['correctionStatus', 'correction_status']).ifEmpty('NONE'),
+      updatedAt: sourceJson['updatedAt'] != null || sourceJson['updated_at'] != null
+          ? _readDateTime(sourceJson, const ['updatedAt', 'updated_at'])
+          : null,
     );
   }
 
@@ -356,6 +402,7 @@ class Post {
           },
       },
       'createdAt': createdAt.toIso8601String(),
+      if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
       'mediaUrls': mediaUrls,
       if (videoUrl != null) 'mediaUrl': videoUrl,
       if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
@@ -373,6 +420,13 @@ class Post {
       if (relevanceScore != null) 'relevanceScore': relevanceScore,
       if (locationTier != null) 'locationTier': locationTier,
       if (distanceKm != null) 'distanceKm': distanceKm,
+      if (authorName != null) 'authorName': authorName,
+      if (sourceName != null) 'sourceName': sourceName,
+      if (sourceUrl != null) 'sourceUrl': sourceUrl,
+      if (mediaAttribution != null) 'mediaAttribution': mediaAttribution,
+      'isOriginal': isOriginal,
+      if (correctionNote != null) 'correctionNote': correctionNote,
+      if (correctionStatus != null) 'correctionStatus': correctionStatus,
     };
   }
 }

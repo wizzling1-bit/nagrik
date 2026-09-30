@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Privacy Policy & Data Protection Charter | नागरिक (Nagrik)',
     description:
-      'How Nagrik Media Trust safeguards your personal identity, GPS geofence data, and banking metadata under the DPDP Act 2023.',
+      'How Wizzling Pvt Ltd safeguards your personal identity, GPS geofence data, and banking metadata under the DPDP Act 2023.',
     url: 'https://nagrik.news/privacy',
     type: 'website',
   },

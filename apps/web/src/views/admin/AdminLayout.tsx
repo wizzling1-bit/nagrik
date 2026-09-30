@@ -519,7 +519,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onBackToHome }) => {
 
   // Admin User details
   const adminName = user?.name || (user?.email ? user.email.split('@')[0] : 'Admin');
-  const adminEmail = user?.email || 'admin@nagrik.news';
+  const adminEmail = user?.email || 'wizzlingsupport@gmail.com';
   const adminRole = user?.role || 'System Administrator';
 
   const totalPendingModeration = metrics?.pendingModeration ?? modItems.filter(i => (i.moderationStatus || i.moderation_status) === 'PENDING_REVIEW').length;

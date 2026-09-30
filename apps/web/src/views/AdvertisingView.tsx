@@ -153,7 +153,7 @@ export const AdvertisingView: React.FC = () => {
             </h2>
           </div>
           <p>
-            If you encounter an advertisement that appears deceptive, offensive, or fraudulent on Nagrik, please report it immediately to our advertising compliance desk at <a href="mailto:contact@nagrik.news?subject=Ad%20Complaint" className="text-[#DE5227] underline font-bold">contact@nagrik.news</a>. We will investigate and block offending ad units across our inventory within 24 hours.
+            If you encounter an advertisement that appears deceptive, offensive, or fraudulent on Nagrik, please report it immediately to our advertising compliance desk at <a href="mailto:wizzlingsupport@gmail.com?subject=Ad%20Complaint" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a>. We will investigate and block offending ad units across our inventory within 24 hours.
           </p>
         </section>
 

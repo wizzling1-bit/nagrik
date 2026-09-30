@@ -77,10 +77,11 @@ export const PrivacyView: React.FC = () => {
             Under Section 2(i) of the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong>, the entity determining the purpose and means of the processing of your personal data is:
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Data Fiduciary:</strong> Nagrik Media Trust</div>
-            <div><strong className="text-slate-950 dark:text-white">Principal Office:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
-            <div><strong className="text-slate-950 dark:text-white">Official Data Privacy Desk:</strong> <a href="mailto:privacy@nagrik.news" className="text-[#DE5227] underline">privacy@nagrik.news</a></div>
-            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline">grievance@nagrik.news</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Data Fiduciary:</strong> Wizzling Pvt Ltd</div>
+            <div><strong className="text-slate-950 dark:text-white">Principal Office:</strong> Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Support &amp; Privacy Desk:</strong> <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Helpline Phone:</strong> <a href="tel:+918890043675" className="text-[#DE5227] underline">+91 8890043675</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a></div>
           </div>
         </section>
 
@@ -313,7 +314,7 @@ export const PrivacyView: React.FC = () => {
           </p>
           <div className="p-4 bg-stone-100/70 dark:bg-slate-900/70 rounded-2xl border border-stone-200/80 dark:border-slate-800 text-xs space-y-2">
             <p>
-              Send an email to <a href="mailto:privacy@nagrik.news?subject=Data%20Deletion%20Request" className="text-[#DE5227] font-bold underline">privacy@nagrik.news</a> from your registered email address with the subject line <em>"Data Deletion Request"</em>.
+              Send an email to <a href="mailto:wizzlingsupport@gmail.com?subject=Data%20Deletion%20Request" className="text-[#DE5227] font-bold underline">wizzlingsupport@gmail.com</a> from your registered email address with the subject line <em>"Data Deletion Request"</em>.
             </p>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Upon verifying identity, our team purges your profile, contact details, device links, and authentication tokens within 7 business days, retaining only statutory tax ledger records required by law.
@@ -356,10 +357,10 @@ export const PrivacyView: React.FC = () => {
             For any inquiries, rights requests, or concerns regarding how Nagrik processes your data, please contact our compliance desk:
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Data Protection Officer:</strong> Legal &amp; Compliance Wing, Nagrik Media Trust</div>
-            <div><strong className="text-slate-950 dark:text-white">Office Address:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
-            <div><strong className="text-slate-950 dark:text-white">Direct Email:</strong> <a href="mailto:privacy@nagrik.news" className="text-[#DE5227] underline">privacy@nagrik.news</a></div>
-            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline">grievance@nagrik.news</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Data Protection Officer:</strong> Legal &amp; Compliance Wing, Wizzling Pvt Ltd</div>
+            <div><strong className="text-slate-950 dark:text-white">Office Address:</strong> Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Direct &amp; Grievance Email:</strong> <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Phone Support:</strong> <a href="tel:+918890043675" className="text-[#DE5227] underline">+91 8890043675</a></div>
           </div>
         </section>
 

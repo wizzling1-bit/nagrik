@@ -43,7 +43,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
       id: 'welcome',
       label: 'Welcome',
       title: 'Welcome to Nagrik Publisher Studio',
-      subtitle: "India's premier hyperlocal citizen journalism network"
+      subtitle: 'Independent hyperlocal citizen journalism network'
     },
     {
       id: 'formats',
@@ -59,8 +59,8 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
     },
     {
       id: 'monetization',
-      label: 'Guaranteed Monetization',
-      title: '$1.00 CPM Guaranteed Rate Card',
+      label: 'Transparent Monetization',
+      title: '$1.00 CPM Standard Rate Card',
       subtitle: 'Transparent, anti-fraud earnings with zero platform deductions'
     },
     {
@@ -192,8 +192,8 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   Welcome to Nagrik Studio{authName ? `, ${authName}` : ''}!
                 </h1>
                 <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
-                  You are now equipped with India’s most powerful hyperlocal publishing workspace. 
-                  Investigate civic issues, publish high-impact ground reports, and earn direct guaranteed revenue from your community.
+                  You are now equipped with an independent hyperlocal publishing workspace. 
+                  Investigate civic issues, publish high-impact ground reports, and earn direct transparent revenue from your community.
                 </p>
               </div>
 
@@ -213,7 +213,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                     <DollarSign className="w-5 h-5" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white font-serif">$1.00 CPM Guaranteed</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white font-serif">$1.00 CPM Standard</h3>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Earn $1.00 for every 1,000 verified reads. Transparent telemetry, anti-bot deduplication, and zero platform deductions.
                   </p>
@@ -333,7 +333,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   All 36 Indian States & 5km Ward Engine
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                  Every ground report is pinned to a State, City, and Local Ward. This guarantees your report reaches readers right where the issue is happening.
+                  Every ground report is pinned to a State, City, and Local Ward. This ensures your report reaches readers right where the issue is happening.
                 </p>
               </div>
 
@@ -372,7 +372,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
             </div>
           )}
 
-          {/* STEP 4: GUARANTEED MONETIZATION */}
+          {/* STEP 4: TRANSPARENT MONETIZATION */}
           {currentStep === 3 && (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
               <div className="space-y-2">
@@ -381,7 +381,7 @@ export const CreatorOnboardingGuide: React.FC<CreatorOnboardingGuideProps> = ({
                   <span>TRANSPARENT TELEMETRY</span>
                 </div>
                 <h2 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white font-serif">
-                  $1.00 CPM Guaranteed Rate Card (~₹{rate.toFixed(2)}/1k reads)
+                  $1.00 CPM Standard Rate Card (~₹{rate.toFixed(2)}/1k reads)
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                   Earn dependable income for genuine community investigations. No opaque revenue sharing or hidden commissions.

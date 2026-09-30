@@ -438,7 +438,7 @@ export const EditorialGuidelinesView: React.FC = () => {
             </h2>
           </div>
           <p>
-            Readers can challenge the accuracy or fairness of any story through our <Link href="/report" className="text-[#DE5227] underline">Reporting Flow</Link> or by writing to <a href="mailto:editor@nagrik.news" className="text-[#DE5227] underline">editor@nagrik.news</a>. All complaints receive formal review by our editorial desk.
+            Readers can challenge the accuracy or fairness of any story through our <Link href="/report" className="text-[#DE5227] underline">Reporting Flow</Link> or by writing to <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a>. All complaints receive formal review by our editorial desk.
           </p>
         </section>
 
@@ -450,7 +450,7 @@ export const EditorialGuidelinesView: React.FC = () => {
             </h2>
           </div>
           <p>
-            The ultimate responsibility for our editorial output rests with the Editorial Desk of Nagrik Media Trust. We welcome public scrutiny and continuously review our processes to elevate journalistic rigor.
+            The ultimate responsibility for our editorial output rests with the Editorial Desk of Wizzling Pvt Ltd. We welcome public scrutiny and continuously review our processes to elevate journalistic rigor.
           </p>
         </section>
 

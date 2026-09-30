@@ -56,7 +56,7 @@ export const CreatorAgreementTab: React.FC = () => {
                 1
               </span>
               <h3 className="font-bold text-slate-900 dark:text-white text-sm font-serif">
-                $1.00 Guaranteed CPM Monetization (~₹{rate.toFixed(2)}/1k reads)
+                $1.00 Standard CPM Monetization (~₹{rate.toFixed(2)}/1k reads)
               </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs font-medium">

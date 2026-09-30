@@ -312,9 +312,10 @@ function ReportContentForm() {
             For urgent law enforcement notices, court injunctions, or emergencies involving threats to life:
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline font-bold">grievance@nagrik.news</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a></div>
             <div><strong className="text-slate-950 dark:text-white">Emergency Response Window:</strong> 2 hours for urgent statutory orders</div>
-            <div><strong className="text-slate-950 dark:text-white">Office Address:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Office Address:</strong> Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Helpline Phone:</strong> <a href="tel:+918890043675" className="text-[#DE5227] underline font-bold">+91 8890043675</a></div>
           </div>
         </section>
 

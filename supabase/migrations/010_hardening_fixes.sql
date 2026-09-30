@@ -623,7 +623,7 @@ CREATE OR REPLACE FUNCTION public.admin_moderate_content(
 RETURNS JSONB AS $$
 DECLARE
     v_content RECORD;
-    v_admin_email TEXT := 'admin@nagrik.news';
+    v_admin_email TEXT := 'wizzlingsupport@gmail.com';
     v_is_approved BOOLEAN := (p_moderation_status = 'APPROVED');
 BEGIN
     IF NOT public.is_admin() THEN
@@ -654,7 +654,7 @@ BEGIN
     INSERT INTO public.audit_logs (actor_id, actor_email, actor_role, action, entity, entity_id, metadata)
     VALUES (
         COALESCE(p_admin_id, auth.uid()),
-        COALESCE(v_admin_email, 'admin@nagrik.news'),
+        COALESCE(v_admin_email, 'wizzlingsupport@gmail.com'),
         'ADMIN',
         'CONTENT_MODERATION_' || p_moderation_status,
         'Content',
@@ -679,7 +679,7 @@ CREATE OR REPLACE FUNCTION public.admin_process_payout(
 RETURNS JSONB AS $$
 DECLARE
     v_request RECORD;
-    v_admin_email TEXT := 'admin@nagrik.news';
+    v_admin_email TEXT := 'wizzlingsupport@gmail.com';
 BEGIN
     IF NOT public.is_admin() THEN
         RAISE EXCEPTION 'Unauthorized: only platform admins can process payouts';
@@ -709,7 +709,7 @@ BEGIN
     INSERT INTO public.audit_logs (actor_id, actor_email, actor_role, action, entity, entity_id, metadata)
     VALUES (
         COALESCE(p_admin_id, auth.uid()),
-        COALESCE(v_admin_email, 'admin@nagrik.news'),
+        COALESCE(v_admin_email, 'wizzlingsupport@gmail.com'),
         'ADMIN',
         'PAYOUT_' || p_status,
         'PayoutRequest',

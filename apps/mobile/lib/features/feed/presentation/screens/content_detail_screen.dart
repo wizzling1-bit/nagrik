@@ -11,6 +11,7 @@ import 'package:nagrik/core/theme/motion.dart';
 import 'package:nagrik/core/theme/radii.dart';
 import 'package:nagrik/core/theme/spacing.dart';
 import 'package:nagrik/core/theme/typography.dart';
+import 'package:nagrik/core/utils/url_helper.dart';
 import 'package:nagrik/core/widgets/error_state.dart';
 import 'package:nagrik/core/widgets/glass_card.dart';
 import 'package:nagrik/core/widgets/nagrik_avatar.dart';
@@ -24,6 +25,7 @@ import 'package:nagrik/features/feed/presentation/widgets/engagement_action_bar.
 import 'package:nagrik/features/feed/presentation/widgets/report_content_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/share_bottom_sheet.dart';
 import 'package:nagrik/features/feed/presentation/widgets/video/nagrik_video_player.dart';
+import 'package:nagrik/features/settings/presentation/screens/government_disclaimer_screen.dart';
 import 'package:nagrik/core/ads/ad_frequency_manager.dart';
 import 'package:nagrik/core/ads/managers/interstitial_ad_manager.dart';
 import 'package:nagrik/core/ads/widgets/nagrik_adaptive_banner.dart';
@@ -242,6 +244,9 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                             _buildMetaRow(context, post, isDark),
                             const SizedBox(height: NagrikSpacing.space3),
 
+                            // Editorial Correction / Retraction Notice (if applicable)
+                            _buildCorrectionBanner(context, post, isDark),
+
                             // Main Headline in Newsreader bold serif (26-28dp, line-height 1.25)
                             Text(
                               post.title,
@@ -332,7 +337,14 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                                 fontFamilyFallback: NagrikTypography.fontFallbacks,
                               ),
                             ),
-                            const SizedBox(height: NagrikSpacing.space4),
+                            const SizedBox(height: NagrikSpacing.space3),
+
+                            // Official Source Provenance & Bylines Card
+                            _buildSourceAttributionCard(context, post, isDark),
+
+                            // Independent Non-Affiliation Media Notice
+                            _buildArticleDisclaimerFooter(context, isDark),
+                            const SizedBox(height: NagrikSpacing.space3),
 
                             // 6. Topic Tags (tap runs a real search)
                             _buildTagsStrip(context, post, isDark),
@@ -1176,6 +1188,300 @@ class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
                   ).copyWith(
                     fontFamilyFallback: NagrikTypography.fontFallbacks,
                   ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Displays transparent editorial correction and retraction notices.
+  Widget _buildCorrectionBanner(BuildContext context, Post post, bool isDark) {
+    if (post.correctionNote == null || post.correctionNote!.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final isRetraction = post.correctionStatus == 'RETRACTED';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: NagrikSpacing.space3),
+      padding: const EdgeInsets.all(NagrikSpacing.space3),
+      decoration: BoxDecoration(
+        color: isRetraction
+            ? const Color(0xFFEF4444).withValues(alpha: 0.12)
+            : const Color(0xFFD97706).withValues(alpha: 0.12),
+        borderRadius: NagrikRadii.borderRadiusSm,
+        border: Border.all(
+          color: isRetraction
+              ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+              : const Color(0xFFD97706).withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isRetraction
+                    ? Icons.error_outline_rounded
+                    : Icons.edit_note_rounded,
+                size: 18,
+                color: isRetraction
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFFD97706),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isRetraction
+                    ? 'EDITORIAL RETRACTION NOTICE'
+                    : 'FACTUAL CORRECTION & UPDATE',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: isRetraction
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFFD97706),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            post.correctionNote!,
+            style: context.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Displays verifiable source attribution, bylines, and original source link.
+  Widget _buildSourceAttributionCard(BuildContext context, Post post, bool isDark) {
+    final hasSource = (post.sourceName != null && post.sourceName!.trim().isNotEmpty) ||
+        (post.sourceUrl != null && post.sourceUrl!.trim().isNotEmpty);
+    final hasReporter = post.authorName != null && post.authorName!.trim().isNotEmpty;
+    final hasAttribution = post.mediaAttribution != null && post.mediaAttribution!.trim().isNotEmpty;
+    final isOriginal = post.isOriginal == true;
+
+    if (!hasSource && !hasReporter && !hasAttribution && !isOriginal) {
+      return const SizedBox.shrink();
+    }
+
+    final sourceDisplay = (post.sourceName != null && post.sourceName!.trim().isNotEmpty)
+        ? post.sourceName!
+        : (isOriginal ? 'Nagrik Newsroom' : 'Verified Public Source');
+
+    return Container(
+      margin: const EdgeInsets.only(
+        top: NagrikSpacing.space3,
+        bottom: NagrikSpacing.space3,
+      ),
+      padding: const EdgeInsets.all(NagrikSpacing.space3),
+      decoration: BoxDecoration(
+        color: isDark
+            ? context.nagrikTheme.level1Surface
+            : context.nagrikTheme.surfaceMuted,
+        borderRadius: NagrikRadii.borderRadiusSm,
+        border: Border.all(
+          color: context.nagrikTheme.border.withValues(alpha: 0.5),
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isOriginal ? Icons.verified_rounded : Icons.source_rounded,
+                size: 16,
+                color: isOriginal
+                    ? NagrikBrandColors.orangePrimary
+                    : const Color(0xFF0284C7),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isOriginal
+                    ? 'ORIGINAL NAGRIK REPORTING'
+                    : 'OFFICIAL SOURCE & PROVENANCE',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                  color: isOriginal
+                      ? NagrikBrandColors.orangePrimary
+                      : const Color(0xFF0284C7),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Source / Publisher',
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: context.nagrikTheme.textSecondary,
+                        fontSize: 10.5,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      sourceDisplay,
+                      style: context.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (hasReporter) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Reporter / Byline',
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: context.nagrikTheme.textSecondary,
+                          fontSize: 10.5,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        post.authorName!,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    if (hasAttribution) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Media Credit',
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: context.nagrikTheme.textSecondary,
+                          fontSize: 10.5,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        post.mediaAttribution!,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.nagrikTheme.textSecondary,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (post.sourceUrl != null && post.sourceUrl!.trim().isNotEmpty) ...[
+                const SizedBox(width: 8),
+                FilledButton.tonalIcon(
+                  onPressed: () => UrlHelper.launchUrlSafe(context, post.sourceUrl!),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 13),
+                  label: const Text('View Source'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    minimumSize: const Size(0, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: NagrikRadii.borderRadiusSm,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Statutory Non-Government Notice at article conclusion.
+  Widget _buildArticleDisclaimerFooter(BuildContext context, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(
+        top: NagrikSpacing.space3,
+        bottom: NagrikSpacing.space3,
+      ),
+      padding: const EdgeInsets.all(NagrikSpacing.space3),
+      decoration: BoxDecoration(
+        color: context.nagrikTheme.surfaceMuted.withValues(
+          alpha: isDark ? 0.35 : 0.85,
+        ),
+        borderRadius: NagrikRadii.borderRadiusSm,
+        border: Border.all(
+          color: context.nagrikTheme.border.withValues(alpha: 0.4),
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.shield_outlined,
+                size: 15,
+                color: Color(0xFFD97706),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'INDEPENDENT MEDIA NOTICE',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                  color: const Color(0xFFD97706),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Nagrik is operated by Wizzling Pvt Ltd and is not an official government entity. Information is curated for journalistic and public benefit. Verify official notices with issuing authorities.',
+            style: context.textTheme.bodySmall?.copyWith(
+              color: context.nagrikTheme.textSecondary,
+              fontSize: 11,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const GovernmentDisclaimerScreen(),
+                ),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Read Government Disclaimer & Sources',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: NagrikBrandColors.orangePrimary,
+                  ),
+                ),
+                const SizedBox(width: 3),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 13,
+                  color: NagrikBrandColors.orangePrimary,
                 ),
               ],
             ),

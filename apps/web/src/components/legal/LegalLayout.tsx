@@ -37,6 +37,7 @@ export type LegalSlug =
   | 'content-policy'
   | 'corrections'
   | 'sources'
+  | 'government-disclaimer'
   | 'publisher-guidelines'
   | 'community-guidelines'
   | 'copyright'
@@ -109,6 +110,7 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({
       groupEn: 'Legal & Compliance',
       groupHi: 'कानूनी एवं अनुपालन',
       items: [
+        { slug: 'government-disclaimer', href: '/government-disclaimer', labelEn: 'Govt Disclaimer', labelHi: 'सरकारी अस्वीकरण' },
         { slug: 'privacy', href: '/privacy', labelEn: 'Privacy Policy', labelHi: 'गोपनीयता नीति' },
         { slug: 'terms', href: '/terms', labelEn: 'Terms of Service', labelHi: 'सेवा की शर्तें' },
         { slug: 'accessibility', href: '/accessibility', labelEn: 'Accessibility', labelHi: 'सुगमता (Accessibility)' },
@@ -287,7 +289,7 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({
         {/* ── FOOTER TRUST SIGNATURE ── */}
         <div className="pt-6 border-t border-stone-200/80 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400 font-mono space-y-1">
           <div>
-            Nagrik Media Trust • Bureau House, Fraser Road, Patna, Bihar – 800001
+            Wizzling Pvt Ltd • Koilwar, Arrah, Bhojpur, Bihar – 802163
           </div>
           <div>
             Statutory Alignment: Digital Personal Data Protection Act, 2023 &amp; Information Technology Rules, 2021

@@ -192,7 +192,7 @@ CREATE OR REPLACE FUNCTION public.admin_moderate_content(
 RETURNS JSONB AS $$
 DECLARE
     v_content RECORD;
-    v_admin_email TEXT := 'admin@nagrik.news';
+    v_admin_email TEXT := 'wizzlingsupport@gmail.com';
     v_is_approved BOOLEAN := (p_moderation_status = 'APPROVED');
 BEGIN
     IF NOT public.is_admin() THEN
@@ -244,7 +244,7 @@ CREATE OR REPLACE FUNCTION public.admin_process_payout(
 RETURNS JSONB AS $$
 DECLARE
     v_request RECORD;
-    v_admin_email TEXT := 'admin@nagrik.news';
+    v_admin_email TEXT := 'wizzlingsupport@gmail.com';
 BEGIN
     IF NOT public.is_admin() THEN
         RAISE EXCEPTION 'Unauthorized: only platform admins can process payouts';

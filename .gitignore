@@ -8,6 +8,8 @@ dist/
 build/
 out/
 .next/
+*.apk
+*.aab
 
 # Environment Variables & Secrets (Keep .env.example tracked, ignore real secrets)
 .env

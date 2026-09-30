@@ -59,6 +59,25 @@ export const AboutView: React.FC = () => {
           </p>
         </div>
 
+        {/* ── NON-GOVERNMENT INDEPENDENCE NOTICE ── */}
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs leading-relaxed text-slate-800 dark:text-slate-200">
+          <ShieldCheck className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="font-bold text-amber-800 dark:text-amber-300 font-mono tracking-wide uppercase text-[11px]">
+              Independent Media Platform • Non-Government Declaration
+            </div>
+            <div>
+              <strong>Nagrik</strong> is operated by <strong>Wizzling Pvt Ltd</strong>. Nagrik is an independent digital news and civic information platform. Nagrik is <strong>NOT a government application</strong> and is not affiliated with, endorsed by, sponsored by, or operated by the Government of India or any state, district, municipal, or other government authority.
+            </div>
+            <div className="pt-1">
+              <Link href="/government-disclaimer" className="text-[#DE5227] font-semibold underline inline-flex items-center gap-1">
+                <span>Read Full Statutory Government Disclaimer</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* ── SECTION 1: WHAT NAGRIK IS ── */}
         <section id="mission" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
@@ -213,9 +232,10 @@ export const AboutView: React.FC = () => {
             In compliance with Indian media disclosure standards, the legal entity owning and operating the Nagrik digital news platform is:
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1.5 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Operating Entity:</strong> Nagrik Media Trust</div>
-            <div><strong className="text-slate-950 dark:text-white">Headquarters / Principal Office:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
-            <div><strong className="text-slate-950 dark:text-white">Domain:</strong> nagrik.news</div>
+            <div><strong className="text-slate-950 dark:text-white">Operating Entity:</strong> Wizzling Pvt Ltd</div>
+            <div><strong className="text-slate-950 dark:text-white">Headquarters / Principal Office:</strong> Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Support &amp; Grievance Email:</strong> wizzlingsupport@gmail.com</div>
+            <div><strong className="text-slate-950 dark:text-white">Phone:</strong> +91 8890043675</div>
             <div><strong className="text-slate-950 dark:text-white">Jurisdiction:</strong> Republic of India</div>
           </div>
         </section>
@@ -228,24 +248,24 @@ export const AboutView: React.FC = () => {
             </h2>
           </div>
           <p>
-            Citizens, publishers, and authorities can reach our teams directly via verified email channels:
+            Citizens, publishers, and authorities can reach our teams directly via verified email and phone channels:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
             <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800">
-              <div className="text-[11px] text-slate-500">General Information</div>
-              <a href="mailto:contact@nagrik.news" className="text-[#DE5227] font-bold underline">contact@nagrik.news</a>
+              <div className="text-[11px] text-slate-500">General &amp; Support Inquiries</div>
+              <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] font-bold underline">wizzlingsupport@gmail.com</a>
             </div>
             <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800">
               <div className="text-[11px] text-slate-500">Editorial Desk &amp; Corrections</div>
-              <a href="mailto:editor@nagrik.news" className="text-[#DE5227] font-bold underline">editor@nagrik.news</a>
+              <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] font-bold underline">wizzlingsupport@gmail.com</a>
             </div>
             <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800">
               <div className="text-[11px] text-slate-500">Publisher Support</div>
-              <a href="mailto:publishers@nagrik.news" className="text-[#DE5227] font-bold underline">publishers@nagrik.news</a>
+              <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] font-bold underline">wizzlingsupport@gmail.com</a>
             </div>
             <div className="p-3 bg-white dark:bg-slate-900/60 rounded-xl border border-stone-200/80 dark:border-slate-800">
               <div className="text-[11px] text-slate-500">Resident Grievance Officer</div>
-              <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] font-bold underline">grievance@nagrik.news</a>
+              <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] font-bold underline">wizzlingsupport@gmail.com</a>
             </div>
           </div>
           <div className="pt-2">

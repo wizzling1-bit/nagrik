@@ -17,6 +17,11 @@ import 'package:nagrik/features/onboarding/presentation/providers/onboarding_pro
 import 'package:nagrik/features/onboarding/presentation/splash_screen.dart';
 import 'package:nagrik/features/saved/presentation/saved_screen.dart';
 import 'package:nagrik/features/search/presentation/search_screen.dart';
+import 'package:nagrik/features/settings/presentation/screens/about_nagrik_screen.dart';
+import 'package:nagrik/features/settings/presentation/screens/contact_us_screen.dart';
+import 'package:nagrik/features/settings/presentation/screens/government_disclaimer_screen.dart';
+import 'package:nagrik/features/settings/presentation/screens/information_sources_screen.dart';
+import 'package:nagrik/features/settings/presentation/screens/legal_viewer_screen.dart';
 import 'package:nagrik/features/settings/presentation/settings_screen.dart';
 import 'package:nagrik/features/videos/presentation/screens/videos_screen.dart';
 
@@ -31,6 +36,11 @@ abstract final class AppRoutes {
   static const notifications = '/notifications';
   static const settings = '/settings';
   static const contentDetail = '/content/:id';
+  static const about = '/settings/about';
+  static const contact = '/settings/contact';
+  static const governmentDisclaimer = '/settings/disclaimer';
+  static const informationSources = '/settings/sources';
+  static const legalViewer = '/settings/legal/:slug';
 }
 
 /// Provider for the app-level [GoRouter].
@@ -134,6 +144,44 @@ final routerProvider = Provider<GoRouter>((ref) {
               contentId: id,
               initialPost: extraPost,
             ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.about,
+        pageBuilder: (context, state) => _smoothPageTransition(
+          key: state.pageKey,
+          child: const AboutNagrikScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.contact,
+        pageBuilder: (context, state) => _smoothPageTransition(
+          key: state.pageKey,
+          child: const ContactUsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.governmentDisclaimer,
+        pageBuilder: (context, state) => _smoothPageTransition(
+          key: state.pageKey,
+          child: const GovernmentDisclaimerScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.informationSources,
+        pageBuilder: (context, state) => _smoothPageTransition(
+          key: state.pageKey,
+          child: const InformationSourcesScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.legalViewer,
+        pageBuilder: (context, state) {
+          final slug = state.pathParameters['slug'] ?? 'editorial-guidelines';
+          return _smoothPageTransition(
+            key: state.pageKey,
+            child: LegalViewerScreen(slug: slug),
           );
         },
       ),

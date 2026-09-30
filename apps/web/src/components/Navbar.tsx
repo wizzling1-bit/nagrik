@@ -127,7 +127,8 @@ export const Navbar: React.FC = () => {
     { label: language === 'hi' ? 'सुविधाएं' : 'Why Nagrik', href: '/#why', sectionId: 'why' },
     { label: language === 'hi' ? 'नेटवर्क' : 'Ecosystem', href: '/#ecosystem', sectionId: 'ecosystem' },
     { label: language === 'hi' ? 'कमाई' : 'Earnings', href: '/#earnings', sectionId: 'earnings' },
-    { label: language === 'hi' ? 'एफएक्यू' : 'FAQ', href: '/#faq', sectionId: 'faq' }
+    { label: language === 'hi' ? 'एफएक्यू' : 'FAQ', href: '/#faq', sectionId: 'faq' },
+    { label: language === 'hi' ? 'संपर्क' : 'Contact', href: '/contact', sectionId: 'contact' }
   ];
 
   return (
@@ -404,6 +405,17 @@ export const Navbar: React.FC = () => {
                 }`}
               >
                 {language === 'hi' ? 'देखें यह कैसे काम करता है' : 'Explore How It Works'}
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`w-full text-center py-2.5 rounded-full font-semibold text-xs transition border ${
+                  isDarkTone
+                    ? 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border-orange-500/30'
+                    : 'bg-orange-500/10 hover:bg-orange-500/20 text-[#DE5227] border-orange-500/30'
+                }`}
+              >
+                {language === 'hi' ? 'संपर्क एवं सहायता (Contact Desk)' : 'Contact Us & Newsroom Desk'}
               </Link>
             </div>
           </div>

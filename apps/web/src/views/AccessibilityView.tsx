@@ -159,8 +159,9 @@ export const AccessibilityView: React.FC = () => {
             If you encounter any difficulty accessing content or navigating any feature on Nagrik, please let our team know. We take accessibility issues seriously and prioritize software fixes:
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Accessibility Help Desk:</strong> <a href="mailto:contact@nagrik.news?subject=Accessibility%20Barrier%20Report" className="text-[#DE5227] underline">contact@nagrik.news</a></div>
-            <div><strong className="text-slate-950 dark:text-white">Address:</strong> Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Accessibility Help Desk:</strong> <a href="mailto:wizzlingsupport@gmail.com?subject=Accessibility%20Barrier%20Report" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Registered Address:</strong> Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Helpline Phone:</strong> <a href="tel:+918890043675" className="text-[#DE5227] underline">+91 8890043675</a></div>
           </div>
         </section>
 

@@ -237,7 +237,7 @@ export const ContentPolicyView: React.FC = () => {
             In critical scenarios involving imminent threats to human life, ongoing communal riots, judicial injunctions, or child safety violations, our desk executes an <strong>Emergency Expedited Takedown</strong> within 2 hours of verified receipt.
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Law enforcement orders and urgent statutory takedowns should be directed directly to <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline font-bold">grievance@nagrik.news</a>.
+            Law enforcement orders and urgent statutory takedowns should be directed directly to <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a>.
           </p>
         </section>
 
@@ -266,7 +266,7 @@ export const ContentPolicyView: React.FC = () => {
             </h2>
           </div>
           <p>
-            If you believe your content was removed or your publisher account suspended in error, you may file a formal appeal within 14 days by emailing <a href="mailto:publishers@nagrik.news" className="text-[#DE5227] underline font-bold">publishers@nagrik.news</a> with your account ID, article URL, and factual justification. An independent senior editor will review the case within 5 business days.
+            If you believe your content was removed or your publisher account suspended in error, you may file a formal appeal within 14 days by emailing <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a> with your account ID, article URL, and factual justification. An independent senior editor will review the case within 5 business days.
           </p>
         </section>
 

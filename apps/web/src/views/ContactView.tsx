@@ -14,10 +14,13 @@ import {
   HelpCircle,
   ShieldCheck,
   RotateCcw,
-  Scale
+  Scale,
+  Phone,
+  Building2
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { supabase } from '@/lib/supabase';
+import { LEGAL_CONFIG } from '@/config/legalConstants';
 
 export const ContactView: React.FC = () => {
   const { language } = useLanguage();
@@ -63,33 +66,33 @@ export const ContactView: React.FC = () => {
 
   const channelCards = [
     {
-      title: 'General Inquiries & Feedback',
-      email: 'contact@nagrik.news',
+      title: 'General Inquiries & Support',
+      email: LEGAL_CONFIG.contacts.supportEmail,
       desc: 'Platform questions, community suggestions, and general communication.'
     },
     {
-      title: 'Editorial Desk & Corrections',
-      email: 'editor@nagrik.news',
-      desc: 'Report factual inaccuracies, request updates, or submit news leads.'
+      title: 'Editorial Desk & Newsroom',
+      email: LEGAL_CONFIG.contacts.editorialEmail,
+      desc: 'Report factual inaccuracies, request updates, or submit ground news leads.'
     },
     {
-      title: 'Publisher & Stringer Desk',
-      email: 'publishers@nagrik.news',
-      desc: 'Onboarding support, monetization inquiries, and UPI payout assistance.'
-    },
-    {
-      title: 'Resident Grievance Officer',
-      email: 'grievance@nagrik.news',
+      title: 'Grievance Redressal / Complaints',
+      email: LEGAL_CONFIG.contacts.grievanceEmail,
       desc: 'Statutory complaints under Rule 11 of the Information Technology Rules, 2021.'
     },
     {
+      title: 'Publisher & Stringer Desk',
+      email: LEGAL_CONFIG.contacts.supportEmail,
+      desc: 'Onboarding support, monetization inquiries, and payout assistance.'
+    },
+    {
       title: 'Data Privacy & DPDP Desk',
-      email: 'privacy@nagrik.news',
-      desc: 'Personal data access, account erasure requests, and privacy inquiries.'
+      email: LEGAL_CONFIG.contacts.privacyEmail,
+      desc: 'Personal data access, account erasure requests, and DPDP Act compliance.'
     },
     {
       title: 'Copyright & Legal Agent',
-      email: 'copyright@nagrik.news',
+      email: LEGAL_CONFIG.contacts.legalEmail,
       desc: 'Statutory copyright takedown notices under the Indian Copyright Act, 1957.'
     }
   ];
@@ -113,8 +116,8 @@ export const ContactView: React.FC = () => {
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
             {language === 'hi'
-              ? 'संपादकीय प्रश्न, त्रुटि सुधार, प्रकाशक सहायता, या कानूनी अनुपालन के लिए हमारी अधिकृत टीमों से सीधे संपर्क करें।'
-              : 'Direct communication channels for reader corrections, editorial inquiries, publisher support, privacy requests, and statutory compliance.'}
+              ? 'नागरिक विज़लिंग प्राइवेट लिमिटेड (Wizzling Pvt Ltd) द्वारा संचालित एक स्वतंत्र डिजिटल समाचार एवं नागरिक सूचना मंच है।'
+              : 'Nagrik is an independent digital news and civic information platform operated by Wizzling Pvt Ltd.'}
           </p>
         </div>
 
@@ -124,9 +127,14 @@ export const ContactView: React.FC = () => {
           {/* Left Column: Direct Channels & Bureau Details */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-[#FAF8F5] dark:bg-[#111827] border border-stone-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-7 space-y-5 shadow-sm text-left">
-              <h3 className="text-lg font-bold font-serif text-slate-950 dark:text-white">
-                {language === 'hi' ? 'आधिकारिक संपर्क विभाग' : 'Official Bureau Desks'}
-              </h3>
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold font-serif text-slate-950 dark:text-white">
+                  {language === 'hi' ? 'आधिकारिक संपर्क विभाग' : 'Official Bureau Desks'}
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                  Legal Entity: {LEGAL_CONFIG.legalEntity}
+                </p>
+              </div>
               
               <div className="space-y-3 text-xs">
                 {channelCards.map((channel, idx) => (
@@ -147,13 +155,27 @@ export const ContactView: React.FC = () => {
                 ))}
               </div>
 
-              {/* Physical Bureau Address */}
-              <div className="pt-3 border-t border-stone-200/60 dark:border-slate-800 flex items-start gap-3 text-xs">
-                <MapPin className="w-4 h-4 text-[#DE5227] shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <div className="font-bold text-slate-900 dark:text-white">Principal Office Address</div>
-                  <div className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-                    Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001, India
+              {/* Physical Bureau Address & Phone */}
+              <div className="pt-3 border-t border-stone-200/60 dark:border-slate-800 space-y-3 text-xs">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-[#DE5227] shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-slate-900 dark:text-white">Registered Address</div>
+                    <div className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                      {LEGAL_CONFIG.registeredAddress.fullFormatted}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-slate-900 dark:text-white">Support &amp; Helpline Phone</div>
+                    <a
+                      href={LEGAL_CONFIG.contacts.phoneTel}
+                      className="text-slate-700 dark:text-slate-300 hover:text-[#DE5227] font-mono text-[11px] font-bold block"
+                    >
+                      {LEGAL_CONFIG.contacts.phone}
+                    </a>
                   </div>
                 </div>
               </div>
@@ -168,13 +190,22 @@ export const ContactView: React.FC = () => {
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
                 Use our dedicated content reporting portal for rapid incident review by our editorial desk.
               </p>
-              <Link
-                href="/report"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#DE5227] dark:text-orange-400 hover:underline pt-1"
-              >
-                <span>Go to Article Report Portal</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
+              <div className="pt-1 flex flex-col gap-1.5">
+                <Link
+                  href="/report"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#DE5227] dark:text-orange-400 hover:underline"
+                >
+                  <span>Go to Article Report Portal</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+                <Link
+                  href="/government-disclaimer"
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:underline"
+                >
+                  <span>Government Information Disclaimer</span>
+                  <ArrowRight className="w-2.5 h-2.5" />
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -280,10 +311,24 @@ export const ContactView: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Phone */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-900 dark:text-slate-200">
+                      Phone Number (Optional)
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="e.g. +91 9876543210"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#DE5227]"
+                    />
+                  </div>
+
                   {/* Subject */}
                   <div className="space-y-1">
                     <label className="block text-xs font-bold text-slate-900 dark:text-slate-200">
-                      Subject / Article Title <span className="text-[#DE5227]">*</span>
+                      Subject / Topic <span className="text-[#DE5227]">*</span>
                     </label>
                     <input
                       type="text"

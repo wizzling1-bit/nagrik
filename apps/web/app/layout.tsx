@@ -34,20 +34,20 @@ const scriptFont = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: 'नागरिक (Naagrik) - India’s Premier Hyperlocal Civic Journalism Platform',
+  title: 'नागरिक (Naagrik) - Independent Hyperlocal News & Civic Information Platform',
   description: 'Instant local updates, verified ground reports, and short-form civic news. Real voices, real stories, real accountability.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nagrik.news'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nagrik-website-sage.vercel.app'),
   openGraph: {
-    title: 'नागरिक (Naagrik) - India’s Premier Hyperlocal Civic Journalism Platform',
+    title: 'नागरिक (Naagrik) - Independent Hyperlocal News & Civic Information Platform',
     description: 'Instant local updates, verified ground reports, and short-form civic news directly from your neighborhood.',
-    url: 'https://nagrik.news',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://nagrik-website-sage.vercel.app',
     siteName: 'Naagrik News',
     locale: 'hi_IN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'नागरिक (Naagrik) - Hyperlocal Civic Journalism Platform',
+    title: 'नागरिक (Naagrik) - Independent Civic Journalism Platform',
     description: 'Instant local updates, verified ground reports, and short-form civic news.',
   },
   manifest: '/manifest.json',

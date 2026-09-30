@@ -56,7 +56,7 @@ export const TermsView: React.FC = () => {
             <span>Binding Legal Agreement</span>
           </div>
           <p className="leading-relaxed font-normal text-slate-700 dark:text-slate-300 text-xs">
-            By downloading our mobile app, reading local dispatches on nagrik.news, or registering as a publisher, you agree to be bound by these Terms of Service entered into with Nagrik Media Trust. Please also review our <Link href="/privacy" className="text-[#DE5227] underline font-bold">Privacy Policy</Link>, <Link href="/editorial-guidelines" className="text-[#DE5227] underline font-bold">Editorial Guidelines</Link>, and <Link href="/content-policy" className="text-[#DE5227] underline font-bold">Content Policy</Link>.
+            By downloading our mobile app, reading local dispatches on nagrik.news, or registering as a publisher, you agree to be bound by these Terms of Service entered into with Wizzling Pvt Ltd. Please also review our <Link href="/privacy" className="text-[#DE5227] underline font-bold">Privacy Policy</Link>, <Link href="/editorial-guidelines" className="text-[#DE5227] underline font-bold">Editorial Guidelines</Link>, and <Link href="/content-policy" className="text-[#DE5227] underline font-bold">Content Policy</Link>.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export const TermsView: React.FC = () => {
             <strong>You own what you create.</strong> Contributors retain 100% intellectual property ownership of their original camera footage, audio, and written dispatches.
           </p>
           <p>
-            By uploading content to Nagrik, you grant Nagrik Media Trust a non-exclusive, worldwide, royalty-free, transferable license to store, transcode, stream, distribute, index, and publicly display your work across our web, mobile, RSS, and social syndication channels.
+            By uploading content to Nagrik, you grant Wizzling Pvt Ltd a non-exclusive, worldwide, royalty-free, transferable license to store, transcode, stream, distribute, index, and publicly display your work across our web, mobile, RSS, and social syndication channels.
           </p>
         </section>
 
@@ -150,7 +150,7 @@ export const TermsView: React.FC = () => {
             </h2>
           </div>
           <p>
-            The Nagrik platform name, trademarks, logos, visual identity, Flutter mobile application software, web application codebase, and proprietary layout designs are the exclusive property of Nagrik Media Trust.
+            The Nagrik platform name, trademarks, logos, visual identity, Flutter mobile application software, web application codebase, and proprietary layout designs are the exclusive property of Wizzling Pvt Ltd.
           </p>
         </section>
 
@@ -189,7 +189,7 @@ export const TermsView: React.FC = () => {
             </h2>
           </div>
           <p>
-            Nagrik operates as an intermediary under <strong>Section 79 of the Information Technology Act, 2000</strong>. Reports uploaded by independent contributors represent their firsthand observations and do not represent the institutional views of Nagrik Media Trust.
+            Nagrik operates as an intermediary under <strong>Section 79 of the Information Technology Act, 2000</strong>. Reports uploaded by independent contributors represent their firsthand observations and do not represent the institutional views of Wizzling Pvt Ltd.
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-400">
             We act expeditiously to remove unlawful content upon receiving actual knowledge through court orders or verified government notices under the IT Rules, 2021.
@@ -204,7 +204,7 @@ export const TermsView: React.FC = () => {
             </h2>
           </div>
           <p>
-            To the maximum extent permitted by applicable Indian law, Nagrik Media Trust, its trustees, officers, and employees shall not be liable for any indirect, incidental, punitive, or consequential damages resulting from platform downtime, loss of data, or community disputes arising from local reporting.
+            To the maximum extent permitted by applicable Indian law, Wizzling Pvt Ltd, its directors, officers, and employees shall not be liable for any indirect, incidental, punitive, or consequential damages resulting from platform downtime, loss of data, or community disputes arising from local reporting.
           </p>
         </section>
 
@@ -246,10 +246,10 @@ export const TermsView: React.FC = () => {
             We may update these Terms periodically to reflect evolving legal, regulatory, or operational requirements. Updated versions will display the revision timestamp at the top of this document. Continued use of Nagrik after updates constitutes acceptance of the revised Terms.
           </p>
           <div className="p-4 bg-stone-100/80 dark:bg-slate-900/90 rounded-2xl border border-stone-200/80 dark:border-slate-800 font-mono text-xs space-y-1 text-slate-800 dark:text-slate-200">
-            <div><strong className="text-slate-950 dark:text-white">Operating Entity:</strong> Nagrik Media Trust</div>
-            <div><strong className="text-slate-950 dark:text-white">Address:</strong> Bureau House, Fraser Road, Patna, Bihar – 800001, India</div>
-            <div><strong className="text-slate-950 dark:text-white">General Inquiries:</strong> <a href="mailto:contact@nagrik.news" className="text-[#DE5227] underline">contact@nagrik.news</a></div>
-            <div><strong className="text-slate-950 dark:text-white">Resident Grievance Officer:</strong> <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline">grievance@nagrik.news</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Operating Entity:</strong> Wizzling Pvt Ltd</div>
+            <div><strong className="text-slate-950 dark:text-white">Registered Address:</strong> Koilwar, Arrah, Bhojpur, Bihar – 802163, India</div>
+            <div><strong className="text-slate-950 dark:text-white">Support &amp; Grievance Email:</strong> <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a></div>
+            <div><strong className="text-slate-950 dark:text-white">Helpline Phone:</strong> <a href="tel:+918890043675" className="text-[#DE5227] underline">+91 8890043675</a></div>
           </div>
         </section>
 

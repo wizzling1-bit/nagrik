@@ -85,12 +85,12 @@ export const GrievanceView: React.FC = () => {
           <div className="p-5 bg-white dark:bg-slate-900/90 rounded-2xl border border-stone-200/90 dark:border-slate-800 space-y-3 shadow-2xs font-mono text-xs text-slate-800 dark:text-slate-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block text-[11px]">Designated Officer:</span>
-                <strong className="text-slate-950 dark:text-white text-sm">Sh. Arvind Verma</strong>
+                <span className="text-slate-500 dark:text-slate-400 block text-[11px]">Designated Entity:</span>
+                <strong className="text-slate-950 dark:text-white text-sm">Wizzling Pvt Ltd</strong>
               </div>
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block text-[11px]">Designation:</span>
-                <span className="text-slate-900 dark:text-white font-bold">Resident Grievance Officer & Legal Counsel</span>
+                <span className="text-slate-900 dark:text-white font-bold">Resident Grievance &amp; Compliance Desk</span>
               </div>
             </div>
 
@@ -98,17 +98,19 @@ export const GrievanceView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#DE5227] shrink-0" />
                 <div>
-                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Statutory Email:</span>
-                  <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] font-bold underline">
-                    grievance@nagrik.news
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Statutory &amp; Grievance Email:</span>
+                  <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] font-bold underline">
+                    wizzlingsupport@gmail.com
                   </a>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
                 <div>
-                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Desk Phone:</span>
-                  <span className="text-slate-900 dark:text-white font-bold">+91 (612) 220-4912</span>
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Support &amp; Desk Phone:</span>
+                  <a href="tel:+918890043675" className="text-slate-900 dark:text-white font-bold hover:text-[#DE5227]">
+                    +91 8890043675
+                  </a>
                 </div>
               </div>
             </div>
@@ -116,9 +118,9 @@ export const GrievanceView: React.FC = () => {
             <div className="pt-2 border-t border-stone-200/60 dark:border-slate-800 flex items-start gap-2">
               <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Registered Physical Bureau:</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Registered Office &amp; Address:</span>
                 <span className="text-slate-900 dark:text-white">
-                  Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001, India
+                  Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, India
                 </span>
               </div>
             </div>
@@ -129,11 +131,11 @@ export const GrievanceView: React.FC = () => {
         <section id="process" className="space-y-4 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg sm:text-xl font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">3.</span> Complaint Submission Procedure & Requirements
+              <span className="text-[#DE5227]">3.</span> Complaint Submission Procedure &amp; Requirements
             </h2>
           </div>
           <p>
-            To ensure rapid investigation and prevent frivolous claims, please provide the following details when emailing <a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline">grievance@nagrik.news</a>:
+            To ensure rapid investigation and prevent frivolous claims, please provide the following details when emailing <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a>:
           </p>
 
           <div className="p-4 bg-stone-100/70 dark:bg-slate-900/70 rounded-2xl border border-stone-200/80 dark:border-slate-800 space-y-2">

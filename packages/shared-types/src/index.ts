@@ -138,7 +138,15 @@ export interface IContent {
   likes: number;
   shares: number;
   saves: number;
+  commentsCount?: number;
   publishedAt?: string;
+  authorName?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  mediaAttribution?: string;
+  isOriginal?: boolean;
+  correctionNote?: string;
+  correctionStatus?: 'NONE' | 'CORRECTED' | 'RETRACTED';
   relevanceScore?: number;
   locationTier?: LocationTier | string;
   distanceKm?: number;

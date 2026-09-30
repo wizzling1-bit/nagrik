@@ -751,7 +751,7 @@ export const CreatorLayout: React.FC<CreatorLayoutProps> = ({ onBackToHome }) =>
 
         {/* ── FOOTER ── */}
         <footer className="pt-4 pb-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
-          <div>© {new Date().getFullYear()} Nagrik Media Trust • Verified Hyperlocal Journalism Platform</div>
+          <div>© {new Date().getFullYear()} Wizzling Pvt Ltd • Verified Hyperlocal Journalism Platform</div>
           <div className="flex items-center gap-4">
             <button onClick={onBackToHome} className="hover:text-slate-900 dark:hover:text-white transition cursor-pointer">
               Public Feed

@@ -1255,32 +1255,49 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // 7. BOTTOM TRUST INDICATORS ROW
   // ---------------------------------------------------------------------------
   Widget _buildTrustIndicators(Color borderColor, Color textTertiary) {
-    return Center(
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildTrustItem(
-              icon: Icons.verified_user_outlined,
-              label: 'Verified Local News',
-              color: textTertiary,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTrustItem(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Verified Local News',
+                  color: textTertiary,
+                ),
+                _buildTrustDivider(borderColor),
+                _buildTrustItem(
+                  icon: Icons.speaker_notes_off_outlined,
+                  label: 'Ad-Transparent',
+                  color: textTertiary,
+                ),
+                _buildTrustDivider(borderColor),
+                _buildTrustItem(
+                  icon: Icons.diversity_3_outlined,
+                  label: 'Zero Hate. Real Conversations.',
+                  color: textTertiary,
+                ),
+              ],
             ),
-            _buildTrustDivider(borderColor),
-            _buildTrustItem(
-              icon: Icons.speaker_notes_off_outlined,
-              label: 'Ad-Transparent',
-              color: textTertiary,
-            ),
-            _buildTrustDivider(borderColor),
-            _buildTrustItem(
-              icon: Icons.diversity_3_outlined,
-              label: 'Zero Hate. Real Conversations.',
-              color: textTertiary,
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 5),
+        Center(
+          child: Text(
+            'Operated by Wizzling Pvt Ltd • Independent Non-Government Media',
+            style: TextStyle(
+              fontSize: 9.0,
+              fontWeight: FontWeight.w500,
+              color: textTertiary.withValues(alpha: 0.8),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

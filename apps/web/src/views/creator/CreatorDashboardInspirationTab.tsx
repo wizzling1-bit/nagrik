@@ -298,7 +298,7 @@ export const CreatorDashboardInspirationTab: React.FC<CreatorDashboardInspiratio
             {/* Dual sub-metric pills */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="p-3.5 rounded-2xl bg-[#F8F5EE] dark:bg-slate-800/60 border border-[#DE5227]/30 dark:border-slate-700/60 shadow-2xs">
-                <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Guaranteed CPM</p>
+                <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Standard CPM</p>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-lg font-black font-serif text-slate-900 dark:text-white">₹{rate.toFixed(2)}</span>
                   <span className="text-[11px] font-extrabold text-[#DE5227]">/ 1k reads</span>
@@ -646,7 +646,7 @@ export const CreatorDashboardInspirationTab: React.FC<CreatorDashboardInspiratio
               Digital Trust Active
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed px-2 font-medium">
-              GPS Ground Verification & 100% intellectual property ownership guaranteed.
+              GPS Ground Verification & 100% intellectual property ownership retained.
             </p>
           </div>
 

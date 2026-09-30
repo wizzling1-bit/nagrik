@@ -11,30 +11,34 @@ import {
   Building,
   User,
   Radio,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  Info
 } from 'lucide-react';
 import { LegalLayout, TocItem } from '@/components/legal/LegalLayout';
 import { useLanguage } from '@/context/LanguageContext';
+import { LEGAL_CONFIG } from '@/config/legalConstants';
 
 export const SourcesView: React.FC = () => {
   const { language } = useLanguage();
 
   const tocItems: TocItem[] = [
     { id: 'attribution-principles', label: '1. Core Attribution Principles' },
-    { id: 'original-reporting', label: '2. Original Nagrik Ground Reporting' },
-    { id: 'third-party', label: '3. Third-Party Content & Wire Services' },
-    { id: 'government-releases', label: '4. Government & Public Authorities' },
-    { id: 'press-releases', label: '5. Press Releases & Corporate Notices' },
-    { id: 'user-submissions', label: '6. Community & Stringer Submissions' },
-    { id: 'republishing-limits', label: '7. Republishing & Syndication Limits' },
-    { id: 'links-preservation', label: '8. Hyperlink & Citation Integrity' }
+    { id: 'government-public-sources', label: '2. Government & Public Information Sources' },
+    { id: 'official-sources-directory', label: '3. Verified Official Portals Directory' },
+    { id: 'original-reporting', label: '4. Original Nagrik Ground Reporting' },
+    { id: 'third-party', label: '5. Third-Party Wire & News Outlets' },
+    { id: 'press-releases', label: '6. Press Releases & Corporate Notices' },
+    { id: 'user-submissions', label: '7. Community Stringer Submissions' },
+    { id: 'republishing-limits', label: '8. Copyright & Anti-Scraping Limits' },
+    { id: 'links-preservation', label: '9. Citation & Hyperlink Integrity' }
   ];
 
   return (
     <LegalLayout
       title="Sources & Attribution Policy"
       hindiTitle="स्रोत एवं श्रेय नीति"
-      subtitle="How Nagrik attributes news dispatches, identifies original field work, credits third-party sources, and preserves citation transparency."
+      subtitle="How Nagrik attributes news dispatches, identifies official public information sources, credits third-party wires, and preserves citation transparency."
       category="Editorial Policies"
       lastUpdated="September 2026"
       version="2026.1"
@@ -65,17 +69,73 @@ export const SourcesView: React.FC = () => {
             Transparency of sources is the cornerstone of public trust. Nagrik enforces three foundational rules across all published materials:
           </p>
           <ul className="list-disc pl-5 space-y-2 text-xs text-slate-600 dark:text-slate-400">
-            <li><strong>Clear Provenance:</strong> Every article must display its author, publishing stringer, agency, or official authority.</li>
-            <li><strong>No False Claims of Originality:</strong> Aggregating or summarizing a report from another publication must never be claimed as original Nagrik reporting.</li>
-            <li><strong>Direct Attribution:</strong> Quotations, statistics, and legal findings must be directly attributed to their source in the body of the article.</li>
+            <li><strong>Clear Provenance:</strong> Every article must display its author, publishing stringer, agency, or official issuing authority.</li>
+            <li><strong>No False Claims of Originality:</strong> Aggregating or summarizing a report from another publication or government circular must never be claimed as original Nagrik reporting.</li>
+            <li><strong>Direct Attribution:</strong> Quotations, statistics, weather figures, and legal findings must be directly attributed to their source in the body of the article with outbound citations where available.</li>
           </ul>
         </section>
 
-        {/* 2. ORIGINAL REPORTING */}
+        {/* 2. GOVERNMENT & PUBLIC INFORMATION SOURCES */}
+        <section id="government-public-sources" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">2.</span> Government &amp; Public Information Sources
+            </h2>
+          </div>
+          <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs space-y-2">
+            <p className="font-bold text-blue-950 dark:text-blue-200 text-sm">
+              &ldquo;Nagrik uses publicly available official sources when reporting government, civic, weather, traffic, public-service and other official information.&rdquo;
+            </p>
+            <p className="text-blue-900 dark:text-blue-300 text-[11px] leading-relaxed">
+              When reporting public notices, meteorological forecasts, transport advisories, municipal tenders, or welfare schemes, Nagrik references verified official portals and clearly identifies the issuing department or public authority.
+            </p>
+          </div>
+        </section>
+
+        {/* 3. OFFICIAL SOURCES DIRECTORY */}
+        <section id="official-sources-directory" className="space-y-3 pt-2">
+          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
+            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
+              <span className="text-[#DE5227]">3.</span> Verified Official Portals Directory
+            </h2>
+          </div>
+          <p>
+            The following authoritative public bodies and digital portals are examples of sources legitimately referenced by Nagrik news dispatches:
+          </p>
+          <div className="space-y-3 pt-1">
+            {LEGAL_CONFIG.officialSources.map((src, idx) => (
+              <div
+                key={idx}
+                className="p-3.5 rounded-2xl bg-stone-100/80 dark:bg-[#0B0F17] border border-stone-200 dark:border-slate-800 space-y-1 text-xs"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-bold text-slate-900 dark:text-white">{src.name}</span>
+                  <a
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#DE5227] hover:underline inline-flex items-center gap-1 font-mono text-[11px]"
+                  >
+                    <span>{src.url}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                  {src.description}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 pt-1">
+            For statutory non-affiliation details, please view our <Link href="/government-disclaimer" className="text-[#DE5227] underline">Government Information Disclaimer</Link>.
+          </p>
+        </section>
+
+        {/* 4. ORIGINAL REPORTING */}
         <section id="original-reporting" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">2.</span> Original Nagrik Ground Reporting
+              <span className="text-[#DE5227]">4.</span> Original Nagrik Ground Reporting
             </h2>
           </div>
           <p>
@@ -89,11 +149,11 @@ export const SourcesView: React.FC = () => {
           </div>
         </section>
 
-        {/* 3. THIRD-PARTY CONTENT */}
+        {/* 5. THIRD-PARTY CONTENT */}
         <section id="third-party" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">3.</span> Third-Party Content &amp; Wire Services
+              <span className="text-[#DE5227]">5.</span> Third-Party Wire &amp; News Outlets
             </h2>
           </div>
           <p>
@@ -106,29 +166,11 @@ export const SourcesView: React.FC = () => {
           </ul>
         </section>
 
-        {/* 4. GOVERNMENT RELEASES */}
-        <section id="government-releases" className="space-y-3 pt-2">
-          <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
-            <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">4.</span> Government &amp; Public Authorities
-            </h2>
-          </div>
-          <p>
-            Official circulars, disaster advisories, police FIR summaries, and municipal bulletins are explicitly identified by the issuing government department:
-          </p>
-          <div className="p-3.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-2xl text-xs space-y-1">
-            <div className="font-bold text-blue-950 dark:text-blue-200">Official Public Authority Bulletin</div>
-            <p className="text-blue-900 dark:text-blue-300 text-[11px]">
-              Attributed to the specific administrative organ (e.g., <em>District Magistrate Office, Municipal Corporation, State Health Society</em>) along with the official reference or notification number.
-            </p>
-          </div>
-        </section>
-
-        {/* 5. PRESS RELEASES */}
+        {/* 6. PRESS RELEASES */}
         <section id="press-releases" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">5.</span> Press Releases &amp; Corporate Notices
+              <span className="text-[#DE5227]">6.</span> Press Releases &amp; Corporate Notices
             </h2>
           </div>
           <p>
@@ -136,11 +178,11 @@ export const SourcesView: React.FC = () => {
           </p>
         </section>
 
-        {/* 6. USER SUBMISSIONS */}
+        {/* 7. USER SUBMISSIONS */}
         <section id="user-submissions" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">6.</span> Community &amp; Stringer Submissions
+              <span className="text-[#DE5227]">7.</span> Community Stringer Submissions
             </h2>
           </div>
           <p>
@@ -148,11 +190,11 @@ export const SourcesView: React.FC = () => {
           </p>
         </section>
 
-        {/* 7. REPUBLISHING LIMITS */}
+        {/* 8. REPUBLISHING LIMITS */}
         <section id="republishing-limits" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">7.</span> Republishing &amp; Syndication Limits
+              <span className="text-[#DE5227]">8.</span> Copyright &amp; Anti-Scraping Limits
             </h2>
           </div>
           <p>
@@ -160,11 +202,11 @@ export const SourcesView: React.FC = () => {
           </p>
         </section>
 
-        {/* 8. LINKS PRESERVATION */}
+        {/* 9. LINKS PRESERVATION */}
         <section id="links-preservation" className="space-y-3 pt-2">
           <div className="border-b border-stone-200/80 dark:border-slate-800 pb-2">
             <h2 className="text-lg font-black text-slate-950 dark:text-white font-serif flex items-center gap-2">
-              <span className="text-[#DE5227]">8.</span> Hyperlink &amp; Citation Integrity
+              <span className="text-[#DE5227]">9.</span> Citation &amp; Hyperlink Integrity
             </h2>
           </div>
           <p>

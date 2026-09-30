@@ -43,7 +43,7 @@ export const CookiesView: React.FC = () => {
         <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-slate-800 dark:text-amber-200 text-xs sm:text-sm space-y-2">
           <div className="flex items-center gap-2 font-bold font-serif text-slate-950 dark:text-white text-sm sm:text-base">
             <Cookie className="w-4 h-4 text-[#DE5227] shrink-0" />
-            <span>Zero Cross-Site Tracking Guarantee</span>
+            <span>Zero Cross-Site Tracking Commitment</span>
           </div>
           <p className="leading-relaxed font-normal text-slate-600 dark:text-slate-300 text-xs">
             Nagrik does not deploy invasive cross-site tracking pixels or commercial ad retargeting cookies. We use lightweight local storage primarily to preserve your selected ward, interface language, theme choice, and secure creator login session.
@@ -182,7 +182,7 @@ export const CookiesView: React.FC = () => {
             We periodically review our storage practices to maintain compliance with emerging standards. Any substantial changes will be posted on this page with an updated version timestamp.
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            For inquiries regarding our cookie governance, email <a href="mailto:privacy@nagrik.news" className="text-[#DE5227] underline">privacy@nagrik.news</a> or write to the Bureau House, Fraser Road, Patna, Bihar – 800001.
+            For inquiries regarding our cookie governance, email <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a> or write to Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, India.
           </p>
         </section>
 

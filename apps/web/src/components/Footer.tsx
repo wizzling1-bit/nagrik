@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Mail, Phone, ArrowRight, Headphones, ShieldAlert, Sparkles } from 'lucide-react';
 import { IndianSkylineSvg } from './IndianSkylineSvg';
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -11,7 +12,7 @@ import { IndianSkylineSvg } from './IndianSkylineSvg';
      chhatris, minarets, coconut palms, and banyan trees
    - Luminous dual-mode sun/moon glow (apricot in light, amber in dark)
    - Seamless twilight sky gradient in dark mode ensuring figures pop
-   - Deep midnight navy 3-column footer architecture
+   - Deep midnight navy 5-column balanced footer architecture
    ───────────────────────────────────────────────────────────────────── */
 
 export const Footer: React.FC = () => {
@@ -117,18 +118,18 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════
-          02. DARK EDITORIAL FOOTER BODY — streamlined 3-column grid
+          02. DARK EDITORIAL FOOTER BODY — Balanced 5-Column Grid (4 + 2 + 2 + 2 + 2 = 12)
           ════════════════════════════════════════════════════════════════════ */}
-      <div className="bg-[#080B10] text-slate-300 relative pt-14 sm:pt-16 pb-10 sm:pb-12 border-t border-black/10 dark:border-white/[0.06]">
+      <div className="bg-[#080B10] text-slate-300 relative pt-12 sm:pt-16 pb-10 sm:pb-12 border-t border-black/10 dark:border-white/[0.06]">
         <div className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-14">
           <div
-            className={`grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-10 sm:gap-10 lg:gap-10 items-start text-left ${revealBase} ${
+            className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-6 gap-y-10 sm:gap-8 lg:gap-8 items-start text-left ${revealBase} ${
               isVisible ? revealVisible : revealHidden
             }`}
             style={{ transitionDelay: isVisible ? '200ms' : '0ms' }}
           >
-            {/* ── COL 1: BRAND / MISSION (lg:col-span-6) ── */}
-            <div className="col-span-2 lg:col-span-6 space-y-4">
+            {/* ── COL 1: BRAND / MISSION & PROMINENT CONTACT DESK (lg:col-span-4) ── */}
+            <div className="col-span-2 md:col-span-4 lg:col-span-4 space-y-4">
               <Link
                 href="/"
                 className="inline-flex items-center gap-2.5 group focus:outline-hidden"
@@ -144,13 +145,13 @@ export const Footer: React.FC = () => {
                 </span>
               </Link>
 
-              <p className="text-[13px] sm:text-sm text-slate-400 leading-relaxed font-normal max-w-md">
-                Hyperlocal journalism for a more informed India. By the people,
-                for the people.
+              <p className="text-[13px] sm:text-sm text-slate-400 leading-relaxed font-normal max-w-sm">
+                Hyperlocal journalism for a more informed India. Independent digital platform operated by{' '}
+                <span className="text-slate-200 font-medium">Wizzling Pvt Ltd</span>.
               </p>
 
               {/* Social Icons */}
-              <div className="pt-1.5 flex items-center gap-2.5">
+              <div className="pt-0.5 flex items-center gap-2.5">
                 {[
                   {
                     label: 'Instagram',
@@ -211,6 +212,50 @@ export const Footer: React.FC = () => {
                 ))}
               </div>
 
+              {/* 🌟 HIGHLY ATTRACTIVE, DEDICATED CONTACT & HELP DESK CARD 🌟 */}
+              <div className="mt-5 p-4 rounded-2xl bg-gradient-to-br from-orange-500/[0.14] via-amber-500/[0.06] to-[#101522] border border-orange-500/30 shadow-[0_8px_30px_rgba(234,88,12,0.15)] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-28 h-28 bg-orange-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-orange-500/20 transition-all duration-300" />
+                
+                <div className="flex items-center justify-between gap-2 relative z-10">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[11px] font-bold text-orange-400 tracking-wider font-mono uppercase">
+                      Newsroom & Support Desk
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-300 bg-black/40 px-2 py-0.5 rounded-full border border-white/10">
+                    24/7 Active
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xs text-slate-300 leading-relaxed relative z-10">
+                  Direct support, news tips, and statutory grievance officer desk operated by <span className="text-white font-medium">Wizzling Pvt Ltd</span>.
+                </p>
+
+                <div className="mt-3.5 flex flex-wrap items-center gap-2.5 relative z-10">
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#EA580C] via-[#F97316] to-[#C2410C] hover:from-[#F97316] hover:to-[#EA580C] text-white text-xs font-bold shadow-lg shadow-orange-950/60 hover:shadow-orange-500/40 hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 group/btn focus:outline-hidden focus:ring-2 focus:ring-orange-400"
+                  >
+                    <Headphones className="w-3.5 h-3.5 text-white" />
+                    <span>Contact Us</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                  </Link>
+
+                  <a
+                    href="tel:+918890043675"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-200 hover:text-white text-xs font-medium border border-white/15 hover:border-white/30 transition-all duration-200"
+                    title="Call Helpline"
+                  >
+                    <Phone className="w-3 h-3 text-orange-400" />
+                    <span className="font-mono">+91 8890043675</span>
+                  </a>
+                </div>
+              </div>
+
               {/* Brand Hashtag */}
               <div className="pt-1 text-xs font-mono text-slate-500 font-medium tracking-wide">
                 #RealStoriesRealChange
@@ -219,14 +264,38 @@ export const Footer: React.FC = () => {
 
             {/* ── COL 2: COMPANY (lg:col-span-2) ── */}
             <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
-              <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase">
-                Company
+              <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase flex items-center gap-1.5">
+                <span>Company</span>
               </h3>
               <nav aria-label="Company navigation">
-                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
+                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
+                  <li>
+                    <Link
+                      href="/about"
+                      className="group/link inline-flex items-center gap-1 hover:text-white transition-colors duration-200"
+                    >
+                      <span className="relative">
+                        About Nagrik
+                        <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#FF5A26] transition-all duration-300 group-hover/link:w-full" />
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    {/* Highlighted Contact Us link in list */}
+                    <Link
+                      href="/contact"
+                      className="group/link inline-flex items-center gap-1.5 text-orange-400 font-semibold hover:text-orange-300 transition-colors duration-200"
+                    >
+                      <span className="relative">
+                        Contact Us
+                        <span className="absolute -bottom-0.5 left-0 w-full h-px bg-orange-400/60" />
+                      </span>
+                      <span className="px-1.5 py-0.2 text-[9px] font-mono font-bold uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/40 rounded">
+                        Help
+                      </span>
+                    </Link>
+                  </li>
                   {[
-                    { label: 'About Nagrik', href: '/about' },
-                    { label: 'Contact Desk', href: '/contact' },
                     { label: 'Publisher Studio', href: '/creator' },
                     { label: 'Payment Proof', href: '/payment-proof' },
                   ].map((link) => (
@@ -252,10 +321,10 @@ export const Footer: React.FC = () => {
                 Editorial
               </h3>
               <nav aria-label="Editorial navigation">
-                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
+                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
                   {[
                     { label: 'Editorial Guidelines', href: '/editorial-guidelines' },
-                    { label: 'Corrections', href: '/corrections' },
+                    { label: 'Corrections Policy', href: '/corrections' },
                     { label: 'Sources & Attribution', href: '/sources' },
                     { label: 'Transparency', href: '/transparency' },
                   ].map((link) => (
@@ -281,7 +350,7 @@ export const Footer: React.FC = () => {
                 Policies
               </h3>
               <nav aria-label="Policies navigation">
-                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
+                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
                   {[
                     { label: 'Content Policy', href: '/content-policy' },
                     { label: 'Community Guidelines', href: '/community-guidelines' },
@@ -305,18 +374,19 @@ export const Footer: React.FC = () => {
               </nav>
             </div>
 
-            {/* ── COL 5: LEGAL (lg:col-span-2) ── */}
+            {/* ── COL 5: LEGAL & COMPLIANCE (lg:col-span-2) ── */}
             <div className="col-span-1 lg:col-span-2 space-y-3.5 sm:space-y-4">
               <h3 className="text-[12px] font-bold text-white tracking-wider font-mono uppercase">
                 Legal
               </h3>
               <nav aria-label="Legal navigation">
-                <ul className="space-y-2 text-[13px] text-slate-400 font-normal">
+                <ul className="space-y-2.5 text-[13px] text-slate-400 font-normal">
                   {[
+                    { label: 'Govt Disclaimer', href: '/government-disclaimer' },
+                    { label: 'Grievance Desk', href: '/grievance-redressal' },
                     { label: 'Privacy Policy', href: '/privacy' },
                     { label: 'Terms of Service', href: '/terms' },
                     { label: 'Accessibility', href: '/accessibility' },
-                    { label: 'Grievance Desk', href: '/grievance' },
                     { label: 'Report Content', href: '/report' },
                   ].map((link) => (
                     <li key={link.label}>
@@ -337,12 +407,26 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* ════════════════════════════════════════════════════════════════════
-              03. BOTTOM UTILITY BAR — streamlined
+              03. BOTTOM UTILITY BAR — streamlined with Contact Us
               ════════════════════════════════════════════════════════════════════ */}
           <div className="mt-12 sm:mt-14 pt-7 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-sans">
-            <div className="text-center sm:text-left flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span>© {new Date().getFullYear()} Nagrik Media Trust. All rights reserved.</span>
+            <div className="text-center sm:text-left flex flex-wrap items-center gap-x-4 gap-y-1.5">
+              <span>© {new Date().getFullYear()} Wizzling Pvt Ltd. All rights reserved.</span>
               <span className="hidden sm:inline text-slate-700">·</span>
+              <Link
+                href="/contact"
+                className="text-orange-400 hover:text-orange-300 font-semibold transition-colors duration-200"
+              >
+                Contact Us
+              </Link>
+              <span className="text-slate-700">·</span>
+              <Link
+                href="/government-disclaimer"
+                className="hover:text-slate-300 transition-colors duration-200"
+              >
+                Govt Disclaimer
+              </Link>
+              <span className="text-slate-700">·</span>
               <Link
                 href="/privacy"
                 className="hover:text-slate-300 transition-colors duration-200"
@@ -358,7 +442,7 @@ export const Footer: React.FC = () => {
               </Link>
               <span className="text-slate-700">·</span>
               <Link
-                href="/grievance"
+                href="/grievance-redressal"
                 className="hover:text-slate-300 transition-colors duration-200"
               >
                 Grievance

@@ -192,7 +192,7 @@ export const seedDatabase = async () => {
         slug: 'dmca',
         title: 'DMCA Copyright & Content Takedown Policy',
         version: '1.2',
-        content: `### 1. Intellectual Property Protection\nNagrik complies with international DMCA copyright directives. If you believe your copyrighted video or audio has been used without authorization, submit a notice to legal@nagrik.news.\n\n### 2. Counter-Notices\nPublishers may file counter-notices within 14 business days.`
+        content: `### 1. Intellectual Property Protection\nNagrik complies with international DMCA copyright directives. If you believe your copyrighted video or audio has been used without authorization, submit a notice to wizzlingsupport@gmail.com.\n\n### 2. Counter-Notices\nPublishers may file counter-notices within 14 business days.`
       }
     ];
 

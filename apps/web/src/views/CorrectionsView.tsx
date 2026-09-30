@@ -65,11 +65,11 @@ export const CorrectionsView: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <a
-              href="mailto:editor@nagrik.news?subject=Correction%20Request"
+              href="mailto:wizzlingsupport@gmail.com?subject=Correction%20Request"
               className="inline-flex items-center gap-1.5 text-xs text-white/90 hover:text-white underline font-mono"
             >
               <Mail className="w-3.5 h-3.5" />
-              <span>Email: editor@nagrik.news</span>
+              <span>Email: wizzlingsupport@gmail.com</span>
             </a>
           </div>
         </div>
@@ -115,7 +115,7 @@ export const CorrectionsView: React.FC = () => {
                 <span>Option B: Direct Editorial Desk Email</span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                Email our newsroom desk at <a href="mailto:editor@nagrik.news" className="text-[#DE5227] underline font-bold">editor@nagrik.news</a> with the headline, article URL, the specific passage in dispute, and supporting documentary evidence or primary sources.
+                Email our newsroom desk at <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a> with the headline, article URL, the specific passage in dispute, and supporting documentary evidence or primary sources.
               </p>
             </div>
           </div>
@@ -129,7 +129,7 @@ export const CorrectionsView: React.FC = () => {
             </h2>
           </div>
           <p>
-            If a citizen stringer or publisher realizes that an uploaded dispatch contains an inadvertent error, they must not attempt to conceal it. Publishers can submit an edit request directly through the Publisher Studio or email <a href="mailto:publishers@nagrik.news" className="text-[#DE5227] underline font-bold">publishers@nagrik.news</a> specifying the article ID and the factual correction.
+            If a citizen stringer or publisher realizes that an uploaded dispatch contains an inadvertent error, they must not attempt to conceal it. Publishers can submit an edit request directly through the Publisher Studio or email <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a> specifying the article ID and the factual correction.
           </p>
         </section>
 
@@ -217,7 +217,7 @@ export const CorrectionsView: React.FC = () => {
             </h2>
           </div>
           <p>
-            Complaints involving allegations of criminal defamation or violations of judicial restraint are escalated immediately to our Legal Desk and Resident Grievance Officer (<a href="mailto:grievance@nagrik.news" className="text-[#DE5227] underline">grievance@nagrik.news</a>). Where necessary, temporary access holds are applied while factual determination is pending.
+            Complaints involving allegations of criminal defamation or violations of judicial restraint are escalated immediately to our Legal Desk and Resident Grievance Officer (<a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline">wizzlingsupport@gmail.com</a>). Where necessary, temporary access holds are applied while factual determination is pending.
           </p>
         </section>
 

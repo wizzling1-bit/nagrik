@@ -225,7 +225,7 @@ export const PublisherGuidelinesView: React.FC = () => {
             </h2>
           </div>
           <p>
-            Violations of these guidelines will trigger warnings, temporary suspension, or permanent de-platforming depending on severity. If you believe an enforcement action was taken in error, you may file a formal appeal with supporting facts by emailing <a href="mailto:publishers@nagrik.news" className="text-[#DE5227] underline font-bold">publishers@nagrik.news</a>.
+            Violations of these guidelines will trigger warnings, temporary suspension, or permanent de-platforming depending on severity. If you believe an enforcement action was taken in error, you may file a formal appeal with supporting facts by emailing <a href="mailto:wizzlingsupport@gmail.com" className="text-[#DE5227] underline font-bold">wizzlingsupport@gmail.com</a>.
           </p>
         </section>
 

@@ -13,7 +13,7 @@ This document establishes the architecture, content specifications, and statutor
 The suite is drafted in full accordance with the latest Indian and international digital statutory frameworks effective in **2026**:
 
 1. **Digital Personal Data Protection (DPDP) Act, 2023 & DPDP Rules**:
-   - Explicit classification of Nagrik Media Trust / Naagrik Technologies as **Data Fiduciary**.
+   - Explicit classification of Wizzling Pvt Ltd as **Data Fiduciary**.
    - Clear, itemized, and granular consent notices available in both English and Hindi.
    - Comprehensive articulation of **Data Principal Rights**: Right to Access Information, Right to Correction & Erasure, Right of Grievance Redressal, and Right to Nominate.
    - Strict adherence to Section 9: Prohibition of tracking, behavioral monitoring, or targeted advertising directed at children (minors under 18), with verified parental consent mechanisms.
@@ -134,11 +134,10 @@ Each document shares the cohesive Nagrik editorial design language:
 ### 3.3 `/grievance` — IT Rules 2021 Grievance Redressal Mechanism
 1. **Statutory Designation**: Appointed in compliance with Rule 11 of the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021.
 2. **Resident Grievance Officer Particulars**:
-   - **Name**: Sh. Arvind Verma
-   - **Designation**: Resident Grievance Officer (RGO) & Compliance Director
-   - **Email**: `grievance@nagrik.news`
-   - **Desk Phone**: +91 (612) 220-4912
-   - **Postal Address**: Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001, India.
+   - **Entity / Office**: Resident Grievance & Compliance Desk, Wizzling Pvt Ltd
+   - **Email**: `wizzlingsupport@gmail.com`
+   - **Desk Phone**: +91 8890043675
+   - **Postal Address**: Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, India.
 3. **Filing Procedure**:
    - Clear online complaint intake form requirements (Content ID, reporter byline, specific legal infringement, supporting documentation).
 4. **Mandatory Statutory Timelines**:

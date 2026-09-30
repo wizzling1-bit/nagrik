@@ -48,7 +48,7 @@
 
 - [ ] **Step 1: Write `PrivacyView.tsx`**
   Cover:
-  - Section 1: Introduction & Data Fiduciary Particulars (Nagrik Media Trust).
+  - Section 1: Introduction & Data Fiduciary Particulars (Wizzling Pvt Ltd).
   - Section 2: Categories of Personal Data Processed (Identity, Financial/UPI, Precise GPS, Device Telemetry).
   - Section 3: Mobile Device Permissions (Foreground/Background Location for 5km Wire, Camera, Microphone, Storage, Push Notifications).
   - Section 4: Lawful Basis under DPDP Act 2023 (Granular Consent, Legitimate Uses for Contributor Payouts).
@@ -105,7 +105,7 @@
 
 - [ ] **Step 1: Write `GrievanceView.tsx`**
   Cover:
-  - Designated Resident Grievance Officer (RGO): Sh. Arvind Verma, Patna Bureau, `grievance@nagrik.news`, +91 (612) 220-4912.
+  - Designated Resident Grievance Officer: Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, `wizzlingsupport@gmail.com`, +91 8890043675.
   - Formal complaint submission checklist (Content URL, exact grievance under IT Rules, proof of identity/rights).
   - Mandatory Timelines: 24-hour statutory acknowledgment, 24-hour interim removal for non-consensual sexual content, 15-day final resolution.
   - Level II Self-Regulatory Body and Level III Central Govt MIB Oversight.

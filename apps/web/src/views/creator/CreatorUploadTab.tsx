@@ -124,6 +124,13 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [categories, setCategories] = useState<CategoryOption[]>(DEFAULT_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState('civic-issues');
+
+  // Article Transparency & Source Provenance
+  const [reportingType, setReportingType] = useState<'ORIGINAL' | 'THIRD_PARTY' | 'GOVERNMENT_NOTICE' | 'PRESS_RELEASE'>('ORIGINAL');
+  const [authorName, setAuthorName] = useState('');
+  const [sourceName, setSourceName] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [mediaAttribution, setMediaAttribution] = useState('');
   
   // Official LGD Geographic Hierarchy State
   const [lgdStates, setLgdStates] = useState<LgdState[]>([]);
@@ -632,6 +639,27 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
         setSubmitError('Please provide a ground report description (minimum 10 characters).');
         return false;
       }
+
+      // Source Transparency Validation
+      if (reportingType === 'THIRD_PARTY') {
+        if (!sourceName.trim()) {
+          setSubmitError('Please specify the original news publisher/agency for third-party reporting.');
+          return false;
+        }
+        if (!sourceUrl.trim() || !sourceUrl.startsWith('http')) {
+          setSubmitError('Please provide a valid source URL (starting with http:// or https://) for third-party reporting.');
+          return false;
+        }
+      } else if (reportingType === 'GOVERNMENT_NOTICE') {
+        if (!sourceName.trim()) {
+          setSubmitError('Please specify the official issuing government department or public authority.');
+          return false;
+        }
+        if (!sourceUrl.trim() || !sourceUrl.startsWith('http')) {
+          setSubmitError('Please provide the official government portal or circular URL.');
+          return false;
+        }
+      }
       return true;
     }
     return true;
@@ -653,6 +681,18 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
       setCurrentStep(2);
       return;
     }
+
+    if (reportingType === 'THIRD_PARTY' && (!sourceName.trim() || !sourceUrl.trim())) {
+      setSubmitError('Please provide both the original publisher and source URL for third-party reports.');
+      setCurrentStep(2);
+      return;
+    }
+    if (reportingType === 'GOVERNMENT_NOTICE' && (!sourceName.trim() || !sourceUrl.trim())) {
+      setSubmitError('Please provide both the issuing authority and official URL for government notices.');
+      setCurrentStep(2);
+      return;
+    }
+
     if (!mediaUrl && contentFormat !== 'ARTICLE') {
       setSubmitError('Please upload your video file before publishing.');
       setCurrentStep(1);
@@ -662,6 +702,11 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
     setSubmittingContent(true);
     try {
       const isVideo = contentFormat !== 'ARTICLE';
+      const isOriginalReporting = reportingType === 'ORIGINAL';
+      const resolvedSourceName = isOriginalReporting
+        ? 'Nagrik Newsroom'
+        : sourceName.trim();
+
       const { data: authData } = await supabase.auth.getUser();
       let creatorId = typeof window !== 'undefined' ? localStorage.getItem('creator_id') : null;
       if (authData.user?.id) {
@@ -712,6 +757,12 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
           media_url: finalMediaUrl,
           thumbnail_url: finalThumbUrl,
           category_id: validCategoryId,
+          author_name: authorName.trim() || undefined,
+          source_name: resolvedSourceName,
+          source_url: isOriginalReporting ? null : (sourceUrl.trim() || null),
+          media_attribution: mediaAttribution.trim() || null,
+          is_original: isOriginalReporting,
+          published_at: new Date().toISOString(),
           location: {
             country: 'India',
             state: stateName,
@@ -774,7 +825,7 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
             <span className="text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              $1.00 CPM Guaranteed Rate (~₹{rate.toFixed(2)}/1k reads)
+              $1.00 CPM Standard Rate (~₹{rate.toFixed(2)}/1k reads)
             </span>
             <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">•</span>
             <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-[#F2ECE1] dark:bg-slate-800 px-2 py-0.5 rounded">
@@ -1238,6 +1289,122 @@ export const CreatorUploadTab: React.FC<CreatorUploadTabProps> = ({
                   rows={6}
                   className="w-full px-4 py-3 bg-white dark:bg-slate-900/80 border border-stone-200/90 dark:border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25 font-medium leading-relaxed resize-none"
                 />
+              </div>
+
+              {/* ARTICLE SOURCE & PROVENANCE (Google Play News Transparency Compliance) */}
+              <div className="p-4 bg-stone-50 dark:bg-slate-900/60 border border-stone-200/80 dark:border-slate-800 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                    <ShieldCheck className="w-4 h-4 text-[#DE5227]" />
+                    <span>Source Transparency &amp; Provenance</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                    STATUTORY BYLINE
+                  </span>
+                </div>
+
+                {/* Provenance Type Radio / Select */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Reporting Type <span className="text-[#DE5227]">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {[
+                      { type: 'ORIGINAL', label: 'Original Nagrik Report', desc: 'Direct firsthand investigation or eyewitness coverage' },
+                      { type: 'GOVERNMENT_NOTICE', label: 'Government / Public Notice', desc: 'Official circular, weather alert, or civic bulletin' },
+                      { type: 'THIRD_PARTY', label: 'Third-Party News / Wire', desc: 'Syndicated wire agency, newspaper, or digital publisher' },
+                      { type: 'PRESS_RELEASE', label: 'Press Release / Corporate', desc: 'Official announcement from organization or NGO' }
+                    ].map(opt => (
+                      <button
+                        key={opt.type}
+                        type="button"
+                        onClick={() => setReportingType(opt.type as any)}
+                        className={`p-3 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                          reportingType === opt.type
+                            ? 'bg-orange-500/10 border-[#DE5227] ring-1 ring-[#DE5227]/30'
+                            : 'bg-white dark:bg-slate-900 border-stone-200 dark:border-slate-800 hover:border-slate-400'
+                        }`}
+                      >
+                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                          <span>{opt.label}</span>
+                          {reportingType === opt.type && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#DE5227]" />
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
+                          {opt.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reporter / Author Name */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Reporter / Author Byline (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={authorName}
+                    onChange={e => setAuthorName(e.target.value)}
+                    placeholder="e.g. Anand Kumar (Leave blank to use your creator channel name)"
+                    className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
+                  />
+                </div>
+
+                {/* Dynamic fields when NOT original */}
+                {reportingType !== 'ORIGINAL' && (
+                  <div className="space-y-3 pt-2 border-t border-stone-200/60 dark:border-slate-800">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        {reportingType === 'GOVERNMENT_NOTICE'
+                          ? 'Issuing Government Authority / Department *'
+                          : 'Original Source / News Publisher *'}
+                      </label>
+                      <input
+                        type="text"
+                        value={sourceName}
+                        onChange={e => setSourceName(e.target.value)}
+                        placeholder={
+                          reportingType === 'GOVERNMENT_NOTICE'
+                            ? 'e.g. India Meteorological Department (IMD) / Patna Municipal Corporation'
+                            : 'e.g. Press Trust of India (PTI) / Local Wire Agency'
+                        }
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        {reportingType === 'GOVERNMENT_NOTICE'
+                          ? 'Official Government Portal / Circular URL *'
+                          : 'Original Article Source URL *'}
+                      </label>
+                      <input
+                        type="url"
+                        value={sourceUrl}
+                        onChange={e => setSourceUrl(e.target.value)}
+                        placeholder="https://example.gov.in/notices/bulletin-2026.pdf"
+                        className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Media Attribution */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Media / Photo Attribution (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={mediaAttribution}
+                    onChange={e => setMediaAttribution(e.target.value)}
+                    placeholder="e.g. Photo by Stringer Vikas / Nagar Nigam PR Desk"
+                    className="w-full px-3.5 py-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#DE5227]/25"
+                  />
+                </div>
               </div>
 
               {/* Step 2 Actions */}

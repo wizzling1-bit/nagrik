@@ -113,7 +113,7 @@ Three-strike policy leading to permanent publisher termination.`
       isPublished: true,
       updatedAt: new Date().toISOString(),
       content: `### 1. Reader Inquiries
-Readers report factual inaccuracies to editor@nagrik.news or via the /report portal.
+Readers report factual inaccuracies to wizzlingsupport@gmail.com or via the /report portal.
 
 ### 2. Substantive Corrections
 Significant errors result in an updated timestamp and a prominent public Correction Box.`
@@ -167,7 +167,7 @@ Readers can flag harmful or inaccurate content directly through our reporting de
 Contributors retain 100% copyright in their original footage and grant Nagrik a non-exclusive license.
 
 ### 2. Takedown Notices
-Notices under the Indian Copyright Act, 1957 should be directed to copyright@nagrik.news.`
+Notices under the Indian Copyright Act, 1957 should be directed to wizzlingsupport@gmail.com.`
     },
     {
       slug: 'advertising',
@@ -206,7 +206,31 @@ Support for high-contrast themes, bilingual typography (Hindi/Devanagari), scree
       isPublished: true,
       updatedAt: new Date().toISOString(),
       content: `### 1. Operating Entity
-Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001.`
+Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163. Support: wizzlingsupport@gmail.com. Phone: +91 8890043675.`
+    },
+    {
+      slug: 'contact',
+      title: 'Contact Desk & Public Bureaus',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Public Desks
+General & Editorial: wizzlingsupport@gmail.com
+Grievance: wizzlingsupport@gmail.com
+Phone: +91 8890043675
+Address: Wizzling Pvt Ltd, Koilwar, Arrah, Bhojpur, Bihar – 802163, India.`
+    },
+    {
+      slug: 'government-disclaimer',
+      title: 'Government Information & Non-Affiliation Disclaimer',
+      version: '2026.1',
+      isPublished: true,
+      updatedAt: new Date().toISOString(),
+      content: `### 1. Non-Affiliation Declaration
+Nagrik is an independent digital news and civic information platform operated by Wizzling Pvt Ltd. Nagrik is NOT a government application and is not affiliated with, endorsed by, sponsored by, or operated by the Government of India, any State Government, District Administration, Municipal Corporation, Panchayat, or other government authority.
+
+### 2. No Government Services
+Nagrik does not provide government services or act on behalf of any government authority. Government-related information may be obtained from publicly available official sources for informational purposes.`
     },
     {
       slug: 'grievance',
@@ -215,7 +239,7 @@ Nagrik Media Trust, Bureau House, Fraser Road, Patna, Bihar – 800001.`
       isPublished: true,
       updatedAt: new Date().toISOString(),
       content: `### 1. Rule 11 IT Rules 2021
-Designated Resident Grievance Officer: grievance@nagrik.news. 24h statutory acknowledgment.`
+Designated Resident Grievance Officer: wizzlingsupport@gmail.com. Phone: +91 8890043675. 24h statutory acknowledgment.`
     }
   ];
 

@@ -861,8 +861,8 @@ export const HomeView: React.FC<HomeViewProps> = () => {
               </h2>
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                 {language === 'hi'
-                  ? 'नागरिक निष्पक्ष पत्रकारिता और स्थानीय सत्यापन पर आधारित है। यहां आपके काम की पूरी सुरक्षा और तुरंत पारदर्शी भुगतान की गारंटी है।'
-                  : 'Every ground report on Nagrik is anchored by cryptographic geotagging, rigorous anti-fraud filtering, and guaranteed direct financial disbursals.'}
+                  ? 'नागरिक निष्पक्ष पत्रकारिता और स्थानीय सत्यापन पर आधारित है। यहां आपके काम की पूरी सुरक्षा और पारदर्शी भुगतान की व्यवस्था है।'
+                  : 'Every ground report on Nagrik is anchored by cryptographic geotagging, rigorous anti-fraud filtering, and direct transparent financial disbursals.'}
               </p>
             </div>
 

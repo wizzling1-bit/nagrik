@@ -434,11 +434,11 @@ const translations: Record<Language, Translations> = {
     publisherPillar1: 'Publish reports from your ward independently',
     publisherPillar2: 'Direct reach to citizens living within 5 km',
     publisherPillar3: '100% intellectual property & copyright retained',
-    publisherPillar4: 'Guaranteed $1.50 CPM flat rate with instant UPI payouts',
+    publisherPillar4: 'Standard $1.00 CPM rate card with direct UPI payouts',
     publisherGatewayCta: 'Explore Publisher Program & Earnings Calculator →',
 
     pubHeroTitle: 'Report for Your Neighborhood',
-    pubHeroSubtitle: 'Join Nagrik as an independent ground reporter. Publish verified local stories and earn a guaranteed $1.50 CPM disbursed directly via UPI.',
+    pubHeroSubtitle: 'Join Nagrik as an independent ground reporter. Publish verified local stories and earn up to $1.00 CPM disbursed directly via UPI.',
     pubCalcTitle: 'Transparent Earnings Calculator',
     pubCalcSubtitle: 'Calculate your projected earnings based on verified monthly reads and video impressions.',
     pubMonthlyViewsLabel: 'Estimated Verified Reads & Views',
@@ -446,7 +446,7 @@ const translations: Record<Language, Translations> = {
     pubTimeframeMonthly: 'Monthly',
     pubTimeframeAnnual: 'Annual',
     pubTimeframeDaily: 'Daily',
-    pubCpmRateLabel: 'Guaranteed CPM Rate',
+    pubCpmRateLabel: 'Standard CPM Rate',
     pubGrossPayoutLabel: 'Projected Gross Payout',
     pubPayoutMethodLabel: 'Payout Method',
     pubZeroFees: 'Zero Platform Fees • Direct UPI Disbursal',
@@ -488,14 +488,14 @@ const translations: Record<Language, Translations> = {
     faq7Q: 'Where can I download the Nagrik mobile app?',
     faq7A: 'The Nagrik mobile app is available for Android and iOS. You can download it directly from Google Play, Apple App Store, or by scanning the QR code on this website.',
 
-    footerMission: 'Nagrik is India’s premier hyperlocal news and short-video platform, delivering relevant ground truth within your neighborhood without corporate studio filters.',
+    footerMission: 'Nagrik is an independent hyperlocal news and civic information platform operated by Wizzling Pvt Ltd, delivering relevant ground truth within your neighborhood without corporate studio filters.',
     footerPlatformCol: 'Platform',
     footerPublishersCol: 'For Publishers',
     footerCompanyCol: 'Company',
     footerLegalCol: 'Legal',
     footerLiveUpdates: 'Live in 100+ Indian Cities',
-    footerRightsReserved: 'All rights reserved. Nagrik News Network.',
-    footerCraftedInIndia: 'Crafted in India • Desi Citizen Journalism'
+    footerRightsReserved: 'All rights reserved. Wizzling Pvt Ltd.',
+    footerCraftedInIndia: 'Made in India • Independent Civic Journalism'
   }
 };
 
