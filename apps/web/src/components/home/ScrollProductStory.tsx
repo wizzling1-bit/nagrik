@@ -108,69 +108,50 @@ export const ScrollProductStory: React.FC = () => {
     }
   }, [steps.length]);
 
-  // Butter-smooth scroll tracking with 0 React re-renders during continuous scrolling
+  // Butter-smooth step tracking with zero layout thrashing via IntersectionObserver
   useEffect(() => {
-    let animationFrameId: number;
+    if (typeof window === 'undefined') return;
 
-    const handleScroll = () => {
-      // Only track scroll on desktop (lg: and above)
-      if (window.innerWidth < 1024) return;
-      if (isManualScrollRef.current) return;
+    const stepElements = stepRefs.current;
 
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isManualScrollRef.current) return;
+        if (window.innerWidth < 1024) return;
 
-      animationFrameId = requestAnimationFrame(() => {
-        const stepElements = stepRefs.current;
-        const windowHeight = window.innerHeight;
-        const triggerPoint = windowHeight * 0.44;
+        let bestIndex = -1;
+        let highestRatio = 0;
 
-        let closestIndex = activeStepRef.current;
-        let minDistance = Infinity;
-
-        stepElements.forEach((el, index) => {
-          if (!el) return;
-          const rect = el.getBoundingClientRect();
-          const elementCenter = rect.top + rect.height * 0.35;
-          const distance = Math.abs(elementCenter - triggerPoint);
-
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestIndex = index;
+        entries.forEach((entry) => {
+          const index = stepElements.indexOf(entry.target as HTMLDivElement);
+          if (entry.isIntersecting && entry.intersectionRatio > highestRatio) {
+            highestRatio = entry.intersectionRatio;
+            bestIndex = index;
           }
         });
 
-        // Only update React state if active step actually changed
-        if (closestIndex !== activeStepRef.current) {
-          activeStepRef.current = closestIndex;
-          setActiveStep(closestIndex);
-        }
+        if (bestIndex !== -1 && bestIndex !== activeStepRef.current) {
+          activeStepRef.current = bestIndex;
+          setActiveStep(bestIndex);
 
-        // Direct hardware-accelerated DOM manipulation for zero-lag 120fps continuous fill
-        const firstEl = stepElements[0];
-        const lastEl = stepElements[stepElements.length - 1];
-        if (firstEl && lastEl && progressLineRef.current) {
-          const firstRect = firstEl.getBoundingClientRect();
-          const lastRect = lastEl.getBoundingClientRect();
-          const firstCenter = firstRect.top + 32;
-          const lastCenter = lastRect.top + 32;
-          const totalDistance = lastCenter - firstCenter;
-
-          if (totalDistance > 0) {
-            const currentDistance = triggerPoint - firstCenter;
-            const progress = Math.min(Math.max(currentDistance / totalDistance, 0), 1);
-            const percent = Math.min(Math.max(progress * 100, (closestIndex / (steps.length - 1)) * 100), 100);
+          if (progressLineRef.current) {
+            const percent = (bestIndex / (steps.length - 1)) * 100;
             progressLineRef.current.style.height = `${percent}%`;
           }
         }
-      });
-    };
+      },
+      {
+        rootMargin: '-15% 0px -35% 0px',
+        threshold: [0.15, 0.4, 0.7]
+      }
+    );
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    stepElements.forEach((el) => {
+      if (el) observer.observe(el);
+    });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
       if (manualScrollTimeoutRef.current) clearTimeout(manualScrollTimeoutRef.current);
     };
   }, [steps.length]);

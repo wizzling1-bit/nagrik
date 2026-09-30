@@ -34,79 +34,85 @@ export const Navbar: React.FC = () => {
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let animationFrameId: number;
-
-    const sections = ['story', 'why', 'ecosystem', 'earnings', 'trust', 'faq'];
+    let ticking = false;
 
     const handleScroll = () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const isScrolled = scrollY > 20;
 
-      animationFrameId = requestAnimationFrame(() => {
-        const scrollY = window.scrollY;
-        const isScrolled = scrollY > 24;
-
-        if (isScrolled !== scrolledRef.current) {
-          scrolledRef.current = isScrolled;
-          setScrolled(isScrolled);
-        }
-
-        const winHeight = window.innerHeight;
-
-        // Dynamic Dark Section Detection for seamless transparent navigation
-        const darkElements = document.querySelectorAll('[data-navbar-theme="dark"], footer');
-        let overDark = false;
-        for (let i = 0; i < darkElements.length; i++) {
-          const rect = darkElements[i].getBoundingClientRect();
-          if (rect.top <= 80 && rect.bottom >= 10) {
-            overDark = true;
-            break;
+          if (isScrolled !== scrolledRef.current) {
+            scrolledRef.current = isScrolled;
+            setScrolled(isScrolled);
           }
-        }
-        if (overDark !== isOverDarkRef.current) {
-          isOverDarkRef.current = overDark;
-          setIsOverDark(overDark);
-        }
 
-        // Direct hardware-accelerated progress bar update with 0 React re-renders & 0 reflow
-        if (progressBarRef.current) {
-          const docHeight = document.documentElement.scrollHeight;
-          const maxScroll = docHeight - winHeight;
-          if (maxScroll > 0) {
-            const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
-            progressBarRef.current.style.transform = `scaleX(${progress})`;
-          }
-        }
-
-        // Active Section Scroll Spy with zero forced reflow
-        const triggerY = winHeight * 0.35;
-        let current = 'hero';
-
-        for (const id of sections) {
-          const el = document.getElementById(id);
-          if (el) {
-            const rect = el.getBoundingClientRect();
-            if (rect.top <= triggerY && rect.bottom >= triggerY) {
-              current = id;
-              break;
+          if (progressBarRef.current) {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (docHeight > 0) {
+              const progress = Math.min(Math.max(scrollY / docHeight, 0), 1);
+              progressBarRef.current.style.transform = `scaleX(${progress})`;
             }
           }
-        }
 
-        if (current !== activeSectionRef.current) {
-          activeSectionRef.current = current;
-          setActiveSection(current);
-        }
-      });
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
+    // IntersectionObserver for active section spy (zero layout thrashing)
+    const sections = ['story', 'why', 'ecosystem', 'earnings', 'trust', 'faq'];
+    const sectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            if (id && id !== activeSectionRef.current) {
+              activeSectionRef.current = id;
+              setActiveSection(id);
+            }
+          }
+        });
+      },
+      {
+        rootMargin: '-15% 0px -60% 0px',
+        threshold: 0.05,
+      }
+    );
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) sectionObserver.observe(el);
+    });
+
+    // IntersectionObserver for dark elements over navbar
+    const darkObserver = new IntersectionObserver(
+      (entries) => {
+        const isAnyDark = entries.some((e) => e.isIntersecting);
+        if (isAnyDark !== isOverDarkRef.current) {
+          isOverDarkRef.current = isAnyDark;
+          setIsOverDark(isAnyDark);
+        }
+      },
+      {
+        rootMargin: '0px 0px -90% 0px',
+        threshold: 0,
+      }
+    );
+
+    const darkElements = document.querySelectorAll('[data-navbar-theme="dark"], footer');
+    darkElements.forEach((el) => darkObserver.observe(el));
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      sectionObserver.disconnect();
+      darkObserver.disconnect();
     };
-  }, []);
+  }, [pathname]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -211,18 +217,18 @@ export const Navbar: React.FC = () => {
             {/* Theme Toggle Button with Smooth Rotating Morph */}
             <button
               onClick={(e) => toggleTheme(e)}
-              className={`w-9 h-9 rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] group relative overflow-hidden ${
-                isDarkTone
-                  ? 'bg-white/[0.06] hover:bg-white/[0.12] text-amber-300 border border-white/10 hover:border-amber-400/40 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)]'
-                  : 'bg-surface-card hover:bg-surface-muted text-slate-700 border border-stone-300/80 hover:border-[#DE5227]/40 hover:shadow-[0_0_12px_rgba(222,82,39,0.15)]'
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full transition-all duration-200 active:scale-90 flex items-center justify-center cursor-pointer shadow-xs focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] group relative overflow-hidden ${
+                theme === 'dark'
+                  ? 'bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/25 shadow-[0_0_15px_rgba(251,191,36,0.15)]'
+                  : 'bg-surface-card hover:bg-stone-200/80 text-slate-700 border border-stone-300/80 hover:border-slate-400/60 shadow-xs'
               }`}
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               aria-label="Toggle theme"
             >
-              <div className="relative w-4 h-4 flex items-center justify-center pointer-events-none">
+              <div className="relative w-4.5 h-4.5 flex items-center justify-center pointer-events-none">
                 {/* Sun Icon (Rotates and scales in dark mode) */}
                 <Sun
-                  className={`w-4 h-4 text-amber-400 absolute transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`w-4.5 h-4.5 text-amber-400 absolute transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     theme === 'dark'
                       ? 'rotate-0 scale-100 opacity-100 group-hover:rotate-45'
                       : 'rotate-90 scale-0 opacity-0'
@@ -230,7 +236,7 @@ export const Navbar: React.FC = () => {
                 />
                 {/* Moon Icon (Rotates and scales in light mode) */}
                 <Moon
-                  className={`w-4 h-4 absolute transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`w-4.5 h-4.5 absolute transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     isDarkTone ? 'text-slate-200' : 'text-slate-700'
                   } ${
                     theme === 'dark'
@@ -267,23 +273,25 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile Navigation Controls */}
-          <div className="flex items-center gap-1 sm:gap-1.5 md:hidden shrink-0">
+          <div className="flex items-center gap-1.5 md:hidden shrink-0">
             {/* Dark mode */}
             <button
               onClick={(e) => toggleTheme(e)}
-              className={`w-8 h-8 rounded-full active:scale-90 transition-all flex items-center justify-center cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] relative overflow-hidden ${
-                isDarkTone ? 'text-slate-200 hover:bg-slate-800/60' : 'text-slate-700 hover:bg-stone-200/60'
+              className={`w-8.5 h-8.5 rounded-full active:scale-90 transition-all flex items-center justify-center cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#DE5227] relative overflow-hidden ${
+                theme === 'dark'
+                  ? 'bg-amber-400/15 text-amber-300 border border-amber-400/25'
+                  : 'bg-surface-card text-slate-700 border border-stone-300/80 hover:bg-stone-200/60'
               }`}
               aria-label="Toggle theme"
             >
               <div className="relative w-4 h-4 flex items-center justify-center pointer-events-none">
                 <Sun
-                  className={`w-4 h-4 text-amber-400 absolute transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`w-4 h-4 text-amber-400 absolute transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     theme === 'dark' ? 'rotate-0 scale-100 opacity-100' : 'rotate-90 scale-0 opacity-0'
                   }`}
                 />
                 <Moon
-                  className={`w-4 h-4 absolute transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`w-4 h-4 absolute transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     isDarkTone ? 'text-slate-200' : 'text-slate-700'
                   } ${
                     theme === 'dark' ? '-rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'

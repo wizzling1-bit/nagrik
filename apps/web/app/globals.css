@@ -63,58 +63,27 @@
     caret-color: #DE5227;
   }
 
-  /* Silky smooth theme switching transition */
-  html.theme-transitioning,
-  html.theme-transitioning body,
-  html.theme-transitioning header,
-  html.theme-transitioning nav,
-  html.theme-transitioning main,
-  html.theme-transitioning section,
-  html.theme-transitioning footer,
-  html.theme-transitioning div,
-  html.theme-transitioning button,
-  html.theme-transitioning a,
-  html.theme-transitioning p,
-  html.theme-transitioning span,
-  html.theme-transitioning h1,
-  html.theme-transitioning h2,
-  html.theme-transitioning h3,
-  html.theme-transitioning h4 {
-    transition: background-color 350ms cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 350ms cubic-bezier(0.16, 1, 0.3, 1),
-                color 350ms cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1) !important;
-    transition-delay: 0s !important;
+  /* Smooth theme switching fallback for browsers without View Transitions */
+  html.theme-fade-fallback body {
+    transition: background-color 200ms ease-out, color 200ms ease-out;
   }
 
-  /* View Transition API Polish: Silky Cross-fade & Circular Wave */
+  /* View Transition API: Silky Hardware-Accelerated Circular Ripple */
+  ::view-transition-group(root) {
+    animation-duration: 380ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   ::view-transition-old(root) {
-    animation: 300ms cubic-bezier(0.16, 1, 0.3, 1) both themeFadeOut;
-    z-index: 1;
-  }
-  ::view-transition-new(root) {
-    animation: 300ms cubic-bezier(0.16, 1, 0.3, 1) both themeFadeIn;
-    z-index: 2;
-  }
-
-  @keyframes themeFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes themeFadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-
-  /* Circular Wave Active State */
-  html.theme-transition-circular::view-transition-old(root) {
     animation: none;
     z-index: 1;
-  }
-  html.theme-transition-circular::view-transition-new(root) {
-    animation: none;
     mix-blend-mode: normal;
+  }
+
+  ::view-transition-new(root) {
+    animation: none;
     z-index: 9999;
+    mix-blend-mode: normal;
   }
 
   /* Accessible focus indicators */
@@ -280,31 +249,23 @@
 }
 
 .animate-scribble-float-1 {
-  animation: scribbleFloat1 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  backface-visibility: hidden;
+  animation: scribbleFloat1 6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   transform: translate3d(0, 0, 0);
-  will-change: transform;
 }
 
 .animate-scribble-float-2 {
-  animation: scribbleFloat2 5.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  backface-visibility: hidden;
+  animation: scribbleFloat2 7s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   transform: translate3d(0, 0, 0);
-  will-change: transform;
 }
 
 .animate-scribble-sway {
-  animation: scribbleSway 6.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  backface-visibility: hidden;
+  animation: scribbleSway 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   transform: translate3d(0, 0, 0);
-  will-change: transform;
 }
 
 .animate-scribble-bob {
-  animation: scribbleBob 4.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  backface-visibility: hidden;
+  animation: scribbleBob 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   transform: translate3d(0, 0, 0);
-  will-change: transform;
 }
 
 

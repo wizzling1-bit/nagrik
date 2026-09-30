@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -20,28 +20,34 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [theme, setThemeState] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
+  // Synchronize theme on initial mount
   useEffect(() => {
-    // 1. Check local storage or system preference
-    const storedTheme = localStorage.getItem('nagrik_theme') as Theme | null;
-    if (storedTheme === 'dark' || storedTheme === 'light') {
-      setThemeState(storedTheme);
-      applyTheme(storedTheme);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setThemeState('dark');
-      applyTheme('dark');
+    let initialTheme: Theme = 'light';
+    try {
+      const storedTheme = localStorage.getItem('nagrik_theme') as Theme | null;
+      if (storedTheme === 'dark' || storedTheme === 'light') {
+        initialTheme = storedTheme;
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        initialTheme = 'dark';
+      }
+    } catch {
+      // Storage unavailable in incognito/restricted mode
+    }
+
+    setThemeState(initialTheme);
+    const root = document.documentElement;
+    if (initialTheme === 'dark') {
+      root.classList.add('dark');
+      root.style.colorScheme = 'dark';
     } else {
-      setThemeState('light');
-      applyTheme('light');
+      root.classList.remove('dark');
+      root.style.colorScheme = 'light';
     }
     setMounted(true);
   }, []);
 
-  const applyTheme = (newTheme: Theme) => {
+  const applyThemeClass = (newTheme: Theme) => {
     const root = document.documentElement;
-    
-    // Add smooth theme transition class for fallback animations
-    root.classList.add('theme-transitioning');
-    
     if (newTheme === 'dark') {
       root.classList.add('dark');
       root.style.colorScheme = 'dark';
@@ -49,22 +55,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.classList.remove('dark');
       root.style.colorScheme = 'light';
     }
-
-    // Clean up temporary transition class after transition finishes
-    window.setTimeout(() => {
-      root.classList.remove('theme-transitioning');
-    }, 420);
   };
 
-  const setTheme = (newTheme: Theme, event?: React.MouseEvent<HTMLElement> | { clientX: number; clientY: number }) => {
+  const setTheme = useCallback((newTheme: Theme, event?: React.MouseEvent<HTMLElement> | { clientX: number; clientY: number }) => {
     setThemeState(newTheme);
-    localStorage.setItem('nagrik_theme', newTheme);
-    
+    try {
+      localStorage.setItem('nagrik_theme', newTheme);
+    } catch {
+      // Storage unavailable
+    }
+
     const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const hasViewTransition = typeof document !== 'undefined' && 'startViewTransition' in document && typeof (document as any).startViewTransition === 'function';
 
     if (hasViewTransition && !isReducedMotion) {
-      const root = document.documentElement;
+      // Determine origin coordinates for circular wave transition
       let x = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
       let y = 40;
 
@@ -73,11 +78,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         y = event.clientY;
       }
 
-      root.classList.add('theme-transition-circular');
-
       try {
         const transition = (document as any).startViewTransition(() => {
-          applyTheme(newTheme);
+          applyThemeClass(newTheme);
         });
 
         const endRadius = Math.hypot(
@@ -87,7 +90,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (transition && transition.ready) {
           transition.ready.then(() => {
-            const anim = root.animate(
+            document.documentElement.animate(
               {
                 clipPath: [
                   `circle(0px at ${x}px ${y}px)`,
@@ -95,40 +98,33 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 ]
               },
               {
-                duration: 450,
+                duration: 380,
                 easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 pseudoElement: '::view-transition-new(root)'
               }
             );
-
-            anim.onfinish = () => {
-              root.classList.remove('theme-transition-circular');
-            };
           }).catch(() => {
-            root.classList.remove('theme-transition-circular');
-          });
-        }
-
-        if (transition && transition.finished) {
-          transition.finished.then(() => {
-            root.classList.remove('theme-transition-circular');
-          }).catch(() => {
-            root.classList.remove('theme-transition-circular');
+            // Ignore animation failure
           });
         }
       } catch {
-        root.classList.remove('theme-transition-circular');
-        applyTheme(newTheme);
+        applyThemeClass(newTheme);
       }
     } else {
-      applyTheme(newTheme);
+      // Smooth subtle CSS fallback on root/body without universal selector lag
+      const root = document.documentElement;
+      root.classList.add('theme-fade-fallback');
+      applyThemeClass(newTheme);
+      window.setTimeout(() => {
+        root.classList.remove('theme-fade-fallback');
+      }, 250);
     }
-  };
+  }, []);
 
-  const toggleTheme = (event?: React.MouseEvent<HTMLElement> | { clientX: number; clientY: number }) => {
+  const toggleTheme = useCallback((event?: React.MouseEvent<HTMLElement> | { clientX: number; clientY: number }) => {
     const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme, event);
-  };
+  }, [theme, setTheme]);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
